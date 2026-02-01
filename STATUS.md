@@ -1,131 +1,138 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2024-02-01
-> **Current Phase:** Phase 0 — Foundation
-> **Version:** 0.1.0
+> **Last Updated:** 2026-02-01
+> **Current Phase:** Phase 1 — MVP Core
+> **Version:** 0.2.0
 
 ---
 
 ## Current State
 
-### Phase Progress
+### Implementation Progress
 
 ```
-Phase 0: Foundation    [████████████████████] 100% ✓
-Phase 1: Core Skills   [░░░░░░░░░░░░░░░░░░░░]   0%
-Phase 2: Commands      [░░░░░░░░░░░░░░░░░░░░]   0%
-Phase 3: Agents        [░░░░░░░░░░░░░░░░░░░░]   0%
-Phase 4: Gates         [░░░░░░░░░░░░░░░░░░░░]   0%
-Phase 5: Polish        [░░░░░░░░░░░░░░░░░░░░]   0%
+Foundation          [████████████████████] 100% ✓
+Commands            [████████████████████] 100% ✓
+Profiles            [████████████████████] 100% ✓
+Templates           [████████████████████] 100% ✓
+Documentation       [████████████████████] 100% ✓
+Testing             [░░░░░░░░░░░░░░░░░░░░]   0%
 ```
 
 ---
 
-## What's Done (Phase 0)
+## What's Done
+
+### Native-First Architecture (2026-02-01)
+- [x] Decided to use Claude Code native tools instead of reimplementing
+- [x] Updated CLAUDE.md to document native-first approach
+- [x] Captured decision in `.claude/rules/learnings.md`
+
+### Commands
+- [x] `/cs-loop` - Autonomous development loop
+- [x] `/cs-plan` - Plan before executing
+- [x] `/cs-status` - Show current status
+- [x] `/cs-learn` - Save learnings to memory
+
+### Profiles
+- [x] `python.yaml` - Python project profile
+- [x] `typescript.yaml` - TypeScript project profile
+- [x] `general.yaml` - Fallback profile
 
 ### Documentation
-- [x] Simplified CLAUDE.md
-- [x] Simplified README.md
-- [x] Updated STATUS.md
-- [x] Updated DECISIONS.md
-- [x] Created DEFERRED_FEATURES.md
+- [x] CLAUDE.md - Main instructions (updated for native-first)
+- [x] `.claude/rules/learnings.md` - Native memory
+- [x] STATUS.md - Current progress
+- [x] CHANGELOG.md - Version history
+- [x] DECISIONS.md - ADRs (DEC-010 added)
+- [x] README.md - Project overview
 
-### Project Profiles
-- [x] Python profile
-- [x] TypeScript/React profile
-- [x] Shell/PowerShell profile
-- [x] Go profile
-- [x] General (fallback) profile
-- [x] Profile schema
-
-### Phase Definitions
-- [x] 01-init.md
-- [x] 02-understand.md
-- [x] 03-plan.md
-- [x] 04-execute.md
-- [x] 05-verify.md
-- [x] 06-quality.md
-- [x] 07-commit.md
-- [x] 08-evaluate.md
-
-### Cleanup
-- [x] Archived old planning docs to reference/v2-planning/
-- [x] Created reference/DEFERRED_FEATURES.md
-- [x] Cleaned up directory structure
+### Templates
+- [x] `templates/STATUS.md` - Status template for new projects
+- [x] `templates/CHANGELOG.md` - Changelog template
+- [x] `templates/DECISIONS.md` - Decisions template
+- [x] `templates/learnings.md` - Learnings template
 
 ---
 
-## What's Next (Phase 1 — MVP)
+## What's Next
 
-### MVP Skills (5-6)
-- [ ] profile-detector
-- [ ] context-loader
-- [ ] checkpoint
-- [ ] error-recovery
-- [ ] queue-manager
-- [ ] definition-of-done
+### Testing the Commands
+- [ ] Test `/cs-status` on this project
+- [ ] Test `/cs-loop` on a real task
+- [ ] Test `/cs-plan` on a complex task
 
-### MVP Commands (3)
-- [ ] /cs-loop
-- [ ] /cs-plan
-- [ ] /cs-status
+### Apply to Another Project
+- [ ] Try Claude Sentient on a Python project
+- [ ] Try Claude Sentient on a TypeScript project
+- [ ] Validate profile detection works
 
-### MVP Gates (4 blocking)
-- [ ] LINT gate
-- [ ] TEST gate
-- [ ] BUILD gate
-- [ ] GIT gate
+### Polish
+- [ ] Update README.md for public consumption
+- [ ] Add Go profile
+- [ ] Add Shell profile
 
-### MVP Agents (3)
-- [ ] researcher
-- [ ] code-reviewer
-- [ ] test-writer
+---
+
+## Architecture
+
+### Native Claude Code Features Used
+
+| Feature | Tool | Status |
+|---------|------|--------|
+| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` | ✓ Working |
+| Planning | `EnterPlanMode`, `ExitPlanMode` | ✓ Available |
+| Sub-agents | `Task` with `subagent_type` | ✓ Available |
+| Memory | `.claude/rules/*.md` | ✓ Working |
+| Commands | `commands/*.md` + `Skill` | ✓ Working |
+
+### Custom Components
+
+| Component | Files | Status |
+|-----------|-------|--------|
+| Commands | `commands/cs-*.md` | ✓ 4 created |
+| Profiles | `profiles/*.yaml` | ✓ 3 created |
+| Quality Gates | (embedded in profiles) | ✓ Defined |
 
 ---
 
 ## Metrics
 
-### Component Status (Iterative MVP)
-
-| Component | MVP Target | Full Target | Current | Progress |
-|-----------|------------|-------------|---------|----------|
-| Profiles | 5 | 5 | 5 | 100% |
-| Phases | 8 | 8 | 8 | 100% |
-| Skills | 5-6 | 25-30 | 0 | 0% |
-| Commands | 3 | 20-25 | 0 | 0% |
-| Agents | 3 | 10-12 | 0 | 0% |
-| Gates | 4 | 12 | 0 | 0% |
-
----
-
-## Implementation Timeline (Iterative)
-
-| Phase | Focus | Status |
-|-------|-------|--------|
-| 0 | Foundation (profiles, phases, docs) | ✓ Complete |
-| 1 | MVP Core (loop, 6 skills, 4 gates, 3 agents) | Pending |
-| 2 | Expand (more commands, remaining blocking gates) | Future |
-| 3 | Polish (advisory gates, patterns, rules) | Future |
+| Metric | Target | Current |
+|--------|--------|---------|
+| Commands | 4 | 4 ✓ |
+| Profiles | 5 | 3 |
+| Native tools leveraged | All | ✓ |
+| External dependencies | 0 | 0 ✓ |
 
 ---
 
 ## Recent Activity
 
-### 2024-02-01 (Session 2)
-- Changed command prefix from `cc-` to `cs-`
-- Adopted iterative MVP approach (build minimal, expand based on need)
-- Added sub-agent model strategy (Haiku/Sonnet/Opus)
-- Updated DEFERRED_FEATURES.md with Phase 2+ items
-- Removed unused empty directories
+### 2026-02-01 (Session 3 - continued)
+- Added governance file system (STATUS.md, CHANGELOG.md, DECISIONS.md)
+- Created templates for governance files (`templates/`)
+- Updated commands to create/check governance files
+- Updated all documentation to reflect changes
+- Added DEC-010 for native-first architecture decision
 
-### 2024-02-01 (Session 1)
-- Simplified project from original V2 vision
-- Created 5 project profiles
-- Created 8 phase definitions
-- Archived original planning docs
-- Created DEFERRED_FEATURES.md
-- Cleaned up directory structure
-- Updated all core documentation
+### 2026-02-01 (Session 3)
+- Major pivot: adopted native-first approach
+- Removed plans for custom task queue, planning mode, sub-agents
+- Leveraging Claude Code's built-in `TaskCreate`, `EnterPlanMode`, `Task`
+- Created 4 commands: `/cs-loop`, `/cs-plan`, `/cs-status`, `/cs-learn`
+- Created 3 profiles: Python, TypeScript, General
+- Updated CLAUDE.md to v0.2.0
+
+### 2026-02-01 (Session 2)
+- Adopted official Claude Code memory pattern (`.claude/rules/*.md`)
+- Removed claude-mem dependency
+- Changed command prefix to `cs-`
+
+### 2026-02-01 (Session 1)
+- Initial project setup
+- Created phase definitions
+- Created initial profiles
 
 ---
 
@@ -138,8 +145,7 @@ None currently.
 ## Links
 
 - **Main Instructions:** `CLAUDE.md`
-- **Phases:** `phases/*.md`
+- **Commands:** `commands/cs-*.md`
 - **Profiles:** `profiles/*.yaml`
-- **Deferred Features:** `reference/DEFERRED_FEATURES.md`
-- **V1 Reference:** `reference/v1/`
-- **Original Planning:** `reference/v2-planning/`
+- **Memory:** `.claude/rules/learnings.md`
+- **Decisions:** `DECISIONS.md`

@@ -1,51 +1,70 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 0.1.0
+> **Version:** 0.2.0
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
 
 ## What Is This?
 
-Claude Sentient is an **orchestration layer** that makes Claude Code's capabilities work together cohesively. It's not a replacement for Claude Code — it's a system that helps you leverage everything Claude Code offers in an organized, autonomous way.
+Claude Sentient is an **orchestration layer** that leverages Claude Code's native capabilities to work cohesively. It's not a replacement for Claude Code — it's a thin coordination layer that makes Claude Code's built-in features work together autonomously.
 
 ### Core Philosophy
 
-1. **Autonomous by Default** — Only pause for ambiguity or risk
-2. **Profile-Aware** — Adapts to project type (Python, TypeScript, Shell, Go, etc.)
-3. **Quality-Enforced** — 8 blocking gates + 4 advisory gates
-4. **Memory-Enabled** — Uses claude-mem for persistent context
+1. **Native-First** — Use Claude Code's built-in tools, don't reinvent
+2. **Autonomous by Default** — Only pause for ambiguity or risk
+3. **Profile-Aware** — Adapts to project type (Python, TypeScript, Shell, Go, etc.)
+4. **Quality-Enforced** — Blocking gates before commits
 5. **Checkpoint-Safe** — Verified commits enable easy rollback
+
+---
+
+## Native Features We Use
+
+Claude Sentient leverages these **built-in Claude Code capabilities**:
+
+| Feature | Native Tool | How We Use It |
+|---------|-------------|---------------|
+| **Task Queue** | `TaskCreate`, `TaskUpdate`, `TaskList` | Work item tracking with dependencies |
+| **Planning** | `EnterPlanMode`, `ExitPlanMode` | Architecture decisions, complex tasks |
+| **Sub-agents** | `Task` with `subagent_type` | Parallel research, exploration |
+| **Memory** | `.claude/rules/*.md` | Persistent learnings across sessions |
+| **Commands** | `commands/*.md` + `Skill` tool | Custom `/cs-*` commands |
+| **Git** | Built-in git workflow | Commits, branches, PRs |
 
 ---
 
 ## Quick Start
 
 ```bash
-# Main autonomous loop (core command)
+# Main autonomous loop
 /cs-loop "implement user authentication"
 
-# Plan before executing (for complex tasks)
+# Plan before executing (complex tasks)
 /cs-plan "refactor the API layer"
 
 # Check current status
 /cs-status
+
+# Save a learning
+/cs-learn decision "Use PostgreSQL" "Chose for JSON support"
 ```
 
 ---
 
-## The 8-Phase Loop
+## The Loop
+
+When you invoke `/cs-loop`, Claude Sentient orchestrates:
 
 ```
-1. INIT       → Load profile, context, memory
-2. UNDERSTAND → Classify request, assess state
-3. PLAN       → Decompose work, set dependencies
-4. EXECUTE    → Implement changes
-5. VERIFY     → Run tests, type check, lint
-6. QUALITY    → Run all quality gates
-7. COMMIT     → Create checkpoint commit
-8. EVALUATE   → Done? Exit. More work? Loop.
+1. INIT       → Detect profile, load context
+2. UNDERSTAND → Classify request, assess scope
+3. PLAN       → Create tasks (TaskCreate), set dependencies
+4. EXECUTE    → Work through tasks, update status
+5. VERIFY     → Run quality gates (lint, test, build)
+6. COMMIT     → Create checkpoint commit
+7. EVALUATE   → Done? Exit. More work? Loop.
 ```
 
 ---
@@ -58,50 +77,65 @@ Sentient auto-detects project type and loads appropriate tooling:
 |---------|-------------|-------|
 | Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
 | TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
-| Shell | `*.sh`, `*.ps1` | shellcheck, bats |
+| Shell | `*.sh`, `*.ps1` | shellcheck |
 | Go | `go.mod`, `*.go` | golangci-lint, go test |
 | General | (fallback) | auto-detect |
+
+Profiles live in `profiles/*.yaml` and define:
+- Detection rules
+- Lint/test/build commands
+- Quality thresholds
+- Conventions
 
 ---
 
 ## Quality Gates
 
-### MVP Blocking (Phase 1)
-- **LINT** — Zero errors
-- **TEST** — Tests pass
-- **BUILD** — Project builds
-- **GIT** — Clean state
+Before committing, these must pass:
 
-### Future Blocking (Phase 2+)
-- **TYPE** — Type checking passes
-- **SECURITY** — No high/critical vulnerabilities
-- **QUEUE** — No S0/S1 items remaining
-- **DOD** — Definition of done met
+### Blocking (MVP)
+- **LINT** — Zero errors from linter
+- **TEST** — All tests pass
+- **BUILD** — Project builds successfully
+- **GIT** — Clean working state
 
 ### Advisory (Report Only)
+- **TYPE** — Type checking (if applicable)
 - **DOCS** — Documentation present
-- **PERF** — No performance regressions
-- **A11Y** — Accessibility (if UI)
-- **MODERN** — No deprecated APIs
+- **SECURITY** — No obvious vulnerabilities
 
 ---
 
-## Key Commands
+## Commands
 
-### MVP (Phase 1)
 | Command | Purpose |
 |---------|---------|
 | `/cs-loop [task]` | Autonomous work loop |
 | `/cs-plan [task]` | Plan before executing |
-| `/cs-status` | Show current state |
+| `/cs-status` | Show tasks, git state, profile |
+| `/cs-learn [type] [title] [content]` | Save to memory |
 
-### Future (Phase 2+)
-| Command | Purpose |
-|---------|---------|
-| `/cs-review` | Code review |
-| `/cs-test` | Run tests |
-| `/cs-commit` | Create checkpoint |
-| `/cs-fix [issue]` | Fix a specific issue |
+---
+
+## Memory System
+
+Uses the **official Claude Code pattern** — `.claude/rules/*.md` files are automatically loaded at session start.
+
+### Locations
+
+| Location | Purpose | Shared? |
+|----------|---------|---------|
+| `.claude/rules/learnings.md` | Decisions, patterns, learnings | Yes (git) |
+| `CLAUDE.md` | Project instructions | Yes (git) |
+| `CLAUDE.local.md` | Personal preferences | No (gitignored) |
+
+### Capturing Learnings
+
+```bash
+/cs-learn decision "Use PostgreSQL" "Chose for JSON support"
+/cs-learn pattern "Error shape" "All errors return {error, message, code}"
+/cs-learn learning "Avoid ORM" "Raw SQL 10x faster for bulk ops"
+```
 
 ---
 
@@ -109,93 +143,100 @@ Sentient auto-detects project type and loads appropriate tooling:
 
 ```
 claude-sentient/
-├── profiles/           # Project type profiles (python, typescript, etc.)
-├── phases/             # 8 phase definitions
-├── skills/             # Auto-triggered behaviors (25-30)
-├── commands/           # /cs-* commands (20-25)
-├── agents/             # Specialist agents (10-12)
-├── gates/              # Quality gates (12 total)
-│   ├── blocking/       # 8 blocking gates
-│   └── advisory/       # 4 advisory gates
-├── patterns/           # Reusable architecture patterns
-├── rules/              # Topic-specific standards
-├── schemas/            # JSON schemas for validation
-├── tools/              # Python CLI tools
-├── docs/               # Vision and planning docs
-├── reference/          # V1, planning docs, deferred features
-└── .claude/            # Runtime state
+├── commands/           # /cs-* command definitions
+│   ├── cs-loop.md
+│   ├── cs-plan.md
+│   ├── cs-status.md
+│   └── cs-learn.md
+├── profiles/           # Project type profiles
+│   ├── python.yaml
+│   ├── typescript.yaml
+│   └── general.yaml
+├── templates/          # Templates for governance files
+│   ├── STATUS.md
+│   ├── CHANGELOG.md
+│   ├── DECISIONS.md
+│   └── learnings.md
+├── phases/             # Phase documentation
+├── reference/          # Planning docs, deferred features
+└── .claude/
+    ├── rules/          # Memory (learnings.md)
+    └── settings.json   # Hooks and permissions
 ```
 
 ---
 
-## Memory & Learning
+## Governance Files
 
-Claude Sentient uses **claude-mem** for persistent memory:
+Claude Sentient creates and maintains these files for project continuity:
 
-- Automatic capture via hooks
-- Semantic search across sessions
-- View at http://localhost:37777
-- Query with `mem-search` skill
+| File | Purpose | Updated By |
+|------|---------|------------|
+| `STATUS.md` | Current progress, what's done/next | `/cs-loop` (on complete) |
+| `CHANGELOG.md` | Version history | Manual or on release |
+| `DECISIONS.md` | Architecture Decision Records | `/cs-learn decision` or manual |
+| `.claude/rules/learnings.md` | Quick decisions, patterns | `/cs-learn` |
 
-No complex learning engine — just persistent memory that helps maintain context.
-
----
-
-## Sub-Agents & Model Selection
-
-Claude Sentient uses sub-agents with appropriate models for different tasks:
-
-| Model | Use For | Examples |
-|-------|---------|----------|
-| **Haiku** | Fast lookups, simple operations | File searches, quick checks, status queries |
-| **Sonnet** | Most development work | Code generation, reviews, test writing |
-| **Opus** | Complex decisions, critical reviews | Architecture decisions, security audits, learning from failures |
-
-### Agent Types
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| researcher | Sonnet | Explore codebase, answer questions |
-| code-reviewer | Sonnet | Review changes for quality |
-| test-writer | Sonnet | Generate tests for code |
-| security-auditor | Opus | Security analysis (future) |
+These files bridge session gaps — when Claude starts fresh, it reads these to understand context.
 
 ---
 
-## Development Standards
+## How It Works
 
-### File Naming
-- Profiles: `name.profile.yaml`
-- Phases: `##-name.md`
-- Skills: `name.skill.md`
-- Commands: `cs-name.md`
-- Gates: `name.gate.yaml`
+### 1. You invoke `/cs-loop "add user auth"`
 
-### Quality Rules
-- All blocking gates must pass
-- Checkpoints before risky changes
-- Tests for new functionality
-- Follow project conventions (from profile)
+### 2. Init Phase
+- Detect project type (finds `pyproject.toml` → Python)
+- Load profile (ruff, pytest, pyright)
+- Load memory from `.claude/rules/`
+
+### 3. Plan Phase
+- Use `TaskCreate` to create work items
+- Set dependencies with `TaskUpdate`
+- For complex tasks, use `EnterPlanMode`
+
+### 4. Execute Phase
+- Work through tasks in dependency order
+- Update status with `TaskUpdate`
+- Use `Task` subagents for parallel work
+
+### 5. Verify Phase
+- Run lint: `ruff check .`
+- Run tests: `pytest`
+- Run build: `python -m build` (if applicable)
+
+### 6. Commit Phase
+- Create checkpoint commit
+- Follow git commit guidelines
+
+### 7. Evaluate Phase
+- Check `TaskList` for remaining work
+- If empty and gates pass → Done
+- If more work → Loop to Execute
 
 ---
 
 ## Hard Rules
 
-1. **Never skip blocking gates** — Fix issues, don't bypass
-2. **Create checkpoints** — Before risky changes
-3. **Respect profile conventions** — Match existing code style
-4. **Ask when ambiguous** — One clarifying question, then proceed
-5. **Use specialists** — Spawn agents for security, testing, etc.
+1. **Use native tools** — TaskCreate not custom queue, EnterPlanMode not custom planning
+2. **Never skip gates** — Fix issues, don't bypass
+3. **Create checkpoints** — Before risky changes
+4. **Respect profiles** — Match existing code style
+5. **Ask when ambiguous** — One question, then proceed
 
 ---
 
-## Getting Help
+## For Projects Using Claude Sentient
 
-- Phases: `phases/*.md`
-- Profiles: `profiles/*.yaml`
-- Deferred features: `reference/DEFERRED_FEATURES.md`
-- V1 reference: `reference/v1/`
+When applied to any project:
+
+1. Claude Sentient commands become available (`/cs-loop`, etc.)
+2. Project type is auto-detected
+3. Learnings are stored in `.claude/rules/learnings.md`
+4. Quality gates use profile-appropriate tools
+
+No external dependencies. No custom scripts. Just Claude Code + thin orchestration.
 
 ---
 
-*Claude Sentient: Orchestrating Claude Code for autonomous development*
+*Claude Sentient: Orchestrating Claude Code's native capabilities for autonomous development*

@@ -1,0 +1,101 @@
+# Python Project Profile
+# Loaded when pyproject.toml or requirements.txt detected
+
+name: python
+version: "1.0"
+
+# How to detect this profile
+detection:
+  files:
+    - pyproject.toml
+    - requirements.txt
+    - setup.py
+  patterns:
+    - "**/*.py"
+
+# Quality gate commands
+gates:
+  lint:
+    command: ruff check .
+    fix_command: ruff check . --fix
+    description: Check code style and errors
+
+  test:
+    command: pytest
+    verbose_command: pytest -v
+    coverage_command: pytest --cov
+    description: Run test suite
+
+  type:
+    command: pyright
+    alternative: mypy .
+    description: Type checking
+
+  build:
+    command: python -m build
+    check_command: python -m py_compile
+    description: Build package
+
+  format:
+    command: ruff format .
+    check_command: ruff format . --check
+    description: Format code
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 10
+
+# Common patterns in Python projects
+patterns:
+  - name: src-layout
+    indicator: src/
+
+  - name: flat-layout
+    indicator: "*.py in root"
+
+  - name: django
+    indicator: manage.py
+    tools:
+      test: python manage.py test
+
+  - name: fastapi
+    indicator: "from fastapi import"
+
+  - name: flask
+    indicator: "from flask import"
+
+# Conventions
+conventions:
+  - Use type hints for function signatures
+  - Prefer pathlib over os.path
+  - Use dataclasses or pydantic for data structures
+  - Follow PEP 8 naming conventions
+
+# File templates
+templates:
+  test: |
+    import pytest
+    from {module} import {function}
+
+    def test_{function}_basic():
+        # Arrange
+
+        # Act
+        result = {function}()
+
+        # Assert
+        assert result is not None
+
+# Ignore patterns for search
+ignore:
+  - __pycache__
+  - "*.pyc"
+  - .venv
+  - venv
+  - .pytest_cache
+  - .mypy_cache
+  - .ruff_cache
+  - "*.egg-info"
+  - dist
+  - build

@@ -1,64 +1,71 @@
-# CHANGELOG.md — Claude Sentient Version History
+# CHANGELOG.md — Claude Sentient
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [0.2.0] — 2026-02-01
+
+### Added
+- `/cs-loop` command - Autonomous development loop
+- `/cs-plan` command - Plan before executing (uses native `EnterPlanMode`)
+- `/cs-status` command - Show project status
+- `/cs-learn` command - Save learnings to memory
+- Python profile (`profiles/python.yaml`)
+- TypeScript profile (`profiles/typescript.yaml`)
+- General fallback profile (`profiles/general.yaml`)
+- Governance file system (STATUS.md, CHANGELOG.md, DECISIONS.md)
+- Templates for governance files (`templates/`)
+- Governance file checks in `/cs-status`
+- Auto-creation of governance files in `/cs-loop` init
+
+### Changed
+- **Major pivot to native-first architecture**
+- Now uses Claude Code's built-in `TaskCreate`/`TaskUpdate` instead of custom work queue
+- Now uses Claude Code's built-in `EnterPlanMode` instead of custom planning
+- Now uses Claude Code's built-in `Task` subagents instead of custom agents
+- Updated CLAUDE.md to v0.2.0 documenting native-first approach
+- Simplified from 99 planned skills to 4 focused commands
+
+### Removed
+- Plans for custom event bus (not needed)
+- Plans for custom task queue (using native)
+- Plans for custom planning mode (using native)
+- Plans for custom sub-agent system (using native)
+
+---
+
+## [0.1.0] — 2026-02-01
 
 ### Added
 - Initial project structure
-- Planning documents (VISION, GAMEPLAN, BLUEPRINT)
-- V1 feature inventory (68 skills, 37 commands, 15 agents)
-- Boris Cherny tips integration plan
-- JSON schemas (7 initial schemas)
-- Python tooling (validate, migrate, render)
-- V1 reference clone for migration support
-- Project governance files (CLAUDE.md, STATUS.md, DECISIONS.md)
+- Official Claude Code memory pattern (`.claude/rules/*.md`)
+- Phase definitions (8 phases)
+- Decision to use `cs-` prefix for commands
+- CLAUDE.md, STATUS.md, DECISIONS.md
 
 ### Changed
-- N/A (initial release)
-
-### Deprecated
-- N/A
-
-### Removed
-- N/A
-
-### Fixed
-- N/A
-
-### Security
-- N/A
+- Removed claude-mem dependency (unreliable)
+- Simplified scope from original V2 GAMEPLAN
 
 ---
 
-## [0.1.0] — TBD
+## [0.0.1] — 2026-02-01
 
-### Planned
-- Phase 0: Foundation complete
-- All schemas finalized
-- Event system operational
-- State management working
-- Test infrastructure in place
+### Added
+- Project initialization
+- V1 reference clone in `reference/v1/`
+- Original planning documents in `reference/v2-planning/`
+- JSON schemas (from original vision)
 
 ---
 
-## Version History
+## Version Summary
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 0.1.0 | TBD | Foundation complete |
-| 0.2.0 | TBD | Core loop working |
-| 0.3.0 | TBD | Quality gates operational |
-| 0.4.0 | TBD | Learning engine active |
-| 0.5.0 | TBD | Advanced features |
-| 0.6.0 | TBD | V1 parity achieved |
-| 1.0.0 | TBD | Production ready |
-
----
-
-*Maintained as part of the release process*
+| 0.2.0 | 2026-02-01 | Native-first pivot, 4 commands, 3 profiles |
+| 0.1.0 | 2026-02-01 | Foundation, memory pattern, simplified scope |
+| 0.0.1 | 2026-02-01 | Initial setup |

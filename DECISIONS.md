@@ -200,7 +200,7 @@ Need to choose formats for different file types. V1 used Markdown with YAML fron
 ### DEC-007: Claude-Mem for Persistent Memory
 
 **Date:** 2024-02-01
-**Status:** Accepted
+**Status:** Superseded by DEC-009
 
 **Context:**
 Learning persistence needs a robust solution. Options evaluated:
@@ -256,7 +256,6 @@ Simplify to a focused, achievable scope:
 - 8 phases (down from 10)
 - 12 quality gates (8 blocking, 4 advisory)
 - 6-week timeline (down from 14)
-- Use claude-mem for memory instead of custom learning engine
 - Use Claude Code hooks instead of custom event bus
 
 **Rationale:**
@@ -276,6 +275,85 @@ Simplify to a focused, achievable scope:
 - Proceed with full V2 plan (rejected: too ambitious)
 - Abandon V2 entirely (rejected: good ideas worth pursuing)
 - Build just the loop without profiles (rejected: profile awareness is key value)
+
+---
+
+### DEC-009: Remove Claude-Mem Dependency
+
+**Date:** 2026-02-01
+**Status:** Accepted
+
+**Context:**
+Claude-mem was selected in DEC-007 for persistent memory, but the plugin proved unreliable and is not working as expected.
+
+**Decision:**
+Remove claude-mem from the project. Operate without persistent memory for now.
+
+**Rationale:**
+- Claude-mem is not functioning correctly
+- Adding unreliable dependencies creates maintenance burden
+- Core functionality works without persistent memory
+- Can revisit memory solutions when stable options exist
+
+**Consequences:**
+- No automatic session memory persistence
+- Simpler dependency chain
+- May revisit memory solutions in the future
+
+**Alternatives Considered:**
+- Debug claude-mem issues (rejected: not worth the effort)
+- Build custom memory solution (rejected: scope creep)
+- Use manual .claude/knowledge/ files (can be added later if needed)
+
+---
+
+### DEC-010: Native-First Architecture
+
+**Date:** 2026-02-01
+**Status:** Accepted
+
+**Context:**
+The original V2 GAMEPLAN proposed custom implementations for:
+- Task queue (custom work item tracking)
+- Planning mode (custom planning workflow)
+- Sub-agents (custom agent spawning)
+- Event bus (custom pub/sub system)
+- Learning engine (custom pattern detection)
+
+Upon closer examination of Claude Code's built-in capabilities, we discovered native tools that already provide most of this functionality.
+
+**Decision:**
+Adopt a "native-first" architecture. Use Claude Code's built-in tools instead of reimplementing:
+
+| Feature | Native Tool | Replaces |
+|---------|-------------|----------|
+| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` | Custom work queue |
+| Planning | `EnterPlanMode`, `ExitPlanMode` | Custom planning |
+| Sub-agents | `Task` with `subagent_type` | Custom agents |
+| Memory | `.claude/rules/*.md` | Custom knowledge base |
+| Commands | `commands/*.md` + `Skill` | Custom command system |
+
+Claude Sentient becomes a thin orchestration layer that coordinates these native tools, rather than a parallel implementation.
+
+**Rationale:**
+- Don't reinvent the wheel — native tools are tested and maintained
+- Simpler codebase — 4 commands instead of 99 skills
+- Zero external dependencies
+- Works out of the box — no setup required
+- Aligns with Claude Code's design philosophy
+- Easier to maintain and update
+
+**Consequences:**
+- Dramatically simpler implementation
+- Dependent on Claude Code's tool availability
+- Less control over internal behavior
+- Must document which native tools are used
+- Original V2 GAMEPLAN is now reference material, not the plan
+
+**Alternatives Considered:**
+- Proceed with full custom implementation (rejected: too complex, duplicates native functionality)
+- Hybrid approach with some custom, some native (rejected: inconsistent architecture)
+- Abandon project (rejected: orchestration layer still provides value)
 
 ---
 
