@@ -38,18 +38,7 @@ FROM profile:
   - conventions
 ```
 
-### 3. Inject Memory Context
-
-```
-QUERY claude-mem for:
-  - Recent work on this project
-  - Known issues and decisions
-  - Patterns established
-
-INJECT relevant context into session
-```
-
-### 4. Load Project State
+### 3. Load Project State
 
 ```
 READ .claude/state/loop.state.json if exists:
@@ -61,7 +50,7 @@ IF no state file:
   CREATE fresh state
 ```
 
-### 5. Emit Init Complete
+### 4. Emit Init Complete
 
 ```
 STATE UPDATE:
@@ -96,7 +85,6 @@ This phase cannot be skipped. It must run at the start of every loop.
 |-------|----------|
 | No profile matches | Use general profile |
 | State file corrupted | Create fresh state |
-| Claude-mem unavailable | Continue without memory |
 
 ---
 
@@ -107,7 +95,5 @@ This phase cannot be skipped. It must run at the start of every loop.
 [INIT] Found: pyproject.toml, **/*.py
 [INIT] Loading profile: python
 [INIT] Tools: ruff, pytest, pyright
-[INIT] Querying memory for project context...
-[INIT] Found 12 relevant memories
 [INIT] Ready to proceed
 ```

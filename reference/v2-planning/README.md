@@ -32,7 +32,6 @@ The original V2 plan included:
 This was simplified to:
 - 25-30 skills, 20-25 commands, 10-12 agents
 - Use Claude Code hooks instead of custom event bus
-- Use claude-mem for learning instead of custom engine
 - 6-week timeline
 
 ---

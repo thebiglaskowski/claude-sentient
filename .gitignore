@@ -1,14 +1,22 @@
 # Claude Sentient .gitignore
+# Comprehensive ignore file for all supported project profiles
 
-# Runtime data
-.claude/state/
-.claude/metrics/
-.claude/history/
+# =============================================================================
+# CLAUDE CODE
+# =============================================================================
 
-# Keep knowledge but ignore temp
-.claude/knowledge/temp/
+# Local settings (not shared)
+.claude/settings.local.json
+CLAUDE.local.md
 
-# Python
+# Keep these in version control:
+# - .claude/settings.json (project settings)
+# - .claude/rules/*.md (project learnings - official memory pattern)
+
+# =============================================================================
+# PYTHON (ruff, pytest, pyright, mypy)
+# =============================================================================
+
 __pycache__/
 *.py[cod]
 *$py.class
@@ -29,9 +37,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual environments
 venv/
 ENV/
 env/
+.venv/
 
 # Testing
 .pytest_cache/
@@ -39,46 +50,198 @@ env/
 htmlcov/
 .tox/
 .nox/
+coverage.xml
+*.cover
+*.py,cover
 
-# IDE
+# Type checking
+.mypy_cache/
+.pyright/
+pyrightconfig.json.tmp
+
+# Linting
+.ruff_cache/
+
+# =============================================================================
+# TYPESCRIPT / JAVASCRIPT (eslint, vitest, tsc)
+# =============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+
+# Caches
+.eslintcache
+.cache/
+.parcel-cache/
+.turbo/
+
+# Vitest
+vitest.config.*.timestamp*
+
+# =============================================================================
+# GO (golangci-lint, go test)
+# =============================================================================
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# Vendor (optional - some projects commit this)
+# vendor/
+
+# =============================================================================
+# SHELL (shellcheck)
+# =============================================================================
+
+# Generated scripts
+*.generated.sh
+
+# =============================================================================
+# IDE / EDITORS
+# =============================================================================
+
+# VS Code
 .vscode/
+*.code-workspace
+
+# JetBrains (IntelliJ, PyCharm, WebStorm, GoLand)
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
 *.swp
 *.swo
 *~
-.project
-.pydevproject
-.settings/
+.netrwhist
 
-# OS
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# =============================================================================
+# OPERATING SYSTEMS
+# =============================================================================
+
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
-Thumbs.db
+.AppleDouble
+.LSOverride
 
-# Logs
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# =============================================================================
+# LOGS & TEMP
+# =============================================================================
+
 *.log
 logs/
-
-# Temp files
 *.tmp
 *.temp
 tmp/
 temp/
 
-# Environment
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+
 .env
 .env.local
 .env.*.local
+.env.development
+.env.test
+.env.production
 
-# Node (if any JS tooling)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Secrets (never commit these!)
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
 
-# Reference V1 git folder (we just want the files)
+# =============================================================================
+# DOCKER
+# =============================================================================
+
+# Docker override files
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+!docker-compose.yaml
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Large files (usually shouldn't be in git)
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+
+# Reference V1 git folder (we just want the files, not git history)
 reference/v1/.git/

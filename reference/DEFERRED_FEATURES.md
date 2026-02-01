@@ -26,13 +26,11 @@ A sophisticated self-improvement system with:
 - Cross-project pattern sharing
 
 ### Why Deferred
-- Claude-mem already provides session memory and context injection
 - The complexity of tracking effectiveness is high
 - Risk of generating bad rules that degrade performance
 - Can be added incrementally later
 
 ### Simplified Alternative (Current)
-- Use claude-mem for automatic memory capture
 - Manual rule creation in `.claude/rules/auto/`
 - Project knowledge in `.claude/knowledge/`
 

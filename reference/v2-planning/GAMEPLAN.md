@@ -825,7 +825,6 @@ exit_criteria:
 │  │  • Project-specific knowledge (.claude/knowledge/)        │   │
 │  │  • Cross-project patterns (if enabled)                    │   │
 │  │  • User preference profiles                               │   │
-│  │  • Claude-Mem plugin (auto-capture, semantic search)      │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -933,7 +932,7 @@ learning_metrics:
 
 | Gap | Impact | Priority | Solution |
 |-----|--------|----------|----------|
-| **Learning persistence** | Learning lost between sessions | P0 | Claude-Mem plugin (auto-capture, semantic search) |
+| **Learning persistence** | Learning lost between sessions | P0 | Local knowledge files (.claude/knowledge/) |
 | **Automatic rule generation** | Manual rule creation | P0 | self-rule-generator skill |
 | **Staff engineer review** | No adversarial review | P0 | staff-engineer agent + review skill |
 | **Zero-config fix** | Requires context specification | P0 | Context auto-detection skill |
@@ -1075,19 +1074,17 @@ tasks:
   - Implement pattern detector
   - Implement rule generator
   - Implement effectiveness tracker
-  - Integrate claude-mem plugin for persistence
-  - Implement learning analysis on top of claude-mem
+  - Implement local knowledge persistence
 
 deliverables:
   - skills/learning/* (8 skills)
   - agents/learning-analyst.agent.yaml
-  - Claude-mem integration skill
-  - Learning analysis utilities (query claude-mem for patterns)
+  - Local knowledge utilities
 
 success_criteria:
   - Rules generate from corrections
   - Effectiveness tracked
-  - Knowledge persists across sessions
+  - Knowledge persists in local files
 ```
 
 ### Phase 4: Advanced Features (Week 9-10)
