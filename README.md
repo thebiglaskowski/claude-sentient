@@ -14,13 +14,14 @@ Claude Sentient coordinates Claude Code's native capabilities into an autonomous
 
 ## What You Get
 
-### 4 Commands
+### 5 Commands
 
 | Command | What It Does |
 |---------|--------------|
 | `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit |
 | `/cs-plan` | Plan complex tasks before executing |
 | `/cs-status` | Show tasks, git state, detected profile |
+| `/cs-validate` | Validate profiles, commands, rules, governance |
 | `/cs-learn` | Save learnings to persistent memory |
 
 ### Profile Detection

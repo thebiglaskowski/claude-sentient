@@ -47,6 +47,9 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 # Check current status
 /cs-status
 
+# Validate configuration
+/cs-validate
+
 # Save a learning
 /cs-learn decision "Use PostgreSQL" "Chose for JSON support"
 ```
@@ -113,6 +116,7 @@ Before committing, these must pass:
 | `/cs-loop [task]` | Autonomous work loop |
 | `/cs-plan [task]` | Plan before executing |
 | `/cs-status` | Show tasks, git state, profile |
+| `/cs-validate` | Validate configuration |
 | `/cs-learn [type] [title] [content]` | Save to memory |
 
 ---

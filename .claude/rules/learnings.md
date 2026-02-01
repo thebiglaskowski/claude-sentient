@@ -58,6 +58,11 @@
 
 ## Learnings
 
+### 2026-02-01: Update all docs when adding commands
+- **Context**: Added `/cs-validate` command, updated CLAUDE.md and STATUS.md but missed README.md
+- **Correction**: User pointed out README.md still said "4 Commands"
+- **Rule**: When adding a new command, update ALL documentation: README.md, CLAUDE.md, STATUS.md, CHANGELOG.md
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

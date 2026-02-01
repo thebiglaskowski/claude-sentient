@@ -33,6 +33,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 - [x] `/cs-plan` - Plan before executing
 - [x] `/cs-status` - Show current status
 - [x] `/cs-learn` - Save learnings to memory
+- [x] `/cs-validate` - Validate configuration
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -92,7 +93,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 4 created |
+| Commands | `commands/cs-*.md` | ✓ 5 created |
 | Profiles | `profiles/*.yaml` | ✓ 5 created |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
 
@@ -102,7 +103,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 4 | 4 ✓ |
+| Commands | 5 | 5 ✓ |
 | Profiles | 5 | 5 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |

@@ -9,6 +9,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- `/cs-validate` command to check profiles, commands, rules, and governance
 - Self-improvement instruction in CLAUDE.md (Boris Cherny pattern)
 - Claude now proposes rule updates when corrected by user
 - Updated learnings.md template with self-improvement guidance
