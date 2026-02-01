@@ -37,6 +37,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 ### Profiles
 - [x] `python.yaml` - Python project profile
 - [x] `typescript.yaml` - TypeScript project profile
+- [x] `shell.yaml` - Shell/PowerShell script profile
 - [x] `general.yaml` - Fallback profile
 
 ### Documentation
@@ -59,7 +60,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 
 ### Testing the Commands
 - [ ] Test `/cs-status` on this project
-- [ ] Test `/cs-loop` on a real task
+- [x] Test `/cs-loop` on a real task (Shell profile)
 - [ ] Test `/cs-plan` on a complex task
 
 ### Apply to Another Project
@@ -70,7 +71,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 ### Polish
 - [ ] Update README.md for public consumption
 - [ ] Add Go profile
-- [ ] Add Shell profile
+- [x] Add Shell profile
 
 ---
 
@@ -101,7 +102,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 | Metric | Target | Current |
 |--------|--------|---------|
 | Commands | 4 | 4 ✓ |
-| Profiles | 5 | 3 |
+| Profiles | 5 | 4 |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 
