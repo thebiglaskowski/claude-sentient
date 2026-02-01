@@ -1,0 +1,111 @@
+name: evaluator-optimizer
+version: 1.0.0
+description: Feedback loops that iterate until quality threshold is met
+
+triggers:
+  - "refine this"
+  - "improve until"
+  - "iterate on"
+  - pattern: "evaluate.*optimize"
+    priority: 70
+
+model: sonnet
+
+depends:
+  severity-classifier: ">=1.0.0"
+  gate-runner: ">=1.0.0"
+
+provides:
+  - feedback-loop
+  - quality-iteration
+  - gate-retry
+
+conflicts:
+  - legacy-retry
+
+subscribes:
+  - event: quality.gate.failed
+    handler: onGateFailed
+  - event: loop.iteration.start
+    handler: onIterationStart
+
+publishes:
+  - quality.gate.retry
+  - optimization.cycle.complete
+
+config:
+  maxIterations: 3
+  minImprovement: 0.1
+  exitOnPlateau: true
+  scoreThreshold: 0.8
+
+tags:
+  - orchestration
+  - quality
+  - feedback-loop
+
+content: |
+  # Evaluator-Optimizer Pattern
+
+  Implements evaluate-improve feedback loops until quality thresholds are met.
+
+  ## Pattern
+
+  ```
+  WHILE score < threshold AND iterations < max:
+    result = EVALUATE(artifact)
+    IF result.score >= threshold:
+      RETURN success
+
+    improvements = ANALYZE(result.issues)
+    artifact = OPTIMIZE(artifact, improvements)
+    iterations++
+
+    emit("quality.gate.retry", { iteration, score, improvements })
+
+  IF iterations >= max:
+    RETURN failure_with_best_attempt
+  ```
+
+  ## Event Handlers
+
+  ### onGateFailed
+
+  When a quality gate fails, trigger the feedback loop:
+
+  ```
+  1. Capture failure details (gate, value, threshold, error)
+  2. Evaluate root cause
+  3. Generate targeted fix
+  4. Apply fix
+  5. Re-run gate
+  6. If still failing, repeat (max 3 times)
+  7. If still failing after max, add to work queue
+  ```
+
+  ### onIterationStart
+
+  Reset iteration counters for new loop iteration.
+
+  ## Configuration
+
+  | Setting | Default | Description |
+  |---------|---------|-------------|
+  | maxIterations | 3 | Max feedback cycles |
+  | minImprovement | 0.1 | Min score improvement per cycle |
+  | exitOnPlateau | true | Stop if no improvement |
+  | scoreThreshold | 0.8 | Target quality score |
+
+  ## Integration
+
+  Integrates with:
+  - Phase 7 (Quality) — Triggered when gates fail
+  - Gate Runner — Re-executes gates after optimization
+  - Severity Classifier — Prioritizes which failures to address
+
+  ## Metrics
+
+  Track in state.metrics:
+  - optimizationCycles: Total feedback loops
+  - successfulRecoveries: Gates that passed after retry
+  - avgIterationsToPass: Average iterations needed

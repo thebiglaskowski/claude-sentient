@@ -1,0 +1,37 @@
+{
+  "version": "2.0",
+  "sessionId": null,
+  "startedAt": null,
+  "iteration": 0,
+  "phase": "classify",
+  "status": "running",
+  "classification": null,
+  "workQueue": [],
+  "gates": {
+    "lint": { "status": "pending" },
+    "type-check": { "status": "pending" },
+    "test-coverage": { "status": "pending" },
+    "security-scan": { "status": "pending" },
+    "queue-empty": { "status": "pending" },
+    "issues-resolved": { "status": "pending" },
+    "docs-complete": { "status": "pending" }
+  },
+  "context": {
+    "budgetUsed": 0,
+    "level": "green",
+    "compactionReady": false,
+    "lastCompaction": null
+  },
+  "agents": [],
+  "metrics": {
+    "iterationsTotal": 0,
+    "gatesPassed": 0,
+    "gatesFailed": 0,
+    "tasksCompleted": 0,
+    "pivotsCount": 0,
+    "agentsSpawned": 0
+  },
+  "history": [],
+  "decisions": [],
+  "consecutivePasses": 0
+}

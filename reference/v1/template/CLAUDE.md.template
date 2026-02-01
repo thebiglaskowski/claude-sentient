@@ -1,0 +1,246 @@
+# [Project Name]
+
+<!--
+  This is a starter template. Run /claude-md to auto-populate based on your project,
+  or fill in manually. Delete this comment when done.
+-->
+
+## Overview
+
+[1-2 sentence description of what this project does and who it's for]
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Language | [e.g., TypeScript 5.x] |
+| Framework | [e.g., React 18, Express 4] |
+| Database | [e.g., PostgreSQL 15] |
+| Testing | [e.g., Jest, Pytest] |
+| Build | [e.g., Vite, Webpack] |
+
+### Key Dependencies
+
+- `[package]` — [purpose]
+- `[package]` — [purpose]
+
+---
+
+## Architecture
+
+```
+[project-root]/
+├── src/              # [description]
+│   ├── [folder]/     # [description]
+│   └── [folder]/     # [description]
+├── tests/            # [description]
+└── [other]/          # [description]
+```
+
+### Key Patterns
+
+- [Pattern 1 and when to use it]
+- [Pattern 2 and when to use it]
+
+---
+
+## Development Setup
+
+### Prerequisites
+
+- [Prerequisite 1 with version]
+- [Prerequisite 2 with version]
+
+### Installation
+
+```bash
+# Clone and install
+git clone [repo-url]
+cd [project-name]
+[install command]
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your values
+
+# Start development
+[start command]
+```
+
+### Environment Variables
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `[VAR]` | [description] | Yes/No |
+
+---
+
+## Code Standards
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Files | [kebab-case/PascalCase] | `user-service.ts` |
+| Functions | [camelCase] | `getUserById()` |
+| Classes | [PascalCase] | `UserService` |
+| Constants | [UPPER_SNAKE] | `MAX_RETRIES` |
+
+### Formatting
+
+- [Indentation: spaces/tabs, count]
+- [Line length limit]
+- [Quote style]
+- [Other formatting rules]
+
+### Imports
+
+```typescript
+// Order: external → internal → relative
+import external from 'external-package'
+
+import { internal } from '@/internal'
+
+import { relative } from './relative'
+```
+
+### Error Handling
+
+[Describe error handling approach]
+
+### Logging
+
+[Describe logging conventions]
+
+---
+
+## Testing
+
+### Framework
+
+[Test framework and assertion library]
+
+### Structure
+
+```
+tests/
+├── unit/           # Unit tests
+├── integration/    # Integration tests
+└── e2e/            # End-to-end tests
+```
+
+### Running Tests
+
+```bash
+# All tests
+[command]
+
+# Unit only
+[command]
+
+# With coverage
+[command]
+```
+
+### Coverage Requirements
+
+- Minimum: [X]%
+- Target: [Y]%
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `[path]` | [description] |
+| `[path]` | [description] |
+| `[path]` | [description] |
+
+### Generated Files (Don't Edit)
+
+- `[path]` — [what generates it]
+
+---
+
+## Common Tasks
+
+| Task | Command |
+|------|---------|
+| Start dev server | `[command]` |
+| Run tests | `[command]` |
+| Lint code | `[command]` |
+| Format code | `[command]` |
+| Build | `[command]` |
+| Deploy | `[command]` |
+
+---
+
+## API / Interfaces
+
+<!-- Remove if not applicable -->
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/[resource]` | [description] |
+| POST | `/api/[resource]` | [description] |
+
+### Data Models
+
+[Key models/types and their purposes]
+
+---
+
+## Deployment
+
+### Environments
+
+| Environment | URL | Branch |
+|-------------|-----|--------|
+| Development | [url] | `develop` |
+| Staging | [url] | `staging` |
+| Production | [url] | `main` |
+
+### Deploy Process
+
+[How to deploy to each environment]
+
+---
+
+## Workflow Integration
+
+This project uses the **prompts library** for development workflow.
+
+### Quick Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/daily` | Continue development work |
+| `/review` | Code review |
+| `/test` | Test coverage gate |
+| `/release` | Release checklist |
+
+### Project State Files
+
+| File | Purpose |
+|------|---------|
+| `STATUS.md` | Current state, active tasks, blockers |
+| `CHANGELOG.md` | Version history |
+| `KNOWN_ISSUES.md` | Tracked limitations and workarounds |
+
+### Skills
+
+Skills auto-load based on context. See `.claude/skills/` for available behaviors.
+
+---
+
+## Project-Specific Notes
+
+<!-- Add any project-specific conventions, gotchas, or important notes here -->
+
+- [Note 1]
+- [Note 2]

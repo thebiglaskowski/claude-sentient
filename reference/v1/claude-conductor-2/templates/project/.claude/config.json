@@ -1,0 +1,21 @@
+{
+  "$schema": "https://claude-conductor.dev/schemas/config.schema.json",
+  "version": "2.0.0",
+
+  "_comment": "Project-specific configuration. Overrides platform defaults.",
+
+  "gates": {
+    "testCoverage": {
+      "overall": 80,
+      "newCode": 90
+    }
+  },
+
+  "models": {
+    "default": "sonnet"
+  },
+
+  "extensions": {
+    "autoLoad": true
+  }
+}

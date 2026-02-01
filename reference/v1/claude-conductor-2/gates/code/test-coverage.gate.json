@@ -1,0 +1,48 @@
+{
+  "name": "test-coverage",
+  "version": "1.0.0",
+  "description": "Verify test coverage meets threshold",
+  "category": "code",
+  "blocking": true,
+  "order": 4,
+  "check": {
+    "type": "command",
+    "command": "npm test -- --coverage --coverageReporters=json-summary",
+    "successExitCode": 0,
+    "timeout": 300000
+  },
+  "threshold": {
+    "overall": 80,
+    "newCode": 90
+  },
+  "fix": {
+    "auto": true,
+    "skill": "test-engineer",
+    "maxAttempts": 3
+  },
+  "severity": "S1",
+  "appliesTo": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
+  "skipWhen": {
+    "noChanges": true,
+    "patterns": [
+      "**/*.md",
+      "**/*.json",
+      "**/docs/**"
+    ]
+  },
+  "message": {
+    "success": "Test coverage: {value}% (threshold: {threshold}%)",
+    "failure": "Test coverage {value}% is below threshold {threshold}%",
+    "skipped": "No code changes detected, skipping coverage check"
+  },
+  "tags": [
+    "testing",
+    "coverage",
+    "quality"
+  ]
+}
