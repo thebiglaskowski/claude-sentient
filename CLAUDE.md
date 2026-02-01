@@ -143,12 +143,16 @@ Uses the **official Claude Code pattern** — `.claude/rules/*.md` files are aut
 
 ```
 claude-sentient/
-├── commands/           # /cs-* command definitions
-│   ├── cs-loop.md
-│   ├── cs-plan.md
-│   ├── cs-status.md
-│   └── cs-learn.md
-├── profiles/           # Project type profiles
+├── .claude/
+│   ├── commands/       # Active /cs-* commands (Claude Code loads these)
+│   │   ├── cs-loop.md
+│   │   ├── cs-plan.md
+│   │   ├── cs-status.md
+│   │   └── cs-learn.md
+│   ├── rules/          # Memory (learnings.md)
+│   └── settings.json   # Hooks and permissions
+├── commands/           # Command source (copied to .claude/commands/)
+├── profiles/           # Project type profiles (referenced by commands)
 │   ├── python.yaml
 │   ├── typescript.yaml
 │   └── general.yaml
@@ -159,9 +163,8 @@ claude-sentient/
 │   └── learnings.md
 ├── phases/             # Phase documentation
 ├── reference/          # Planning docs, deferred features
-└── .claude/
-    ├── rules/          # Memory (learnings.md)
-    └── settings.json   # Hooks and permissions
+├── rules/              # Topic-specific standards (auto-loaded)
+└── templates/          # Templates for governance files
 ```
 
 ---
