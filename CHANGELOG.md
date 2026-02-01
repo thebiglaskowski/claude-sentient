@@ -8,11 +8,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- Rust profile (`profiles/rust.yaml`) - clippy, cargo test
+- Java profile (`profiles/java.yaml`) - checkstyle, JUnit, maven/gradle
+- C/C++ profile (`profiles/cpp.yaml`) - clang-tidy, ctest, cmake
+- Ruby profile (`profiles/ruby.yaml`) - rubocop, rspec
+- `install.sh` and `install.ps1` installer scripts
+
 ### Changed
 - Simplified `/cs-loop` command from 320 to 106 lines (67% reduction)
-
-### Added
-- `install.sh` and `install.ps1` installer scripts
+- Profiles: 5 → 9
 - One-line install commands in README
 - `/cs-validate` command to check profiles, commands, rules, and governance
 - Self-improvement instruction in CLAUDE.md (Boris Cherny pattern)

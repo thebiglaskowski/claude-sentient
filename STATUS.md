@@ -40,6 +40,10 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 - [x] `typescript.yaml` - TypeScript project profile
 - [x] `shell.yaml` - Shell/PowerShell script profile
 - [x] `go.yaml` - Go project profile
+- [x] `rust.yaml` - Rust project profile
+- [x] `java.yaml` - Java project profile
+- [x] `cpp.yaml` - C/C++ project profile
+- [x] `ruby.yaml` - Ruby project profile
 - [x] `general.yaml` - Fallback profile
 
 ### Documentation
@@ -94,7 +98,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 | Component | Files | Status |
 |-----------|-------|--------|
 | Commands | `commands/cs-*.md` | ✓ 5 created |
-| Profiles | `profiles/*.yaml` | ✓ 5 created |
+| Profiles | `profiles/*.yaml` | ✓ 9 created |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
 
 ---
@@ -104,7 +108,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 | Metric | Target | Current |
 |--------|--------|---------|
 | Commands | 5 | 5 ✓ |
-| Profiles | 5 | 5 ✓ |
+| Profiles | 9 | 9 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 

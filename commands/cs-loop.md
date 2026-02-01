@@ -19,6 +19,10 @@ Autonomous development loop: understand → plan → execute → verify → comm
    | `pyproject.toml`, `*.py` | Python | ruff, pytest |
    | `package.json`, `tsconfig.json` | TypeScript | eslint, vitest |
    | `go.mod` | Go | golangci-lint, go test |
+   | `Cargo.toml` | Rust | clippy, cargo test |
+   | `pom.xml`, `build.gradle` | Java | checkstyle, JUnit |
+   | `CMakeLists.txt`, `Makefile` | C/C++ | clang-tidy, ctest |
+   | `Gemfile` | Ruby | rubocop, rspec |
    | `*.sh`, `*.ps1` | Shell | shellcheck |
    | (fallback) | General | auto-detect |
 

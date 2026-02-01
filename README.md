@@ -32,8 +32,12 @@ Sentient detects your project type and loads appropriate tooling:
 |---------|-------------|-------|
 | Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
 | TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
-| Shell | `*.sh`, `*.ps1` | shellcheck |
 | Go | `go.mod`, `*.go` | golangci-lint, go test |
+| Rust | `Cargo.toml` | clippy, cargo test |
+| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit |
+| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest |
+| Ruby | `Gemfile` | rubocop, rspec |
+| Shell | `*.sh`, `*.ps1` | shellcheck |
 | General | (fallback) | auto-detect |
 
 ### Quality Gates
