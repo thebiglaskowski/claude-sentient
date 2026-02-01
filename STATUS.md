@@ -38,6 +38,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 - [x] `python.yaml` - Python project profile
 - [x] `typescript.yaml` - TypeScript project profile
 - [x] `shell.yaml` - Shell/PowerShell script profile
+- [x] `go.yaml` - Go project profile
 - [x] `general.yaml` - Fallback profile
 
 ### Documentation
@@ -69,8 +70,8 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 - [ ] Validate profile detection works
 
 ### Polish
-- [ ] Update README.md for public consumption
-- [ ] Add Go profile
+- [x] Update README.md for public consumption
+- [x] Add Go profile
 - [x] Add Shell profile
 
 ---
@@ -92,7 +93,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 | Component | Files | Status |
 |-----------|-------|--------|
 | Commands | `commands/cs-*.md` | ✓ 4 created |
-| Profiles | `profiles/*.yaml` | ✓ 3 created |
+| Profiles | `profiles/*.yaml` | ✓ 5 created |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
 
 ---
@@ -102,7 +103,7 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 | Metric | Target | Current |
 |--------|--------|---------|
 | Commands | 4 | 4 ✓ |
-| Profiles | 5 | 4 |
+| Profiles | 5 | 5 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 

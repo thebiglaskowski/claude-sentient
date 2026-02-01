@@ -357,6 +357,45 @@ Claude Sentient becomes a thin orchestration layer that coordinates these native
 
 ---
 
+### DEC-011: Self-Improvement via CLAUDE.md Updates
+
+**Date:** 2026-02-01
+**Status:** Accepted
+
+**Context:**
+Boris Cherny (Claude Code creator) recommends: *"After every correction, end with: 'Update your CLAUDE.md so you don't make that mistake again.' Claude is eerily good at writing rules for itself."*
+
+We needed a mechanism for Claude to learn from corrections and avoid repeating mistakes across sessions.
+
+**Decision:**
+Add a self-improvement instruction to CLAUDE.md that tells Claude to:
+1. Acknowledge corrections
+2. Fix the immediate issue
+3. Propose a rule to prevent recurrence (in `.claude/rules/learnings.md` or `CLAUDE.md`)
+4. Apply the update (with confirmation for CLAUDE.md changes)
+
+This applies to both claude-sentient itself and any project using claude-sentient via the template.
+
+**Rationale:**
+- Simplest implementation — just an instruction, no hooks or custom code
+- Works within Claude Code's native architecture
+- Self-perpetuating — the rule teaches Claude to add more rules
+- Persists across sessions via `.claude/rules/` files
+- Follows the Boris Cherny pattern that's proven effective
+
+**Consequences:**
+- Claude will propose learnings.md updates after corrections
+- Users may see more rule-writing activity
+- Rules accumulate over time (may need pruning)
+- Projects using claude-sentient inherit this behavior
+
+**Alternatives Considered:**
+- Hook-based approach (rejected: hooks can't invoke Claude)
+- Separate `/cs-reflect` command (rejected: manual, not automatic)
+- Custom reflection in `/cs-loop` (rejected: adds complexity, not always relevant)
+
+---
+
 ## Pending Decisions
 
 None currently.

@@ -342,6 +342,38 @@ Full mapping: `rules/_index.md`
 
 ---
 
+## Self-Improvement
+
+**When the user corrects you, update your rules so you don't make that mistake again.**
+
+After any correction:
+1. Acknowledge the correction
+2. Fix the immediate issue
+3. Propose a rule to prevent recurrence:
+   - For project-specific patterns → append to `.claude/rules/learnings.md`
+   - For fundamental behavior changes → propose edit to `CLAUDE.md`
+4. Apply the rule update (with user confirmation for CLAUDE.md changes)
+
+**Examples:**
+
+| Correction | Rule Added |
+|------------|------------|
+| "Don't use `any` types" | Pattern: "Use explicit types, never `any`" |
+| "Always run tests before committing" | Decision: "Run `npm test` before every commit" |
+| "We use snake_case here" | Learning: "This project uses snake_case for variables" |
+
+**Format for learnings.md:**
+```markdown
+### YYYY-MM-DD: [Short title]
+- **Context**: What happened
+- **Correction**: What the user said
+- **Rule**: What to do differently
+```
+
+This is the Boris Cherny pattern: *"Claude is eerily good at writing rules for itself."*
+
+---
+
 ## For Projects Using Claude Sentient
 
 When applied to any project:

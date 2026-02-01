@@ -6,14 +6,22 @@
   "hooks": {
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "echo \"[cs] $(date +%Y-%m-%dT%H:%M:%S) Prompt received\" >> .claude/session.log 2>/dev/null || true"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const fs=require('fs');const d=new Date().toISOString().slice(0,19);fs.appendFileSync('.claude/session.log','[cs] '+d+' Prompt received\\n')\" 2>nul || node -e \"const fs=require('fs');const d=new Date().toISOString().slice(0,19);fs.appendFileSync('.claude/session.log','[cs] '+d+' Prompt received\\n')\" 2>/dev/null || true"
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "type": "command",
-        "command": "echo \"[cs] $(date +%Y-%m-%dT%H:%M:%S) Session ended\" >> .claude/session.log 2>/dev/null || true"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const fs=require('fs');const d=new Date().toISOString().slice(0,19);fs.appendFileSync('.claude/session.log','[cs] '+d+' Session ended\\n')\" 2>nul || node -e \"const fs=require('fs');const d=new Date().toISOString().slice(0,19);fs.appendFileSync('.claude/session.log','[cs] '+d+' Session ended\\n')\" 2>/dev/null || true"
+          }
+        ]
       }
     ]
   }

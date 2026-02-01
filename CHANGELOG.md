@@ -9,6 +9,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Self-improvement instruction in CLAUDE.md (Boris Cherny pattern)
+- Claude now proposes rule updates when corrected by user
+- Updated learnings.md template with self-improvement guidance
+- Go profile (`profiles/go.profile.yaml`) for Go projects
 - Shell profile (`profiles/shell.yaml`) for bash/PowerShell scripts
 - 12 topic rules in `rules/` (security, testing, api-design, etc.)
 - Auto-rule loading based on task keywords in `/cs-loop`
@@ -16,11 +20,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Auto-CHANGELOG prompts for `feat:` and `fix:` commits
 - Documentation policy with automation levels in CLAUDE.md
 - Commands now in `.claude/commands/` for Claude Code recognition
+- DEC-011: Self-Improvement via CLAUDE.md Updates
 
 ### Changed
 - `/cs-loop` INIT phase now loads rules based on task keywords
 - `/cs-loop` COMMIT phase now auto-updates governance files
-- Profiles count: 3 → 4
+- README.md updated with all 5 profiles
+- Profiles count: 3 → 5
 
 ---
 

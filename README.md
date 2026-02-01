@@ -29,8 +29,10 @@ Sentient detects your project type and loads appropriate tooling:
 
 | Profile | Detected By | Tools |
 |---------|-------------|-------|
-| Python | `pyproject.toml` | ruff, pytest, pyright |
-| TypeScript | `tsconfig.json` | eslint, vitest, tsc |
+| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
+| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
+| Shell | `*.sh`, `*.ps1` | shellcheck |
+| Go | `go.mod`, `*.go` | golangci-lint, go test |
 | General | (fallback) | auto-detect |
 
 ### Quality Gates
@@ -80,10 +82,15 @@ Under the hood, `/cs-loop` orchestrates:
 
 ```
 claude-sentient/
+├── .claude/
+│   ├── commands/       # Active commands (loaded by Claude Code)
+│   └── rules/          # Persistent memory (learnings.md)
 ├── commands/           # /cs-* command definitions
-├── profiles/           # Project type profiles
+├── profiles/           # Project type profiles (5 profiles)
 ├── templates/          # Governance file templates
-└── .claude/rules/      # Persistent memory
+├── phases/             # Phase documentation
+├── reference/          # Planning docs, hook examples
+└── rules/              # Topic-specific standards
 ```
 
 ---
