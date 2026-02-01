@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Shell profile (`profiles/shell.yaml`) for bash/PowerShell scripts
+- 12 topic rules in `rules/` (security, testing, api-design, etc.)
+- Auto-rule loading based on task keywords in `/cs-loop`
+- Auto-STATUS.md updates in `/cs-loop` COMMIT phase
+- Auto-CHANGELOG prompts for `feat:` and `fix:` commits
+- Documentation policy with automation levels in CLAUDE.md
+- Commands now in `.claude/commands/` for Claude Code recognition
+
+### Changed
+- `/cs-loop` INIT phase now loads rules based on task keywords
+- `/cs-loop` COMMIT phase now auto-updates governance files
+- Profiles count: 3 → 4
+
+---
+
 ## [0.2.0] — 2026-02-01
 
 ### Added

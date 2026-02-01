@@ -181,42 +181,28 @@ Only if all gates pass:
    - {what remains}
    ```
 
-4. **Auto-update CHANGELOG.md** (Auto + Confirm for significant changes):
+4. **Auto-update CHANGELOG.md** (detect and update):
 
-   **Trigger conditions** (any match triggers):
-   - New feature added (`feat:` commits)
-   - Breaking change made
-   - Bug fixed (`fix:` commits)
-   - User explicitly requested version bump
+   **Detection:** Check if commit message starts with:
+   - `feat:` → Add to `### Added` section
+   - `fix:` → Add to `### Fixed` section
+   - `BREAKING:` or `!:` → Add to `### Changed` with ⚠️
 
-   **Process:**
-   - Analyze commits since last version tag
-   - Group by type (Added, Changed, Fixed, Removed)
-   - Generate entry in Keep a Changelog format
-   - If significant changes detected, ask user:
-     ```
-     AskUserQuestion:
-       question: "Ready to update CHANGELOG with these changes?"
-       header: "Changelog"
-       options:
-         - label: "Yes, add to Unreleased (Recommended)"
-           description: "Add entries without version bump"
-         - label: "Yes, bump to {next_version}"
-           description: "Create new version entry"
-         - label: "Skip for now"
-           description: "Don't update changelog"
-     ```
+   **Action:** If any trigger detected:
+   1. Read current CHANGELOG.md
+   2. Find or create `## [Unreleased]` section at top
+   3. Add entry under appropriate subsection
+   4. Report: `[COMMIT] Updated CHANGELOG.md (Added: {summary})`
 
-   **Generated format:**
+   **Example:** For commit `feat: Add Shell profile`:
    ```markdown
    ## [Unreleased]
 
    ### Added
-   - Input validation for user API endpoint
-
-   ### Changed
-   - Improved error messages for auth failures
+   - Shell profile for bash/PowerShell scripts
    ```
+
+   **Skip if:** Commit is `chore:`, `docs:`, `refactor:`, `test:`, or `ci:`
 
 5. Stage governance files: `git add STATUS.md CHANGELOG.md`
 6. Amend or create new commit including governance updates
