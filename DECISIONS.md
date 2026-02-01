@@ -197,25 +197,37 @@ Need to choose formats for different file types. V1 used Markdown with YAML fron
 
 ---
 
-## Pending Decisions
+### DEC-007: Local-Only Knowledge Base
 
-### DEC-007: Supermemory vs Local Knowledge Base
-
-**Status:** Pending
+**Date:** 2024-02-01
+**Status:** Accepted
 
 **Context:**
-Learning persistence can use Supermemory (external) or local files. Need to decide primary storage.
+Learning persistence can use external services (Supermemory) or local files. Need to decide primary storage.
 
-**Options:**
-1. Supermemory primary, local backup
-2. Local primary, Supermemory sync
-3. Local only
-4. Supermemory only
+**Decision:**
+Use local-only persistence in `.claude/knowledge/`. No external service dependencies.
 
-**Considerations:**
-- Supermemory provides cross-session persistence
-- Local files work offline
-- Privacy concerns with external storage
+**Rationale:**
+- Works offline without internet dependency
+- No subscription costs (Supermemory requires Pro plan)
+- Full privacy — no data leaves the project
+- Simpler architecture with fewer moving parts
+- Git-trackable for versioning knowledge
+- Project-specific knowledge stays with project
+
+**Consequences:**
+- No cross-machine sync (use git for that)
+- Must implement robust local storage
+- Knowledge portable with project folder
+
+**Alternatives Considered:**
+- Supermemory primary (requires Pro plan, external dependency)
+- Hybrid approach (complexity for marginal benefit)
+
+---
+
+## Pending Decisions
 - Sync complexity
 
 ---
