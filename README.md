@@ -113,9 +113,52 @@ When `/cs-loop` runs on a new project, it creates these from templates if missin
 
 ## Installation
 
-Copy the `commands/` and `profiles/` directories to your project, or reference them from your `CLAUDE.md`.
+### Quick Start (Copy Method)
 
-No external dependencies. No custom scripts. Just markdown and yaml files.
+```bash
+# From your project root
+git clone https://github.com/thebiglaskowski/claude-sentient.git .claude-sentient-temp
+
+# Copy commands (required for slash commands to work)
+mkdir -p .claude/commands
+cp .claude-sentient-temp/commands/*.md .claude/commands/
+
+# Copy profiles (required for quality gates)
+cp -r .claude-sentient-temp/profiles ./profiles
+
+# Copy templates (optional, for governance files)
+cp -r .claude-sentient-temp/templates ./templates
+
+# Initialize memory
+mkdir -p .claude/rules
+cp .claude-sentient-temp/templates/learnings.md .claude/rules/learnings.md
+
+# Clean up
+rm -rf .claude-sentient-temp
+```
+
+### What Gets Installed
+
+| Location | Purpose |
+|----------|---------|
+| `.claude/commands/cs-*.md` | Slash commands (`/cs-loop`, etc.) |
+| `profiles/*.yaml` | Quality gate definitions |
+| `templates/` | Templates for governance files |
+| `.claude/rules/learnings.md` | Persistent memory |
+
+### After Installation
+
+1. Run `/cs-validate` to verify everything is set up correctly
+2. Run `/cs-status` to see detected profile
+3. Run `/cs-loop "your task"` to start working
+
+### Updating
+
+To update to the latest version, re-run the copy commands above. Your `.claude/rules/learnings.md` will be preserved.
+
+### No Dependencies
+
+No npm, pip, or external tools required. Just markdown and YAML files that Claude Code reads directly.
 
 ---
 
