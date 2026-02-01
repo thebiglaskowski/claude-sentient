@@ -113,28 +113,42 @@ When `/cs-loop` runs on a new project, it creates these from templates if missin
 
 ## Installation
 
-### Quick Start (Copy Method)
+### One-Line Install
+
+**Bash (Linux/Mac):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/install.sh | bash
+```
+
+**PowerShell (Windows):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/install.ps1 | iex
+```
+
+### Manual Install
 
 ```bash
-# From your project root
-git clone https://github.com/thebiglaskowski/claude-sentient.git .claude-sentient-temp
+# Clone and run installer
+git clone https://github.com/thebiglaskowski/claude-sentient.git
+cd claude-sentient
+./install.sh  # or .\install.ps1 on Windows
+```
 
-# Copy commands (required for slash commands to work)
+### What the Installer Does
+
+```bash
+# From your project root, the installer:
 mkdir -p .claude/commands
-cp .claude-sentient-temp/commands/*.md .claude/commands/
+cp commands/cs-*.md .claude/commands/     # Slash commands
 
-# Copy profiles (required for quality gates)
-cp -r .claude-sentient-temp/profiles ./profiles
+mkdir -p profiles
+cp profiles/*.yaml ./profiles/             # Quality gate definitions
 
-# Copy templates (optional, for governance files)
-cp -r .claude-sentient-temp/templates ./templates
+mkdir -p templates
+cp templates/*.md ./templates/             # Governance templates
 
-# Initialize memory
 mkdir -p .claude/rules
-cp .claude-sentient-temp/templates/learnings.md .claude/rules/learnings.md
-
-# Clean up
-rm -rf .claude-sentient-temp
+cp templates/learnings.md .claude/rules/   # Persistent memory
 ```
 
 ### What Gets Installed
