@@ -1,121 +1,43 @@
-# Claude Sentient
+# 🧠 Claude Sentient
 
-> **A thin orchestration layer for Claude Code**
+> **Autonomous development orchestration for Claude Code**
 
-Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a lightweight wrapper that makes built-in tools work together.
+Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
----
-
-## Philosophy
-
-**Native-first.** Claude Code already has task management, planning modes, sub-agents, and memory. We don't reinvent these — we orchestrate them.
-
----
-
-## What You Get
-
-### 5 Commands
-
-| Command | What It Does |
-|---------|--------------|
-| `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit |
-| `/cs-plan` | Plan complex tasks before executing |
-| `/cs-status` | Show tasks, git state, detected profile |
-| `/cs-validate` | Validate profiles, commands, rules, governance |
-| `/cs-learn` | Save learnings to persistent memory |
-
-### Profile Detection
-
-Sentient detects your project type and loads appropriate tooling:
-
-| Profile | Detected By | Tools |
-|---------|-------------|-------|
-| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
-| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
-| Go | `go.mod`, `*.go` | golangci-lint, go test |
-| Rust | `Cargo.toml` | clippy, cargo test |
-| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit |
-| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest |
-| Ruby | `Gemfile` | rubocop, rspec |
-| Shell | `*.sh`, `*.ps1` | shellcheck |
-| General | (fallback) | auto-detect |
-
-### Quality Gates
-
-Before committing, these must pass:
-- **LINT** — Zero errors
-- **TEST** — All tests pass
-- **BUILD** — Project builds
-- **GIT** — Clean state
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
+[![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
 
 ---
 
-## How It Works
+## ⚠️ Important Notice
+
+**This is an experimental orchestration framework.** Claude Sentient provides prompts, profiles, and configurations designed to enhance Claude Code workflows. Results may vary.
+
+- **Not a guarantee** — These prompts guide Claude but don't guarantee specific outcomes
+- **Your responsibility** — Always review Claude's output before committing changes
+- **Evolving project** — Expect changes between versions
+- **Native-first** — Uses Claude Code's built-in tools, not custom replacements
+
+---
+
+## 🎯 What is Claude Sentient?
+
+Claude Sentient transforms Claude Code sessions into **autonomous development loops**:
 
 ```
-/cs-loop "add input validation"
-
-[INIT] Profile: Python | Tools: ruff, pytest
-[PLAN] Created 3 tasks via TaskCreate
-[EXECUTE] Working through tasks...
-[VERIFY] Running gates: lint ✓ test ✓
-[COMMIT] Checkpoint: a1b2c3d
-[DONE] Added validation to 2 endpoints
+USER REQUEST → INIT → PLAN → EXECUTE → VERIFY → COMMIT → DONE
+                ↓        ↓         ↓         ↓
+           Profile   TaskCreate  Work    Quality
+           Detection            Items    Gates
 ```
 
-Under the hood, `/cs-loop` orchestrates:
-- `TaskCreate` / `TaskUpdate` for work tracking
-- `EnterPlanMode` for complex decisions
-- `Task` subagents for parallel work
-- Native git workflow for commits
+**Philosophy:** Claude Code already has task management, planning modes, sub-agents, and memory. We don't reinvent these — we orchestrate them.
 
 ---
 
-## Native Tools Used
-
-| Feature | Claude Code Tool |
-|---------|------------------|
-| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` |
-| Planning | `EnterPlanMode`, `ExitPlanMode` |
-| Sub-agents | `Task` with `subagent_type` |
-| Memory | `.claude/rules/*.md` |
-| Commands | `commands/*.md` + `Skill` |
-
----
-
-## Project Structure
-
-```
-claude-sentient/
-├── .claude/
-│   ├── commands/       # Active commands (loaded by Claude Code)
-│   └── rules/          # Persistent memory (learnings.md)
-├── commands/           # /cs-* command definitions
-├── profiles/           # Project type profiles (5 profiles)
-├── templates/          # Governance file templates
-├── phases/             # Phase documentation
-├── reference/          # Planning docs, hook examples
-└── rules/              # Topic-specific standards
-```
-
----
-
-## Governance Files
-
-Claude Sentient creates and maintains these files for continuity across sessions:
-
-| File | Purpose |
-|------|---------|
-| `STATUS.md` | Current progress, what's done/next |
-| `CHANGELOG.md` | Version history |
-| `DECISIONS.md` | Architecture decisions (ADRs) |
-| `.claude/rules/learnings.md` | Quick decisions, patterns |
-
-When `/cs-loop` runs on a new project, it creates these from templates if missing.
-
----
-
-## Installation
+## ⚡ Quick Start
 
 ### One-Line Install
 
@@ -129,80 +51,172 @@ curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/mai
 iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/install.ps1 | iex
 ```
 
-### Manual Install
-
-```bash
-# Clone and run installer
-git clone https://github.com/thebiglaskowski/claude-sentient.git
-cd claude-sentient
-./install.sh  # or .\install.ps1 on Windows
-```
-
-### What the Installer Does
-
-```bash
-# From your project root, the installer:
-mkdir -p .claude/commands
-cp commands/cs-*.md .claude/commands/     # Slash commands
-
-mkdir -p profiles
-cp profiles/*.yaml ./profiles/             # Quality gate definitions
-
-mkdir -p templates
-cp templates/*.md ./templates/             # Governance templates
-
-mkdir -p .claude/rules
-cp templates/learnings.md .claude/rules/   # Persistent memory
-```
-
-### What Gets Installed
-
-| Location | Purpose |
-|----------|---------|
-| `.claude/commands/cs-*.md` | Slash commands (`/cs-loop`, etc.) |
-| `profiles/*.yaml` | Quality gate definitions |
-| `templates/` | Templates for governance files |
-| `.claude/rules/learnings.md` | Persistent memory |
-
 ### After Installation
 
-1. Run `/cs-validate` to verify everything is set up correctly
-2. Run `/cs-status` to see detected profile
-3. Run `/cs-loop "your task"` to start working
-
-### Updating
-
-To update to the latest version, re-run the copy commands above. Your `.claude/rules/learnings.md` will be preserved.
-
-### No Dependencies
-
-No npm, pip, or external tools required. Just markdown and YAML files that Claude Code reads directly.
+```bash
+/cs-validate              # Verify setup
+/cs-status                # See detected profile
+/cs-loop "your task"      # Start working
+```
 
 ---
 
-## Documentation
+## 📊 By the Numbers
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| 🎯 Commands | 5 | Slash commands (`/cs-*`) |
+| 📋 Profiles | 9 | Language-specific quality gates |
+| 📏 Rules | 12 | Topic-specific standards |
+| 📄 Templates | 4 | Governance file templates |
+| 🚦 Quality Gates | 4 | Lint, test, build, git |
+| 🔄 Loop Phases | 7 | INIT → EVALUATE |
+
+---
+
+## 🎯 Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit |
+| `/cs-plan` | Plan complex tasks before executing |
+| `/cs-status` | Show tasks, git state, detected profile |
+| `/cs-validate` | Validate profiles, commands, rules, governance |
+| `/cs-learn` | Save learnings to persistent memory |
+
+---
+
+## 📋 Profile Detection
+
+Sentient auto-detects your project type and loads appropriate tooling:
+
+| Profile | Detected By | Tools |
+|---------|-------------|-------|
+| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
+| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
+| Go | `go.mod`, `*.go` | golangci-lint, go test |
+| Rust | `Cargo.toml` | clippy, cargo test |
+| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit |
+| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest |
+| Ruby | `Gemfile` | rubocop, rspec |
+| Shell | `*.sh`, `*.ps1` | shellcheck |
+| General | (fallback) | auto-detect |
+
+---
+
+## 🔄 The Loop
+
+When you run `/cs-loop`, Claude Sentient orchestrates:
+
+```
+Phase 1: INIT       → Detect profile, load rules, check governance
+Phase 2: UNDERSTAND → Classify complexity (simple/moderate/complex)
+Phase 3: PLAN       → Create tasks via TaskCreate
+Phase 4: EXECUTE    → Work through tasks, update status
+Phase 5: VERIFY     → Run quality gates (lint, test, build)
+Phase 6: COMMIT     → Create checkpoint commit
+Phase 7: EVALUATE   → Done? Exit. More work? Loop.
+```
+
+### 🚦 Quality Gates
+
+All gates must pass before committing:
+
+| Gate | Requirement |
+|------|-------------|
+| ✅ LINT | Zero errors from linter |
+| ✅ TEST | All tests pass |
+| ✅ BUILD | Project builds successfully |
+| ✅ GIT | Clean working state |
+
+---
+
+## 🔌 Native Tools Used
+
+Claude Sentient leverages built-in Claude Code features:
+
+| Feature | Native Tool |
+|---------|-------------|
+| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` |
+| Planning | `EnterPlanMode`, `ExitPlanMode` |
+| Sub-agents | `Task` with `subagent_type` |
+| Memory | `.claude/rules/*.md` |
+| Commands | `commands/*.md` + `Skill` |
+
+---
+
+## 📁 Project Structure
+
+```
+your-project/
+├── .claude/
+│   ├── commands/cs-*.md    # 5 slash commands
+│   └── rules/learnings.md  # Persistent memory
+├── profiles/*.yaml          # 9 language profiles
+├── templates/*.md           # Governance templates
+└── rules/*.md               # 12 topic rules
+```
+
+---
+
+## 📄 Governance Files
+
+Created automatically on first `/cs-loop` run:
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` | Main instructions |
-| `STATUS.md` | Current progress |
+| `STATUS.md` | Current progress, what's done/next |
 | `CHANGELOG.md` | Version history |
-| `DECISIONS.md` | Architecture decisions |
+| `DECISIONS.md` | Architecture decisions (ADRs) |
+| `.claude/rules/learnings.md` | Decisions, patterns, learnings |
 
 ---
 
-## Status
+## 🧠 Self-Improvement
 
-**v0.2.0** — Native-first architecture complete
+Claude Sentient includes a self-improvement mechanism:
 
-See `STATUS.md` for details.
+> *"After every correction, Claude proposes a rule update so it doesn't make that mistake again."*
 
----
-
-## License
-
-MIT
+Learnings are stored in `.claude/rules/learnings.md` and persist across sessions.
 
 ---
 
-*Claude Sentient: Orchestrating Claude Code's native capabilities*
+## 📚 Documentation
+
+| File | Purpose |
+|------|---------|
+| [CLAUDE.md](CLAUDE.md) | Main instructions |
+| [STATUS.md](STATUS.md) | Current progress |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [DECISIONS.md](DECISIONS.md) | Architecture decisions |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run `/cs-validate` to verify
+5. Submit a pull request
+
+---
+
+## 📜 License
+
+MIT — Use freely, contribute back.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+## ⚠️ Disclaimer
+
+This software is provided "as is", without warranty of any kind. Claude Sentient is an experimental tool that provides prompts and configurations for Claude Code. The developers are not responsible for any issues arising from its use, including but not limited to code changes, data loss, or unintended behavior. Always review AI-generated output before applying changes to your codebase.
+
+---
+
+<p align="center">
+  <strong>🧠 Claude Sentient — Orchestrating Claude Code's native capabilities for autonomous development</strong>
+</p>
