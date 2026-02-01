@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Simplified `/cs-loop` command from 320 to 106 lines (67% reduction)
+
 ### Added
 - `install.sh` and `install.ps1` installer scripts
 - One-line install commands in README

@@ -1,319 +1,105 @@
 ---
 description: Autonomous development loop - init, plan, execute, verify, commit
 argument-hint: <task description>
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, EnterPlanMode
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, EnterPlanMode, AskUserQuestion
 ---
 
 # /cs-loop
 
-The main autonomous development command. Runs a complete cycle: understand the task, plan the work, execute, verify quality, and commit.
+Autonomous development loop: understand → plan → execute → verify → commit.
 
-## Arguments
+## Phases
 
-- `task`: Description of what to accomplish (required)
+### 1. INIT
 
-## Behavior
+1. **Detect profile** by scanning for project files:
 
-### Phase 1: INIT
-
-1. Detect project type by scanning for:
-   - `pyproject.toml` or `requirements.txt` → Python
-   - `package.json` or `tsconfig.json` → TypeScript
-   - `go.mod` → Go
-   - `*.sh` or `*.ps1` → Shell
-   - Fallback → General
+   | Files | Profile | Tools |
+   |-------|---------|-------|
+   | `pyproject.toml`, `*.py` | Python | ruff, pytest |
+   | `package.json`, `tsconfig.json` | TypeScript | eslint, vitest |
+   | `go.mod` | Go | golangci-lint, go test |
+   | `*.sh`, `*.ps1` | Shell | shellcheck |
+   | (fallback) | General | auto-detect |
 
-2. Load the matching profile from `profiles/` to get:
-   - Lint command
-   - Test command
-   - Build command (if applicable)
-
-3. Read `.claude/rules/learnings.md` for project-specific context
-
-4. **Auto-load rules based on task keywords:**
-
-   Scan the task description and load matching rules from `rules/`:
-
-   | Keywords | Rules Loaded |
-   |----------|--------------|
-   | auth, login, password, jwt, oauth | `security`, `api-design` |
-   | test, spec, coverage, mock | `testing` |
-   | api, endpoint, route, rest | `api-design`, `error-handling` |
-   | database, query, schema, migration | `database` |
-   | performance, optimize, cache, slow | `performance` |
-   | ui, component, css, style | `ui-ux-design` |
-   | cli, terminal, command | `terminal-ui` |
-   | docs, readme, changelog | `documentation` |
-   | refactor, cleanup, quality | `code-quality` |
-   | git, commit, branch, pr | `git-workflow` |
-   | log, debug, trace | `logging` |
-   | error, exception, catch | `error-handling` |
-
-   For each matched rule, read `rules/{rule}.md` and apply those standards.
-
-   Report: `[INIT] Loaded rules: security, api-design`
-
-5. **Check for project governance files** and create if missing:
-   - `STATUS.md` — Current progress (create from template if missing)
-   - `CHANGELOG.md` — Version history (create from template if missing)
-   - `DECISIONS.md` — Architecture decisions (create from template if missing)
-   - `.claude/rules/learnings.md` — Session learnings (create if missing)
-
-6. Read `STATUS.md` to understand current project state
-
-7. **Fetch library documentation (if Context7 available):**
-   - Scan imports/dependencies in the task-related files
-   - For unfamiliar libraries, use Context7 MCP:
-     ```
-     mcp__context7__resolve-library-id(libraryName: "fastapi")
-     mcp__context7__query-docs(libraryId: "/tiangolo/fastapi", query: "routing")
-     ```
-   - Load relevant documentation into context
-   - Report: `[INIT] Loaded docs for: fastapi, sqlalchemy`
-
-8. Report: `[INIT] Profile: {profile}, Tools: {lint}, {test}`
-
-### Phase 2: UNDERSTAND
-
-1. Analyze the task description
-2. Classify complexity:
-   - **Simple**: Single file, obvious change
-   - **Moderate**: Multiple files, clear path
-   - **Complex**: Architecture decisions needed → trigger `EnterPlanMode`
-
-3. If complex, use `EnterPlanMode` and wait for user approval before continuing
-
-### Phase 3: PLAN
-
-1. Break the task into discrete work items
-2. Use `TaskCreate` for each work item with clear descriptions
-3. Use `TaskUpdate` to set dependencies (`addBlockedBy`) where needed
-4. Report the plan: `[PLAN] Created {n} tasks`
-
-### Phase 4: EXECUTE
-
-1. Use `TaskList` to see available work
-2. Pick the first unblocked pending task
-3. Use `TaskUpdate` to mark it `in_progress`
-4. Do the work (read files, make changes, etc.)
-5. Use `TaskUpdate` to mark it `completed`
-6. Repeat until all tasks complete
-
-**Parallel Execution:**
-
-For parallel work, use `Task` tool with appropriate options:
-
-```yaml
-# Foreground subagent (wait for result)
-Task:
-  subagent_type: Explore
-  prompt: "Find all API endpoints"
-
-# Background subagent (continue while it runs)
-Task:
-  subagent_type: general-purpose
-  prompt: "Run the test suite"
-  run_in_background: true
-```
-
-**Background Task Pattern:**
-1. Start tests in background after completing a task
-2. Continue to next task while tests run
-3. Check background task output before commit phase
-4. Use `TaskOutput` to retrieve results when ready
-
-Example:
-```
-[EXECUTE] Task #1 complete
-[BACKGROUND] Started test runner (task_id: abc123)
-[EXECUTE] Starting task #2...
-... (continue working) ...
-[EXECUTE] Checking background tasks...
-[BACKGROUND] Tests passed (task abc123)
-```
-
-### Phase 5: VERIFY
-
-Run quality gates based on detected profile:
-
-```
-[VERIFY] Running quality gates...
-```
-
-**Check background tasks first:**
-If tests were started in background during execute phase:
-1. Use `TaskOutput` to check status: `TaskOutput(task_id, block=true)`
-2. Wait for completion if still running
-3. Fail fast if background tests failed
-
-**Blocking gates** (must pass):
-1. **LINT**: Run lint command, expect zero errors
-2. **TEST**: Run test command (or use background result), expect all pass
-3. **BUILD**: Run build command if defined
-4. **GIT**: Check `git status` for clean state
-
-If any gate fails:
-- Report the failure clearly
-- Attempt to fix (if obvious)
-- Re-run the failed gate
-- If still failing after 2 attempts, stop and report
-
-### Phase 6: COMMIT
-
-Only if all gates pass:
-
-1. Stage changes: `git add <specific files>`
-2. Create commit with descriptive message
-
-3. **Auto-update STATUS.md** (Fully Automatic):
-   ```markdown
-   ## Current Status
-   **Last Updated:** {timestamp}
-   **Phase:** {current phase}
-
-   ### Completed This Session
-   - {what was just done}
-
-   ### In Progress
-   - {current work}
-
-   ### Next Steps
-   - {what remains}
-   ```
-
-4. **Auto-update CHANGELOG.md** (detect and update):
-
-   **Detection:** Check if commit message starts with:
-   - `feat:` → Add to `### Added` section
-   - `fix:` → Add to `### Fixed` section
-   - `BREAKING:` or `!:` → Add to `### Changed` with ⚠️
-
-   **Action:** If any trigger detected:
-   1. Read current CHANGELOG.md
-   2. Find or create `## [Unreleased]` section at top
-   3. Add entry under appropriate subsection
-   4. Report: `[COMMIT] Updated CHANGELOG.md (Added: {summary})`
-
-   **Example:** For commit `feat: Add Shell profile`:
-   ```markdown
-   ## [Unreleased]
-
-   ### Added
-   - Shell profile for bash/PowerShell scripts
-   ```
-
-   **Skip if:** Commit is `chore:`, `docs:`, `refactor:`, `test:`, or `ci:`
-
-5. Stage governance files: `git add STATUS.md CHANGELOG.md`
-6. Amend or create new commit including governance updates
-7. Report: `[COMMIT] Created checkpoint: {hash}`
-
-### Phase 7: EVALUATE
-
-1. Check `TaskList` for remaining work
-2. If all tasks complete and gates pass:
-   - Report: `[DONE] Task complete. {summary}`
-   - Exit loop
-3. If more work remains:
-   - Report: `[LOOP] Continuing with remaining tasks...`
-   - Return to Phase 4 (EXECUTE)
-
-## Example Session
-
-```
-User: /cs-loop "add input validation to the API"
-
-[INIT] Profile: Python, Tools: ruff, pytest
-[INIT] Loaded rules: api-design, error-handling, security
-[UNDERSTAND] Moderate complexity - multiple endpoints need validation
-[PLAN] Created 4 tasks:
-  #1 Add validation schemas
-  #2 Update user endpoint [blocked by #1]
-  #3 Update order endpoint [blocked by #1]
-  #4 Add validation tests [blocked by #2, #3]
-
-[EXECUTE] Starting task #1: Add validation schemas
-... (work happens) ...
-[EXECUTE] Task #1 complete
-[EXECUTE] Starting task #2: Update user endpoint
-... (work happens) ...
-
-[VERIFY] Running quality gates...
-  LINT: passed
-  TEST: passed (12 tests)
-  GIT: clean
-
-[COMMIT] Updated STATUS.md
-[COMMIT] Updated CHANGELOG.md (Added: Input validation for API)
-[COMMIT] Created checkpoint: a1b2c3d
-
-[DONE] Added input validation to 2 API endpoints with 12 tests.
-```
-
-## Structured Decisions with AskUserQuestion
-
-When decisions are needed, use `AskUserQuestion` with predefined options instead of free-form questions:
-
-### Example: Approach Selection
-```
-AskUserQuestion:
-  question: "How should we handle authentication?"
-  header: "Auth"
-  options:
-    - label: "JWT tokens (Recommended)"
-      description: "Stateless, scalable, industry standard"
-    - label: "Session cookies"
-      description: "Traditional, requires session store"
-    - label: "OAuth only"
-      description: "Delegate to external provider"
-```
-
-### Example: Risk Confirmation
-```
-AskUserQuestion:
-  question: "This will modify 15 files. Proceed?"
-  header: "Confirm"
-  options:
-    - label: "Yes, proceed"
-      description: "Apply all changes"
-    - label: "Show me the plan first"
-      description: "Review before executing"
-```
-
-### When to Use
-- Choosing between approaches (2-4 clear options)
-- Confirming risky actions
-- Gathering preferences
-- Resolving ambiguity
-
-Always include a recommended option first with "(Recommended)" suffix when there's a clear best choice.
+2. **Load rules** based on task keywords:
+
+   | Keywords | Rules |
+   |----------|-------|
+   | auth, login, jwt | security, api-design |
+   | test, coverage | testing |
+   | api, endpoint | api-design, error-handling |
+   | database, query | database |
+   | refactor, quality | code-quality |
+   | cli, command | terminal-ui |
+
+3. **Check governance files** — create from `templates/` if missing:
+   - `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`
+
+4. **Load Context7 docs** for unfamiliar libraries (if available)
+
+5. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}`
+
+### 2. UNDERSTAND
+
+Classify complexity:
+- **Simple**: Single file → proceed
+- **Moderate**: Multiple files, clear path → proceed
+- **Complex**: Architecture decisions → use `EnterPlanMode`
+
+### 3. PLAN
+
+1. Break task into work items using `TaskCreate`
+2. Set dependencies with `TaskUpdate(addBlockedBy: [...])`
+3. Report: `[PLAN] Created {n} tasks`
+
+### 4. EXECUTE
+
+1. `TaskList` → pick first unblocked task
+2. `TaskUpdate(status: in_progress)`
+3. Do the work
+4. `TaskUpdate(status: completed)`
+5. Repeat until all complete
+
+Use `Task` tool with `run_in_background: true` for parallel work (e.g., running tests while continuing).
+
+### 5. VERIFY
+
+Run quality gates from profile:
+
+| Gate | Action |
+|------|--------|
+| LINT | Run lint command, expect 0 errors |
+| TEST | Run test command, all must pass |
+| BUILD | Run build command if defined |
+| GIT | Check `git status` is clean |
+
+If gate fails: attempt fix, retry twice, then stop and report.
+
+### 6. COMMIT
+
+1. Stage changes: `git add <files>`
+2. Create commit with conventional message (`feat:`, `fix:`, etc.)
+3. **Auto-update STATUS.md** with session progress
+4. **Auto-update CHANGELOG.md** for `feat:` and `fix:` commits
+5. Report: `[COMMIT] Created checkpoint: {hash}`
+
+### 7. EVALUATE
+
+- All tasks complete? → `[DONE] {summary}` and exit
+- More work? → `[LOOP] Continuing...` and return to EXECUTE
 
 ## Error Handling
 
 | Situation | Response |
 |-----------|----------|
-| Complex task detected | Use `EnterPlanMode`, wait for approval |
-| Gate failure | Attempt fix, retry twice, then stop |
-| Ambiguous requirement | Use `AskUserQuestion` with options |
-| Stuck > 3 attempts | Stop and report what was tried |
-
-## Governance Files
-
-On first run, `/cs-loop` creates these files if missing (using templates from `templates/`):
-
-| File | Purpose |
-|------|---------|
-| `STATUS.md` | Project progress, current state |
-| `CHANGELOG.md` | Version history (Keep a Changelog format) |
-| `DECISIONS.md` | Architecture Decision Records |
-| `.claude/rules/learnings.md` | Session learnings (native Claude Code) |
-
-These files provide continuity across sessions and help both humans and Claude understand project context.
+| Complex task | `EnterPlanMode`, wait for approval |
+| Gate failure | Fix, retry twice, then stop |
+| Ambiguous | `AskUserQuestion` with options |
+| Stuck > 3 attempts | Stop and report |
 
 ## Notes
 
-- This command orchestrates native Claude Code tools - it doesn't replace them
-- All work items are tracked via `TaskCreate`/`TaskUpdate`
+- Uses native Claude Code tools (`TaskCreate`, `EnterPlanMode`, etc.)
 - Quality gates must pass before committing
-- Each commit is a checkpoint for easy rollback
-- Governance files are updated at the end of each successful loop
+- Each commit is a checkpoint for rollback
