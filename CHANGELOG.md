@@ -20,6 +20,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Templates for governance files (`templates/`)
 - Governance file checks in `/cs-status`
 - Auto-creation of governance files in `/cs-loop` init
+- AskUserQuestion support for structured decision-making
+- Hooks system with UserPromptSubmit and Stop hooks
+- Background subagent support for parallel task execution
+- Context7 integration for automatic library documentation
+- reference/HOOKS.md with hook documentation and examples
 
 ### Changed
 - **Major pivot to native-first architecture**

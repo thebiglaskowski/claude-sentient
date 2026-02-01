@@ -110,6 +110,11 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 ## Recent Activity
 
 ### 2026-02-01 (Session 3 - continued)
+- Added AskUserQuestion support for structured decisions
+- Added hooks system (UserPromptSubmit, Stop) with documentation
+- Added background subagent support for parallel execution
+- Added Context7 integration for library documentation
+- Created reference/HOOKS.md with advanced hook examples
 - Added governance file system (STATUS.md, CHANGELOG.md, DECISIONS.md)
 - Created templates for governance files (`templates/`)
 - Updated commands to create/check governance files

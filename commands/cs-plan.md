@@ -121,6 +121,28 @@ Replace session-based authentication with JWT tokens.
 [Waiting for approval...]
 ```
 
+## Structured Decisions
+
+When multiple approaches exist, use `AskUserQuestion` to let the user choose:
+
+```
+AskUserQuestion:
+  question: "Which approach should we use for the refactor?"
+  header: "Approach"
+  options:
+    - label: "Incremental migration (Recommended)"
+      description: "Lower risk, can ship in stages"
+    - label: "Complete rewrite"
+      description: "Cleaner result, higher risk"
+    - label: "Adapter pattern"
+      description: "Wrap old code, minimal changes"
+```
+
+This is better than free-form questions because:
+- User sees all options at once
+- Clear descriptions help decision-making
+- Faster to click than type
+
 ## When to Use
 
 Use `/cs-plan` instead of `/cs-loop` when:

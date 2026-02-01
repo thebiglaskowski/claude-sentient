@@ -28,7 +28,7 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 |---------|-------------|---------------|
 | **Task Queue** | `TaskCreate`, `TaskUpdate`, `TaskList` | Work item tracking with dependencies |
 | **Planning** | `EnterPlanMode`, `ExitPlanMode` | Architecture decisions, complex tasks |
-| **Sub-agents** | `Task` with `subagent_type` | Parallel research, exploration |
+| **Sub-agents** | `Task` with `subagent_type` | Parallel research, exploration, background tasks |
 | **Memory** | `.claude/rules/*.md` | Persistent learnings across sessions |
 | **Commands** | `commands/*.md` + `Skill` tool | Custom `/cs-*` commands |
 | **Git** | Built-in git workflow | Commits, branches, PRs |
@@ -178,6 +178,80 @@ Claude Sentient creates and maintains these files for project continuity:
 | `.claude/rules/learnings.md` | Quick decisions, patterns | `/cs-learn` |
 
 These files bridge session gaps — when Claude starts fresh, it reads these to understand context.
+
+---
+
+## Hooks
+
+Claude Sentient uses Claude Code's hook system for session logging:
+
+```json
+// .claude/settings.json
+{
+  "hooks": {
+    "UserPromptSubmit": [{ "command": "echo '[cs] Prompt received' >> .claude/session.log" }],
+    "Stop": [{ "command": "echo '[cs] Session ended' >> .claude/session.log" }]
+  }
+}
+```
+
+Available hook points:
+- `SessionStart` / `SessionEnd` — Session lifecycle
+- `UserPromptSubmit` — When user sends message (inject context)
+- `PreToolUse` / `PostToolUse` — Before/after tools (safety checks)
+- `Stop` — When Claude finishes (session summary)
+
+See `reference/HOOKS.md` for advanced examples.
+
+---
+
+## Sub-agents
+
+Claude Sentient uses Claude Code's Task tool for parallel and background work:
+
+| Subagent Type | Use For | Model |
+|---------------|---------|-------|
+| `Explore` | Fast codebase search, file finding | Haiku |
+| `Plan` | Research before planning decisions | Read-only |
+| `general-purpose` | Complex multi-step tasks | Sonnet |
+| `Bash` | Command execution in isolation | - |
+
+**Background execution:**
+```yaml
+Task:
+  subagent_type: general-purpose
+  prompt: "Run the full test suite"
+  run_in_background: true  # Don't wait, continue working
+```
+
+Use `TaskOutput(task_id)` to check results later.
+
+---
+
+## Library Documentation (Context7)
+
+When the Context7 MCP server is available, `/cs-loop` auto-fetches documentation for libraries:
+
+```
+[INIT] Detected imports: fastapi, sqlalchemy, pydantic
+[INIT] Loading docs from Context7...
+[INIT] Loaded: FastAPI routing, SQLAlchemy ORM basics
+```
+
+**How it works:**
+1. Scan task-related files for imports
+2. Identify unfamiliar libraries
+3. Call `mcp__context7__resolve-library-id` to find the library
+4. Call `mcp__context7__query-docs` with relevant query
+5. Inject documentation into context
+
+**Manual usage:**
+```
+/cs-loop "add OAuth to the API"
+# Context7 auto-fetches OAuth library docs
+```
+
+This reduces hallucination and ensures up-to-date API usage.
 
 ---
 

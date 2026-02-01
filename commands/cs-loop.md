@@ -38,7 +38,17 @@ The main autonomous development command. Runs a complete cycle: understand the t
 
 5. Read `STATUS.md` to understand current project state
 
-6. Report: `[INIT] Profile: {profile}, Tools: {lint}, {test}`
+6. **Fetch library documentation (if Context7 available):**
+   - Scan imports/dependencies in the task-related files
+   - For unfamiliar libraries, use Context7 MCP:
+     ```
+     mcp__context7__resolve-library-id(libraryName: "fastapi")
+     mcp__context7__query-docs(libraryId: "/tiangolo/fastapi", query: "routing")
+     ```
+   - Load relevant documentation into context
+   - Report: `[INIT] Loaded docs for: fastapi, sqlalchemy`
+
+7. Report: `[INIT] Profile: {profile}, Tools: {lint}, {test}`
 
 ### Phase 2: UNDERSTAND
 
@@ -66,9 +76,38 @@ The main autonomous development command. Runs a complete cycle: understand the t
 5. Use `TaskUpdate` to mark it `completed`
 6. Repeat until all tasks complete
 
-For parallel work (e.g., research), use `Task` tool with appropriate `subagent_type`:
-- `Explore` for codebase exploration
-- `general-purpose` for complex subtasks
+**Parallel Execution:**
+
+For parallel work, use `Task` tool with appropriate options:
+
+```yaml
+# Foreground subagent (wait for result)
+Task:
+  subagent_type: Explore
+  prompt: "Find all API endpoints"
+
+# Background subagent (continue while it runs)
+Task:
+  subagent_type: general-purpose
+  prompt: "Run the test suite"
+  run_in_background: true
+```
+
+**Background Task Pattern:**
+1. Start tests in background after completing a task
+2. Continue to next task while tests run
+3. Check background task output before commit phase
+4. Use `TaskOutput` to retrieve results when ready
+
+Example:
+```
+[EXECUTE] Task #1 complete
+[BACKGROUND] Started test runner (task_id: abc123)
+[EXECUTE] Starting task #2...
+... (continue working) ...
+[EXECUTE] Checking background tasks...
+[BACKGROUND] Tests passed (task abc123)
+```
 
 ### Phase 5: VERIFY
 
@@ -78,9 +117,15 @@ Run quality gates based on detected profile:
 [VERIFY] Running quality gates...
 ```
 
+**Check background tasks first:**
+If tests were started in background during execute phase:
+1. Use `TaskOutput` to check status: `TaskOutput(task_id, block=true)`
+2. Wait for completion if still running
+3. Fail fast if background tests failed
+
 **Blocking gates** (must pass):
 1. **LINT**: Run lint command, expect zero errors
-2. **TEST**: Run test command, expect all pass
+2. **TEST**: Run test command (or use background result), expect all pass
 3. **BUILD**: Run build command if defined
 4. **GIT**: Check `git status` for clean state
 
@@ -141,13 +186,51 @@ User: /cs-loop "add input validation to the API"
 [DONE] Added input validation to 2 API endpoints with 12 tests.
 ```
 
+## Structured Decisions with AskUserQuestion
+
+When decisions are needed, use `AskUserQuestion` with predefined options instead of free-form questions:
+
+### Example: Approach Selection
+```
+AskUserQuestion:
+  question: "How should we handle authentication?"
+  header: "Auth"
+  options:
+    - label: "JWT tokens (Recommended)"
+      description: "Stateless, scalable, industry standard"
+    - label: "Session cookies"
+      description: "Traditional, requires session store"
+    - label: "OAuth only"
+      description: "Delegate to external provider"
+```
+
+### Example: Risk Confirmation
+```
+AskUserQuestion:
+  question: "This will modify 15 files. Proceed?"
+  header: "Confirm"
+  options:
+    - label: "Yes, proceed"
+      description: "Apply all changes"
+    - label: "Show me the plan first"
+      description: "Review before executing"
+```
+
+### When to Use
+- Choosing between approaches (2-4 clear options)
+- Confirming risky actions
+- Gathering preferences
+- Resolving ambiguity
+
+Always include a recommended option first with "(Recommended)" suffix when there's a clear best choice.
+
 ## Error Handling
 
 | Situation | Response |
 |-----------|----------|
 | Complex task detected | Use `EnterPlanMode`, wait for approval |
 | Gate failure | Attempt fix, retry twice, then stop |
-| Ambiguous requirement | Ask ONE clarifying question |
+| Ambiguous requirement | Use `AskUserQuestion` with options |
 | Stuck > 3 attempts | Stop and report what was tried |
 
 ## Governance Files
