@@ -110,12 +110,38 @@ All 18 gates are **blocking** — no exceptions:
 
 ---
 
+## Required Plugins
+
+### Claude-Mem (Persistent Memory)
+
+Claude Sentient requires the **claude-mem** plugin for persistent memory across sessions.
+
+**Installation:**
+```bash
+/plugin marketplace add thedotmack/claude-mem
+/plugin install claude-mem
+```
+
+**Features:**
+- Automatic capture via lifecycle hooks (no manual intervention)
+- AI-powered compression (~10x token savings)
+- SQLite + Chroma vector DB (semantic + keyword search)
+- Web interface at `http://localhost:37777`
+- Privacy controls with `<private>` tags
+
+**Usage:**
+- Use `mem-search` skill to query project history
+- View memories at localhost:37777
+- Wrap sensitive content in `<private>` tags to exclude
+
+---
+
 ## Learning System
 
 ### The Core Differentiator
 
 Every action must:
-1. **Capture** — What was done, in what context
+1. **Capture** — Automatic via claude-mem hooks
 2. **Analyze** — Success or failure, why
 3. **Learn** — Generate rules, update weights
 4. **Apply** — Use learnings in future actions
@@ -123,20 +149,17 @@ Every action must:
 ### Rule Generation
 
 When the same mistake happens 3+ times:
-1. Detect the pattern
+1. Detect the pattern (query claude-mem for similar issues)
 2. Generate a prevention rule
 3. Add to auto-generated rules
 4. Track effectiveness
 5. Prune if <50% effective
 
-### Auto-Generated Rules
+### Memory & Rules
 
-Rules generated during development are stored in:
-```
-.claude/knowledge/rules/auto-generated/
-```
-
-These are loaded automatically and applied to future work.
+- **Session memory**: Handled by claude-mem (automatic)
+- **Generated rules**: Stored in `.claude/knowledge/rules/auto-generated/`
+- **Search history**: Use `mem-search` skill for natural language queries
 
 ---
 

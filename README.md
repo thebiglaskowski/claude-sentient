@@ -36,6 +36,18 @@ python tools/validate.py
 # (coming soon)
 ```
 
+### Required Plugin
+
+Claude Sentient uses **claude-mem** for persistent memory across sessions:
+
+```bash
+# In Claude Code
+/plugin marketplace add thedotmack/claude-mem
+/plugin install claude-mem
+```
+
+This enables automatic capture, AI-powered compression, and semantic search of project history.
+
 ---
 
 ## The Vision

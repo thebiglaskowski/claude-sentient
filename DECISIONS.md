@@ -197,33 +197,46 @@ Need to choose formats for different file types. V1 used Markdown with YAML fron
 
 ---
 
-### DEC-007: Local-Only Knowledge Base
+### DEC-007: Claude-Mem for Persistent Memory
 
 **Date:** 2024-02-01
 **Status:** Accepted
 
 **Context:**
-Learning persistence can use external services (Supermemory) or local files. Need to decide primary storage.
+Learning persistence needs a robust solution. Options evaluated:
+1. Supermemory (external service, requires Pro plan)
+2. Manual local files (.claude/knowledge/)
+3. Claude-Mem plugin (local, automatic, free)
 
 **Decision:**
-Use local-only persistence in `.claude/knowledge/`. No external service dependencies.
+Use **claude-mem** plugin for persistent memory across sessions.
 
 **Rationale:**
-- Works offline without internet dependency
-- No subscription costs (Supermemory requires Pro plan)
-- Full privacy — no data leaves the project
-- Simpler architecture with fewer moving parts
-- Git-trackable for versioning knowledge
-- Project-specific knowledge stays with project
+- Completely free (AGPL-3.0 license)
+- Automatic capture via lifecycle hooks (no manual intervention)
+- AI-powered compression (~10x token savings)
+- SQLite + Chroma vector DB (semantic + keyword search)
+- Web interface at localhost:37777 for viewing memories
+- Privacy controls with `<private>` tags
+- Battle-tested (15,942 stars, 1,117 forks)
+- Local-only — no data leaves the machine
+- Progressive disclosure reduces token usage
 
 **Consequences:**
-- No cross-machine sync (use git for that)
-- Must implement robust local storage
-- Knowledge portable with project folder
+- Requires claude-mem plugin installation
+- Dependencies: Node.js 18+, Bun, Python/uv (auto-installed)
+- Port 37777 used for web interface
+- Claude-sentient should auto-detect and use claude-mem when available
+
+**Installation:**
+```
+/plugin marketplace add thedotmack/claude-mem
+/plugin install claude-mem
+```
 
 **Alternatives Considered:**
-- Supermemory primary (requires Pro plan, external dependency)
-- Hybrid approach (complexity for marginal benefit)
+- Supermemory (requires Pro plan subscription)
+- Manual .claude/knowledge/ files (no auto-capture, no search)
 
 ---
 

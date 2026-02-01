@@ -825,7 +825,7 @@ exit_criteria:
 │  │  • Project-specific knowledge (.claude/knowledge/)        │   │
 │  │  • Cross-project patterns (if enabled)                    │   │
 │  │  • User preference profiles                               │   │
-│  │  • Local knowledge base (.claude/knowledge/)              │   │
+│  │  • Claude-Mem plugin (auto-capture, semantic search)      │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -933,7 +933,7 @@ learning_metrics:
 
 | Gap | Impact | Priority | Solution |
 |-----|--------|----------|----------|
-| **Learning persistence** | Learning lost between sessions | P0 | Local knowledge base (.claude/knowledge/) |
+| **Learning persistence** | Learning lost between sessions | P0 | Claude-Mem plugin (auto-capture, semantic search) |
 | **Automatic rule generation** | Manual rule creation | P0 | self-rule-generator skill |
 | **Staff engineer review** | No adversarial review | P0 | staff-engineer agent + review skill |
 | **Zero-config fix** | Requires context specification | P0 | Context auto-detection skill |
@@ -1075,14 +1075,14 @@ tasks:
   - Implement pattern detector
   - Implement rule generator
   - Implement effectiveness tracker
-  - Implement local knowledge base
-  - Implement knowledge persistence layer
+  - Integrate claude-mem plugin for persistence
+  - Implement learning analysis on top of claude-mem
 
 deliverables:
   - skills/learning/* (8 skills)
   - agents/learning-analyst.agent.yaml
-  - .claude/knowledge/ structure
-  - Knowledge persistence utilities
+  - Claude-mem integration skill
+  - Learning analysis utilities (query claude-mem for patterns)
 
 success_criteria:
   - Rules generate from corrections
