@@ -1,0 +1,83 @@
+# Python Project Profile
+# Loaded when Python project detected
+
+name: python
+version: "1.0.0"
+description: Profile for Python projects (scripts, packages, applications)
+
+# Detection patterns - if any match, this profile loads
+detect:
+  files:
+    - "pyproject.toml"
+    - "setup.py"
+    - "setup.cfg"
+    - "requirements.txt"
+    - "Pipfile"
+    - "poetry.lock"
+  patterns:
+    - "**/*.py"
+  exclude:
+    - "**/venv/**"
+    - "**/.venv/**"
+    - "**/site-packages/**"
+
+# Tool preferences (in order of preference)
+tools:
+  package_manager:
+    - uv
+    - poetry
+    - pip
+
+  lint:
+    - ruff
+    - flake8
+    - pylint
+
+  format:
+    - ruff format
+    - black
+    - autopep8
+
+  type_check:
+    - pyright
+    - mypy
+
+  test:
+    - pytest
+    - unittest
+
+  build:
+    - python -m build
+    - poetry build
+
+# Quality thresholds
+thresholds:
+  test_coverage: 80
+  new_code_coverage: 90
+  max_complexity: 10
+
+# Patterns to apply
+patterns:
+  - python-project-structure
+  - pytest-conventions
+  - type-hints
+
+# Rules to load
+rules:
+  - python-best-practices
+  - security
+
+# Common commands for this project type
+commands:
+  run_tests: "pytest"
+  lint: "ruff check ."
+  format: "ruff format ."
+  type_check: "pyright"
+  install: "uv pip install -e ."
+
+# File conventions
+conventions:
+  test_files: "test_*.py or *_test.py"
+  test_directory: "tests/"
+  source_directory: "src/"
+  config_file: "pyproject.toml"

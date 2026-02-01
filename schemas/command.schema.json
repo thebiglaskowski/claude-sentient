@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-conductor.dev/schemas/command.schema.json",
   "title": "Command Definition",
-  "description": "Schema for explicit slash commands (/cc-*)",
+  "description": "Schema for explicit slash commands (/cs-*)",
   "allOf": [
     { "$ref": "base.schema.json" }
   ],
@@ -11,14 +11,14 @@
   "properties": {
     "command": {
       "type": "string",
-      "pattern": "^cc-[a-z][a-z0-9-]*$",
-      "description": "Slash command name (must start with cc-)"
+      "pattern": "^cs-[a-z][a-z0-9-]*$",
+      "description": "Slash command name (must start with cs-)"
     },
     "aliases": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cc-[a-z][a-z0-9-]*$"
+        "pattern": "^cs-[a-z][a-z0-9-]*$"
       },
       "description": "Alternative command names"
     },

@@ -240,8 +240,48 @@ Use **claude-mem** plugin for persistent memory across sessions.
 
 ---
 
+### DEC-008: Simplify V2 Scope
+
+**Date:** 2024-02-01
+**Status:** Accepted
+
+**Context:**
+The original V2 vision included 99 skills, 50 commands, 20 agents, a complex learning engine, and 14 weeks of implementation. This was too ambitious and risked never shipping a working system.
+
+**Decision:**
+Simplify to a focused, achievable scope:
+- 25-30 skills (down from 99)
+- 20-25 commands (down from 50)
+- 10-12 agents (down from 20)
+- 8 phases (down from 10)
+- 12 quality gates (8 blocking, 4 advisory)
+- 6-week timeline (down from 14)
+- Use claude-mem for memory instead of custom learning engine
+- Use Claude Code hooks instead of custom event bus
+
+**Rationale:**
+- Get a working system faster
+- Avoid over-engineering
+- Leverage existing Claude Code capabilities
+- Can add deferred features later based on actual need
+- The vision is preserved, just the scope is reduced
+
+**Consequences:**
+- Some features deferred (see reference/DEFERRED_FEATURES.md)
+- Archived original planning docs to reference/v2-planning/
+- Cleaner, more focused codebase
+- Faster path to usable system
+
+**Alternatives Considered:**
+- Proceed with full V2 plan (rejected: too ambitious)
+- Abandon V2 entirely (rejected: good ideas worth pursuing)
+- Build just the loop without profiles (rejected: profile awareness is key value)
+
+---
+
 ## Pending Decisions
-- Sync complexity
+
+None currently.
 
 ---
 

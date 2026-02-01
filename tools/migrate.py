@@ -87,11 +87,11 @@ def migrate_command(v1_path: Path) -> dict:
     frontmatter, body = parse_frontmatter(content)
 
     name = frontmatter.get("name", v1_path.stem)
-    if not name.startswith("cc-"):
-        name = f"cc-{name}"
+    if not name.startswith("cs-"):
+        name = f"cs-{name}"
 
     v2_command = {
-        "name": name.replace("cc-", ""),
+        "name": name.replace("cs-", ""),
         "version": frontmatter.get("version", "1.0.0"),
         "description": frontmatter.get("description", "Migrated from v1")[:200],
         "command": name,
