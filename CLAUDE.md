@@ -290,6 +290,45 @@ This reduces hallucination and ensures up-to-date API usage.
 
 ---
 
+## Documentation Policy
+
+Claude Sentient automates documentation based on task context:
+
+### Automation Levels
+
+| Level | When | Examples |
+|-------|------|----------|
+| **Fully Auto** | Low risk, high value | Rule loading, STATUS.md updates |
+| **Auto + Confirm** | Significant changes | CHANGELOG entries, version bumps |
+| **On Request** | User preference | Full docs rewrites, ADRs |
+
+### Auto-Update Triggers
+
+| Change Type | STATUS.md | CHANGELOG.md | DECISIONS.md |
+|-------------|-----------|--------------|--------------|
+| Feature added | ✓ Auto | ✓ Confirm | Only if architectural |
+| Bug fixed | ✓ Auto | ✓ Confirm | — |
+| Refactoring | ✓ Auto | — | If significant |
+| Breaking change | ✓ Auto | ✓ Confirm (required) | ✓ Required |
+| Config change | ✓ Auto | — | — |
+
+### Rule Auto-Loading
+
+During `/cs-loop` INIT, rules are loaded based on task keywords:
+
+| Task Keywords | Rules Loaded |
+|---------------|--------------|
+| auth, login, jwt | `security`, `api-design` |
+| test, coverage, mock | `testing` |
+| api, endpoint, rest | `api-design`, `error-handling` |
+| database, query | `database` |
+| performance, cache | `performance` |
+| ui, component | `ui-ux-design` |
+
+Full mapping: `rules/_index.md`
+
+---
+
 ## Hard Rules
 
 1. **Use native tools** — TaskCreate not custom queue, EnterPlanMode not custom planning

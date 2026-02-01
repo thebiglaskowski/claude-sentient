@@ -7,13 +7,13 @@
     "UserPromptSubmit": [
       {
         "type": "command",
-        "command": "echo '[cs] Prompt received' >> .claude/session.log 2>/dev/null || true"
+        "command": "echo \"[cs] $(date +%Y-%m-%dT%H:%M:%S) Prompt received\" >> .claude/session.log 2>/dev/null || true"
       }
     ],
     "Stop": [
       {
         "type": "command",
-        "command": "echo \"[cs] Session ended: $(date)\" >> .claude/session.log 2>/dev/null || true"
+        "command": "echo \"[cs] $(date +%Y-%m-%dT%H:%M:%S) Session ended\" >> .claude/session.log 2>/dev/null || true"
       }
     ]
   }

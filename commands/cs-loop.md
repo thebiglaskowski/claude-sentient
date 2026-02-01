@@ -30,15 +30,38 @@ The main autonomous development command. Runs a complete cycle: understand the t
 
 3. Read `.claude/rules/learnings.md` for project-specific context
 
-4. **Check for project governance files** and create if missing:
+4. **Auto-load rules based on task keywords:**
+
+   Scan the task description and load matching rules from `rules/`:
+
+   | Keywords | Rules Loaded |
+   |----------|--------------|
+   | auth, login, password, jwt, oauth | `security`, `api-design` |
+   | test, spec, coverage, mock | `testing` |
+   | api, endpoint, route, rest | `api-design`, `error-handling` |
+   | database, query, schema, migration | `database` |
+   | performance, optimize, cache, slow | `performance` |
+   | ui, component, css, style | `ui-ux-design` |
+   | cli, terminal, command | `terminal-ui` |
+   | docs, readme, changelog | `documentation` |
+   | refactor, cleanup, quality | `code-quality` |
+   | git, commit, branch, pr | `git-workflow` |
+   | log, debug, trace | `logging` |
+   | error, exception, catch | `error-handling` |
+
+   For each matched rule, read `rules/{rule}.md` and apply those standards.
+
+   Report: `[INIT] Loaded rules: security, api-design`
+
+5. **Check for project governance files** and create if missing:
    - `STATUS.md` — Current progress (create from template if missing)
    - `CHANGELOG.md` — Version history (create from template if missing)
    - `DECISIONS.md` — Architecture decisions (create from template if missing)
    - `.claude/rules/learnings.md` — Session learnings (create if missing)
 
-5. Read `STATUS.md` to understand current project state
+6. Read `STATUS.md` to understand current project state
 
-6. **Fetch library documentation (if Context7 available):**
+7. **Fetch library documentation (if Context7 available):**
    - Scan imports/dependencies in the task-related files
    - For unfamiliar libraries, use Context7 MCP:
      ```
@@ -48,7 +71,7 @@ The main autonomous development command. Runs a complete cycle: understand the t
    - Load relevant documentation into context
    - Report: `[INIT] Loaded docs for: fastapi, sqlalchemy`
 
-7. Report: `[INIT] Profile: {profile}, Tools: {lint}, {test}`
+8. Report: `[INIT] Profile: {profile}, Tools: {lint}, {test}`
 
 ### Phase 2: UNDERSTAND
 
@@ -141,11 +164,63 @@ Only if all gates pass:
 
 1. Stage changes: `git add <specific files>`
 2. Create commit with descriptive message
-3. **Update STATUS.md** with:
-   - What was completed
-   - Current progress
-   - What's next (if more work remains)
-4. Report: `[COMMIT] Created checkpoint: {hash}`
+
+3. **Auto-update STATUS.md** (Fully Automatic):
+   ```markdown
+   ## Current Status
+   **Last Updated:** {timestamp}
+   **Phase:** {current phase}
+
+   ### Completed This Session
+   - {what was just done}
+
+   ### In Progress
+   - {current work}
+
+   ### Next Steps
+   - {what remains}
+   ```
+
+4. **Auto-update CHANGELOG.md** (Auto + Confirm for significant changes):
+
+   **Trigger conditions** (any match triggers):
+   - New feature added (`feat:` commits)
+   - Breaking change made
+   - Bug fixed (`fix:` commits)
+   - User explicitly requested version bump
+
+   **Process:**
+   - Analyze commits since last version tag
+   - Group by type (Added, Changed, Fixed, Removed)
+   - Generate entry in Keep a Changelog format
+   - If significant changes detected, ask user:
+     ```
+     AskUserQuestion:
+       question: "Ready to update CHANGELOG with these changes?"
+       header: "Changelog"
+       options:
+         - label: "Yes, add to Unreleased (Recommended)"
+           description: "Add entries without version bump"
+         - label: "Yes, bump to {next_version}"
+           description: "Create new version entry"
+         - label: "Skip for now"
+           description: "Don't update changelog"
+     ```
+
+   **Generated format:**
+   ```markdown
+   ## [Unreleased]
+
+   ### Added
+   - Input validation for user API endpoint
+
+   ### Changed
+   - Improved error messages for auth failures
+   ```
+
+5. Stage governance files: `git add STATUS.md CHANGELOG.md`
+6. Amend or create new commit including governance updates
+7. Report: `[COMMIT] Created checkpoint: {hash}`
 
 ### Phase 7: EVALUATE
 
@@ -163,6 +238,7 @@ Only if all gates pass:
 User: /cs-loop "add input validation to the API"
 
 [INIT] Profile: Python, Tools: ruff, pytest
+[INIT] Loaded rules: api-design, error-handling, security
 [UNDERSTAND] Moderate complexity - multiple endpoints need validation
 [PLAN] Created 4 tasks:
   #1 Add validation schemas
@@ -181,6 +257,8 @@ User: /cs-loop "add input validation to the API"
   TEST: passed (12 tests)
   GIT: clean
 
+[COMMIT] Updated STATUS.md
+[COMMIT] Updated CHANGELOG.md (Added: Input validation for API)
 [COMMIT] Created checkpoint: a1b2c3d
 
 [DONE] Added input validation to 2 API endpoints with 12 tests.
