@@ -35,9 +35,11 @@ try {
     // Not a git repo
 }
 
-// Detect profile from files
+// Detect profile from files (supports monorepos)
 function detectProfile() {
     const cwd = process.cwd();
+
+    // Check root level first
     if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py'))) {
         return 'python';
     }
@@ -50,9 +52,47 @@ function detectProfile() {
     if (fs.existsSync(path.join(cwd, 'Cargo.toml'))) {
         return 'rust';
     }
+
+    // Check for monorepo structures (packages/, apps/, src/)
+    const monorepoLocations = ['packages', 'apps', 'src'];
+    for (const dir of monorepoLocations) {
+        const dirPath = path.join(cwd, dir);
+        if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
+            try {
+                const subdirs = fs.readdirSync(dirPath);
+                for (const subdir of subdirs) {
+                    const subdirPath = path.join(dirPath, subdir);
+                    if (fs.statSync(subdirPath).isDirectory()) {
+                        // Check for TypeScript in subdirs
+                        if (fs.existsSync(path.join(subdirPath, 'tsconfig.json'))) {
+                            return 'typescript';
+                        }
+                        // Check for Python in subdirs
+                        if (fs.existsSync(path.join(subdirPath, 'pyproject.toml'))) {
+                            return 'python';
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore read errors
+            }
+        }
+    }
+
+    // Fallback checks
     if (fs.existsSync(path.join(cwd, 'package.json'))) {
+        // Check if it's a TypeScript project by looking at devDependencies
+        try {
+            const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+            if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) {
+                return 'typescript';
+            }
+        } catch (e) {
+            // Ignore parse errors
+        }
         return 'javascript';
     }
+
     return 'general';
 }
 
