@@ -25,19 +25,19 @@ Example:
                 print(msg)
 """
 
+from .datatypes import GateStatus, Phase, Task, TaskStatus
+from .gates import GateResult, QualityGates
+from .hooks import HookManager
 from .orchestrator import (
+    AGENT_SDK_AVAILABLE,
+    AgentDefinition,
     ClaudeSentient,
     ClaudeSentientClient,
     LoopResult,
-    AgentDefinition,
     SandboxConfig,
-    AGENT_SDK_AVAILABLE,
 )
+from .profiles import Profile, ProfileLoader
 from .session import SessionManager, SessionState
-from .profiles import ProfileLoader, Profile
-from .gates import QualityGates, GateResult
-from .hooks import HookManager
-from .types import Task, TaskStatus, Phase, GateStatus
 
 __version__ = "0.3.0"
 __all__ = [

@@ -6,7 +6,7 @@ import subprocess
 
 from claude_sentient.gates import QualityGates, create_gate_hooks
 from claude_sentient.profiles import Profile, GateConfig
-from claude_sentient.types import GateStatus, GateResult
+from claude_sentient.datatypes import GateStatus, GateResult
 
 
 @pytest.fixture

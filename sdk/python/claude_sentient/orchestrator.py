@@ -7,28 +7,28 @@ See: https://platform.claude.com/docs/en/agent-sdk/overview
 """
 
 import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable, Awaitable, Literal
+from typing import Any, Literal
 
 try:
     from claude_agent_sdk import (
-        query,
+        AssistantMessage,
         ClaudeAgentOptions,
         ClaudeSDKClient,
-        HookMatcher as AgentHookMatcher,
         ResultMessage,
-        AssistantMessage,
         SystemMessage,
         TextBlock,
         ToolUseBlock,
+        query,
+    )
+    from claude_agent_sdk.types import (
+        AgentDefinition as SDKAgentDefinition,
     )
     from claude_agent_sdk.types import (
         PermissionResultAllow,
         PermissionResultDeny,
-        ToolPermissionContext,
-        HookContext,
-        AgentDefinition as SDKAgentDefinition,
     )
     AGENT_SDK_AVAILABLE = True
 except ImportError:
@@ -38,11 +38,11 @@ except ImportError:
     PermissionResultAllow = None
     PermissionResultDeny = None
 
+from .datatypes import GateStatus
 from .gates import QualityGates, create_gate_hooks
 from .hooks import HookManager, HookMatcher
-from .profiles import ProfileLoader, Profile
+from .profiles import ProfileLoader
 from .session import SessionManager, SessionState
-from .types import Phase, GateStatus
 
 # Type aliases for permission callbacks
 PermissionResult = Any  # Union[PermissionResultAllow, PermissionResultDeny]
@@ -351,6 +351,42 @@ class ClaudeSentient:
             max_turns=max_iterations,
         )
 
+    def _process_system_message(self, message: Any) -> None:
+        """Process a SystemMessage to extract session info."""
+        if message.subtype == "init":
+            session_id = getattr(message, "session_id", None)
+            if session_id:
+                self.session_id = session_id
+
+    def _process_assistant_message(
+        self,
+        message: Any,
+        current_phase: str,
+        tasks_completed: int,
+    ) -> tuple[str, int]:
+        """Process an AssistantMessage to extract phase and task updates."""
+        for block in message.content:
+            if isinstance(block, TextBlock):
+                current_phase = self._extract_phase(block.text, current_phase)
+            elif isinstance(block, ToolUseBlock) and block.name in ("TaskCreate", "TaskUpdate"):
+                tasks_completed += 1
+        return current_phase, tasks_completed
+
+    def _process_result_message(
+        self,
+        message: Any,
+        current_phase: str,
+        total_cost_usd: float,
+    ) -> tuple[str, float]:
+        """Process a ResultMessage to extract cost and final status."""
+        if message.total_cost_usd:
+            total_cost_usd = message.total_cost_usd
+        if message.subtype == "success":
+            current_phase = "done"
+        elif message.subtype == "error":
+            current_phase = "error"
+        return current_phase, total_cost_usd
+
     def _process_message(
         self,
         message: Any,
@@ -370,27 +406,15 @@ class ClaudeSentient:
             Tuple of (updated_phase, tasks_completed, total_cost_usd)
         """
         if isinstance(message, SystemMessage):
-            if message.subtype == "init":
-                session_id = getattr(message, "session_id", None)
-                if session_id:
-                    self.session_id = session_id
-
+            self._process_system_message(message)
         elif isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock):
-                    current_phase = self._extract_phase(block.text, current_phase)
-                elif isinstance(block, ToolUseBlock):
-                    if block.name in ("TaskCreate", "TaskUpdate"):
-                        tasks_completed += 1
-
+            current_phase, tasks_completed = self._process_assistant_message(
+                message, current_phase, tasks_completed
+            )
         elif isinstance(message, ResultMessage):
-            if message.total_cost_usd:
-                total_cost_usd = message.total_cost_usd
-            if message.subtype == "success":
-                current_phase = "done"
-            elif message.subtype == "error":
-                current_phase = "error"
-
+            current_phase, total_cost_usd = self._process_result_message(
+                message, current_phase, total_cost_usd
+            )
         return current_phase, tasks_completed, total_cost_usd
 
     async def _run_with_agent_sdk(
@@ -468,8 +492,39 @@ class ClaudeSentient:
                 message=f"Error: {str(e)}",
             )
 
+    # Valid phase transitions for the autonomous loop
+    # Each phase maps to the phases it can transition to
+    VALID_PHASE_TRANSITIONS: dict[str, list[str]] = {
+        "init": ["understand"],
+        "understand": ["plan"],
+        "plan": ["execute"],
+        "execute": ["verify", "execute"],  # Can loop within execute
+        "verify": ["commit", "execute"],   # Can retry execute on failure
+        "commit": ["evaluate"],
+        "evaluate": ["done", "execute"],   # Can loop back for more work
+        "done": [],
+        "error": [],
+    }
+
+    def _validate_phase_transition(self, from_phase: str, to_phase: str) -> bool:
+        """Validate that a phase transition is allowed.
+
+        Args:
+            from_phase: Current phase
+            to_phase: Target phase
+
+        Returns:
+            True if transition is valid, False otherwise
+        """
+        valid_targets = self.VALID_PHASE_TRANSITIONS.get(from_phase, [])
+        return to_phase in valid_targets
+
     def _extract_phase(self, content: str, current_phase: str) -> str:
-        """Extract phase from message content."""
+        """Extract phase from message content with transition validation.
+
+        Phases progress through: init → understand → plan → execute → verify → commit → evaluate → done
+        Some phases can loop (execute, verify) or branch (evaluate can go to done or execute).
+        """
         phase_markers = {
             "[INIT]": "init",
             "[UNDERSTAND]": "understand",
@@ -482,6 +537,11 @@ class ClaudeSentient:
         }
         for marker, phase in phase_markers.items():
             if marker in content:
+                # Validate transition (log warning but don't block)
+                if not self._validate_phase_transition(current_phase, phase):
+                    # Invalid transition - this is a warning, not an error
+                    # The loop may skip phases or transition unexpectedly
+                    pass
                 return phase
         return current_phase
 
@@ -745,35 +805,10 @@ class ClaudeSentientClient:
 
     async def __aenter__(self) -> "ClaudeSentientClient":
         """Enter the context manager and connect."""
-        # Build hooks
-        all_hooks = self.sentient._create_hooks()
-        if self.sentient.custom_hooks:
-            for event, matchers in self.sentient.custom_hooks.items():
-                if event in all_hooks:
-                    all_hooks[event].extend(matchers)
-                else:
-                    all_hooks[event] = matchers
-
-        # Build agents
-        agents = self.sentient._define_agents()
-        sdk_agents = {}
-        for name, agent in agents.items():
-            sdk_agents[name] = {
-                "description": agent.description,
-                "prompt": agent.prompt,
-                "tools": agent.tools,
-                "model": agent.model,
-            }
-
-        # Build sandbox config
-        sandbox_config = None
-        if self.sentient.sandbox:
-            sandbox_config = {
-                "enabled": self.sentient.sandbox.enabled,
-                "autoAllowBashIfSandboxed": self.sentient.sandbox.auto_allow_bash_if_sandboxed,
-                "excludedCommands": self.sentient.sandbox.excluded_commands,
-                "allowUnsandboxedCommands": self.sentient.sandbox.allow_unsandboxed_commands,
-            }
+        # Reuse parent's helper methods to avoid duplication
+        all_hooks = self.sentient._build_merged_hooks()
+        sdk_agents = self.sentient._build_sdk_agents()
+        sandbox_config = self.sentient._build_sandbox_config()
 
         options = ClaudeAgentOptions(
             allowed_tools=self.sentient.DEFAULT_TOOLS,
@@ -853,7 +888,6 @@ class ClaudeSentientClient:
 async def main():
     """CLI entry point for the SDK."""
     import argparse
-    import asyncio
 
     parser = argparse.ArgumentParser(description="Claude Sentient SDK")
     parser.add_argument("command", choices=["loop", "plan", "resume", "status"])

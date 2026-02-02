@@ -1,12 +1,11 @@
 """Custom hook definitions for Claude Sentient SDK."""
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Awaitable
-from pathlib import Path
+from typing import Any
 
-from .session import SessionManager, SessionState
-from .types import Phase
-
+from .datatypes import Phase
+from .session import SessionManager
 
 # Type alias for hook functions
 HookFunction = Callable[

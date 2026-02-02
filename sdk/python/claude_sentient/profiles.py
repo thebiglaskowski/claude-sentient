@@ -1,5 +1,6 @@
 """Profile detection and loading for Claude Sentient SDK."""
 
+import contextlib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -93,9 +94,9 @@ class ProfileLoader:
                     if (cwd / detect_file).exists():
                         return profile_name
 
-                # Check for files with detection extensions
+                # Check for files with detection extensions (early exit on first match)
                 for ext in profile.detect_extensions:
-                    if list(cwd.glob(f"*{ext}")):
+                    if next(cwd.glob(f"*{ext}"), None):
                         return profile_name
 
         return "general"
@@ -111,10 +112,8 @@ class ProfileLoader:
         if self.profiles_dir:
             yaml_file = self.profiles_dir / f"{profile_name}.yaml"
             if yaml_file.exists():
-                try:
+                with contextlib.suppress(yaml.YAMLError):
                     profile_data = yaml.safe_load(yaml_file.read_text())
-                except yaml.YAMLError:
-                    pass
 
         # Fall back to defaults
         if not profile_data:

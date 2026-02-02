@@ -1,7 +1,7 @@
 """Tests for Claude Sentient SDK types."""
 
 import pytest
-from claude_sentient.types import (
+from claude_sentient.datatypes import (
     Phase,
     TaskStatus,
     GateStatus,

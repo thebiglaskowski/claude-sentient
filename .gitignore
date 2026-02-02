@@ -173,6 +173,8 @@ ehthumbs.db
 ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
+nul
+NUL
 
 # Linux
 *~
@@ -243,8 +245,8 @@ docker-compose.*.yml
 # PROJECT SPECIFIC
 # =============================================================================
 
-# Reference V1 git folder (we just want the files, not git history)
-reference/v1/.git/
+# Archive V1 git folder (we just want the files, not git history)
+archive/v1-legacy/.git/
 
 # SDK test state directories
 sdk/**/.claude/

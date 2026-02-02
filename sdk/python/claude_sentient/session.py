@@ -1,7 +1,9 @@
 """Session persistence for Claude Sentient SDK."""
 
 import json
-from dataclasses import dataclass, asdict, field
+import os
+import sys
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -44,9 +46,11 @@ class SessionManager:
         """
         self.state_dir = Path(state_dir)
         self.state_dir.mkdir(parents=True, exist_ok=True)
+        self._set_secure_permissions(self.state_dir)
         self.state_file = self.state_dir / "session.json"
         self.history_dir = self.state_dir / "history"
         self.history_dir.mkdir(exist_ok=True)
+        self._set_secure_permissions(self.history_dir)
 
         self.auto_flush = auto_flush
         self._cached_state: SessionState | None = None
@@ -66,10 +70,21 @@ class SessionManager:
             self._write_state(self._cached_state)
             self._dirty = False
 
+    def _set_secure_permissions(self, path: Path) -> None:
+        """Set secure permissions on file or directory (owner-only access).
+
+        On Unix: chmod 0700 for directories, 0600 for files.
+        On Windows: Relies on NTFS ACLs (no chmod equivalent).
+        """
+        if sys.platform != "win32":
+            mode = 0o700 if path.is_dir() else 0o600
+            os.chmod(path, mode)
+
     def _write_state(self, state: SessionState) -> None:
         """Internal method to write state to disk."""
         state.last_updated = datetime.now().isoformat()
         self.state_file.write_text(json.dumps(asdict(state), indent=2))
+        self._set_secure_permissions(self.state_file)
 
     def _mark_dirty(self) -> None:
         """Mark state as modified."""
@@ -177,10 +192,9 @@ class SessionManager:
     def add_file_change(self, file_path: str) -> None:
         """Record a file change."""
         state = self.load()
-        if state:
-            if file_path not in state.file_changes:
-                state.file_changes.append(file_path)
-                self._mark_dirty()
+        if state and file_path not in state.file_changes:
+            state.file_changes.append(file_path)
+            self._mark_dirty()
 
     def update_gate(self, gate_name: str, result: dict[str, Any]) -> None:
         """Update a gate result."""

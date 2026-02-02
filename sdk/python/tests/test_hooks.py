@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 
 from claude_sentient.hooks import HookManager, HookMatcher, HookFunction
 from claude_sentient.session import SessionManager
-from claude_sentient.types import Phase
+from claude_sentient.datatypes import Phase
 
 
 class TestHookMatcher:

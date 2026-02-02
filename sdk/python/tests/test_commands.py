@@ -12,8 +12,8 @@ import pytest
 from pathlib import Path
 
 
-# Path to commands directory (sdk/python/tests -> claude-sentient/commands)
-COMMANDS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "commands"
+# Path to commands directory (sdk/python/tests -> claude-sentient/.claude/commands)
+COMMANDS_DIR = Path(__file__).resolve().parent.parent.parent.parent / ".claude" / "commands"
 
 
 def get_command_files() -> list[Path]:

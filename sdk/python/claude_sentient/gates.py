@@ -6,27 +6,34 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
-from .profiles import ProfileLoader, Profile
-from .types import GateResult, GateStatus
+from .datatypes import GateResult, GateStatus
+from .profiles import Profile
 
 
 def _parse_command(command: str) -> list[str]:
     """Parse a command string into a list for subprocess.
 
-    Uses shlex.split on Unix, or splits on Windows with shell awareness.
-    Falls back to shell=True behavior if parsing fails.
+    Uses shlex.split for POSIX parsing. On Windows, uses cmd.exe /c
+    for proper command execution without shell=True security risks.
+
+    Args:
+        command: Command string to parse
+
+    Returns:
+        List of command arguments for subprocess
     """
     if sys.platform == "win32":
-        # On Windows, many commands need shell for built-ins (dir, echo, etc.)
-        # Return None to signal shell=True should be used
-        return None
+        # Windows: Use cmd.exe /c to execute command string safely
+        # This avoids shell=True while still supporting shell features
+        return ["cmd", "/c", command]
     try:
         return shlex.split(command)
     except ValueError:
-        # Malformed command string, fall back to shell
-        return None
+        # Malformed command string, split on whitespace as fallback
+        # This is safer than shell=True
+        return command.split()
 
 
 @dataclass
@@ -50,13 +57,12 @@ class QualityGates:
         start_time = time.time()
 
         try:
-            # Parse command to avoid shell=True when possible (security)
+            # Parse command to avoid shell=True (security)
             parsed_cmd = _parse_command(gate_config.command)
-            use_shell = parsed_cmd is None
 
             result = subprocess.run(
-                gate_config.command if use_shell else parsed_cmd,
-                shell=use_shell,
+                parsed_cmd,
+                shell=False,
                 capture_output=True,
                 text=True,
                 cwd=cwd,
