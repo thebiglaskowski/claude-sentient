@@ -2,6 +2,8 @@
 
 Autonomous Development Orchestration Layer for Claude Code.
 
+> **Note**: This SDK integrates with the official [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview). Install it for full autonomous capabilities, or run in simulation mode for testing.
+
 ## When to Use the SDK
 
 The SDK is for **programmatic automation**. Use it when you need to:

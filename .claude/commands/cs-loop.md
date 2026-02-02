@@ -6,8 +6,16 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate
 
 # /cs-loop
 
-Autonomous development loop: understand → plan → execute → verify → commit.
+<role>
+You are an autonomous software development agent. You work through tasks methodically: understanding requirements, planning work, executing changes, verifying quality, and committing checkpoints. You leverage all available tools and MCP servers to deliver high-quality results.
+</role>
 
+<task>
+Execute an autonomous development loop: understand → plan → execute → verify → commit. Work through the given task from start to finish, maintaining quality gates and creating checkpoints.
+</task>
+
+<context>
+<mcp_servers>
 ## MCP Server Integration
 
 This command leverages available MCP servers for enhanced capabilities:
@@ -18,24 +26,33 @@ This command leverages available MCP servers for enhanced capabilities:
 | **github** | INIT, COMMIT | Fetch issue details, create PRs, link commits |
 | **memory** | INIT, COMMIT | Persist session state for resumability |
 | **puppeteer** | VERIFY | Screenshot web apps after changes (web projects) |
+</mcp_servers>
 
+<profiles>
+| Files | Profile | Tools |
+|-------|---------|-------|
+| `pyproject.toml`, `*.py` | Python | ruff, pytest |
+| `package.json`, `tsconfig.json` | TypeScript | eslint, vitest |
+| `go.mod` | Go | golangci-lint, go test |
+| `Cargo.toml` | Rust | clippy, cargo test |
+| `pom.xml`, `build.gradle` | Java | checkstyle, JUnit |
+| `CMakeLists.txt`, `Makefile` | C/C++ | clang-tidy, ctest |
+| `Gemfile` | Ruby | rubocop, rspec |
+| `*.sh`, `*.ps1` | Shell | shellcheck |
+| (fallback) | General | auto-detect |
+</profiles>
+</context>
+
+<steps>
 ## Phases
 
 ### 1. INIT
 
-1. **Detect profile** by scanning for project files:
+<thinking>
+Gather all context needed for the task: profile, environment, rules, external data.
+</thinking>
 
-   | Files | Profile | Tools |
-   |-------|---------|-------|
-   | `pyproject.toml`, `*.py` | Python | ruff, pytest |
-   | `package.json`, `tsconfig.json` | TypeScript | eslint, vitest |
-   | `go.mod` | Go | golangci-lint, go test |
-   | `Cargo.toml` | Rust | clippy, cargo test |
-   | `pom.xml`, `build.gradle` | Java | checkstyle, JUnit |
-   | `CMakeLists.txt`, `Makefile` | C/C++ | clang-tidy, ctest |
-   | `Gemfile` | Ruby | rubocop, rspec |
-   | `*.sh`, `*.ps1` | Shell | shellcheck |
-   | (fallback) | General | auto-detect |
+1. **Detect profile** by scanning for project files (see profiles table above)
 
 2. **Detect Python environment** (if Python profile):
 
@@ -45,14 +62,6 @@ This command leverages available MCP servers for enhanced capabilities:
    | `.venv/`, `venv/` | Virtualenv | Activate first or use `.venv/bin/python` |
    | `poetry.lock` | Poetry | `poetry run` |
    | `pdm.lock` | PDM | `pdm run` |
-
-   **Detection steps:**
-   ```
-   - Check for environment.yml → parse for env name → use conda prefix
-   - Check for .venv/ or venv/ → commands use venv python
-   - Check for poetry.lock → prefix with "poetry run"
-   - Ask user if unclear: "I detected conda env 'myenv'. Use it?"
-   ```
 
    Report: `[INIT] Environment: conda (myenv)` or `[INIT] Environment: system python`
 
@@ -66,83 +75,47 @@ This command leverages available MCP servers for enhanced capabilities:
    | database, query | database |
    | refactor, quality | code-quality |
    | cli, command | terminal-ui |
+   | react, vue, next, frontend | ui-ux-design |
 
-3. **Check governance files** — create from `templates/` if missing:
+4. **Detect web project** (auto-load UI/UX rules):
+
+   | Indicators | Profile | Auto-load |
+   |------------|---------|-----------|
+   | next.config, vite.config, react, vue, svelte | TypeScript Web | ui-ux-design |
+   | templates/, django, flask, jinja2 | Python Web | ui-ux-design |
+
+   Report: `[INIT] Web project detected, loaded ui-ux-design rules`
+
+5. **Check governance files** — create from `templates/` if missing:
    - `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`
 
-4. **MCP: Context7** — Fetch library documentation:
-   ```
+6. **MCP: Context7** — Fetch library documentation:
    - Scan task-related files for imports/dependencies
-   - For each unfamiliar library:
-     1. mcp__plugin_context7_context7__resolve-library-id(libraryName, query)
-     2. mcp__plugin_context7_context7__query-docs(libraryId, query)
+   - For each unfamiliar library: resolve-library-id → query-docs
    - Inject relevant docs into context
-   ```
 
-5. **MCP: GitHub** — Load issue and PR context:
+7. **MCP: GitHub** — Load issue and PR context:
+   - For issues (patterns: "fix #123", "closes #456"): Load requirements
+   - For PRs (patterns: "review PR #42"): Load files, comments, reviews
+   - For recent changes: List commits, summarize
 
-   **For issues** (patterns: "fix #123", "closes #456", "issue 789"):
-   ```
-   - mcp__github__get_issue(owner, repo, issue_number)
-   - Extract requirements, acceptance criteria from issue body
-   - Report: [INIT] Loaded issue #123: {title}
-   ```
+8. **MCP: Memory** — Search for relevant prior decisions:
+   - Extract keywords from task description
+   - Search nodes for matching decisions/patterns
+   - Load and apply relevant context
 
-   **For pull requests** (patterns: "review PR #42", "PR feedback", "fix PR comments"):
-   ```
-   Step 1: mcp__github__get_pull_request(owner, repo, pull_number)
-   Step 2: mcp__github__get_pull_request_files → list changed files
-   Step 3: mcp__github__get_pull_request_comments → load review feedback
-   Step 4: mcp__github__get_pull_request_reviews → check approval status
-   Report: [INIT] Loaded PR #42: {title} ({n} files, {m} comments)
-   ```
+9. **WebFetch: Dependency changelogs** — If task involves dependencies:
+   - Trigger keywords: "update", "upgrade", "migrate", "bump"
+   - Fetch CHANGELOG.md or release notes
+   - Prevent breaking changes from surprising you
 
-   **For recent changes** (patterns: "what changed", "recent work"):
-   ```
-   - mcp__github__list_commits(owner, repo, sha=branch)
-   - Summarize: [INIT] Recent commits: {commit summaries}
-   ```
-
-6. **MCP: Memory** — Search for relevant prior decisions:
-   ```
-   Step 1: Extract keywords from task description
-   Step 2: mcp__memory__search_nodes(query="{keywords}")
-   Step 3: If matches found:
-     - mcp__memory__open_nodes(names=[...matching entities...])
-     - Inject prior decisions into context
-     - Report: [INIT] Found {n} relevant prior decisions
-
-   Example:
-   Task: "Add JWT authentication"
-   → search_nodes("authentication JWT")
-   → Found: "decision_auth_2026_01", "pattern_jwt_tokens"
-   → Load and apply those decisions
-   ```
-
-   Also check for session state:
-   ```
-   - mcp__memory__read_graph() for prior session context
-   - If found: load previous tasks, decisions, blockers
-   - Report: [INIT] Resumed from previous session (if applicable)
-   ```
-
-7. **WebFetch: Dependency changelogs** — If task involves dependencies:
-   ```
-   Trigger keywords: "update", "upgrade", "migrate", "add dependency", "bump"
-
-   For each dependency mentioned:
-   1. Identify package name and registry (npm, PyPI, crates.io)
-   2. WebFetch("https://github.com/{owner}/{repo}/blob/main/CHANGELOG.md",
-              "Extract breaking changes and migration notes for version X")
-   3. Or fetch release notes: https://github.com/{owner}/{repo}/releases
-   4. Report: [INIT] Fetched changelog for {package}: {summary}
-   ```
-
-   This prevents breaking changes from surprising you during implementation.
-
-8. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
+10. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
 
 ### 2. UNDERSTAND
+
+<thinking>
+Classify the task complexity to determine the right approach.
+</thinking>
 
 Classify complexity:
 - **Simple**: Single file → proceed
@@ -150,45 +123,19 @@ Classify complexity:
 - **Complex**: Architecture decisions → use `EnterPlanMode`
 
 **GitHub code search** — For unfamiliar patterns (use sparingly):
-```
-Trigger: Task involves implementing a standard pattern you're unsure about
+- Trigger: Implementing a standard pattern you're unsure about
+- `mcp__github__search_code(q="{pattern} language:{lang}")`
+- Report: `[UNDERSTAND] Found {n} reference implementations`
 
-mcp__github__search_code(q="{pattern} language:{lang}")
-→ Review top results for common approaches
-→ Report: [UNDERSTAND] Found {n} reference implementations
-
-Example:
-Task: "Add rate limiting to the API"
-→ search_code("rate limit middleware language:typescript")
-→ Found: express-rate-limit patterns, custom token bucket implementations
-→ Summarize common approaches
-
-Note: Use sparingly to avoid GitHub rate limits. Only for genuinely unfamiliar patterns.
-```
-
-**Structured decisions** — When task is ambiguous, use `AskUserQuestion` with predefined options:
+**Structured decisions** — When task is ambiguous, use `AskUserQuestion`:
 
 | Decision | Options |
 |----------|---------|
-| Auth approach | JWT (stateless, scalable) / Sessions (simpler, server-side) / OAuth (third-party) |
-| Database | PostgreSQL (relational, JSON support) / SQLite (simple, file-based) / MongoDB (document store) |
-| Testing strategy | Unit only (fast, isolated) / Integration (realistic) / E2E (full coverage) |
-| Error handling | Exceptions (Python/Java style) / Result types (Rust/Go style) / Status codes (HTTP style) |
-| State management | Local state (simpler) / Context/Redux (global) / Server state (real-time) |
-
-Example:
-```
-AskUserQuestion:
-  question: "Which authentication approach should we use?"
-  header: "Auth"
-  options:
-    - label: "JWT tokens (Recommended)"
-      description: "Stateless, scalable, good for APIs"
-    - label: "Server sessions"
-      description: "Simpler setup, requires session store"
-    - label: "OAuth/OIDC"
-      description: "Delegate to identity provider"
-```
+| Auth approach | JWT (stateless) / Sessions (simpler) / OAuth (third-party) |
+| Database | PostgreSQL / SQLite / MongoDB |
+| Testing strategy | Unit only / Integration / E2E |
+| Error handling | Exceptions / Result types / Status codes |
+| State management | Local state / Context/Redux / Server state |
 
 ### 3. PLAN
 
@@ -209,9 +156,6 @@ AskUserQuestion:
 - Detailed requirements
 - Acceptance criteria
 - Dependencies and constraints
-- Links to relevant issues or docs
-
-Use `Task` tool with `run_in_background: true` for parallel work (e.g., running tests while continuing).
 
 **Background task timeout handling:**
 
@@ -221,18 +165,9 @@ Use `Task` tool with `run_in_background: true` for parallel work (e.g., running 
 | Build | 5 min | TaskStop + check for infinite loops |
 | Exploration | 3 min | TaskStop + use partial findings |
 
-```
-When running background tasks:
-1. Note the task_id from Task tool response
-2. Use TaskOutput(task_id, block=false) to check progress periodically
-3. If task exceeds timeout:
-   - TaskStop(task_id)
-   - Report: [EXECUTE] Task {id} timed out after {N} minutes
-   - Attempt smaller scope or ask user
-```
-
 ### 5. VERIFY
 
+<criteria>
 Run quality gates from profile:
 
 | Gate | Action |
@@ -241,41 +176,21 @@ Run quality gates from profile:
 | TEST | Run test command, all must pass |
 | BUILD | Run build command if defined |
 | GIT | Check `git status` is clean |
+</criteria>
 
-**MCP: Puppeteer** — For web projects (detected by `package.json` with web framework):
-```
-- If significant UI changes were made:
-  1. mcp__puppeteer__puppeteer_navigate(url) to dev server
-  2. mcp__puppeteer__puppeteer_screenshot(name) for visual verification
-  3. Report: [VERIFY] Screenshot saved: {name}
-- Skip if no dev server running or not a web project
-```
+**MCP: Puppeteer** — For web projects:
+- If significant UI changes: navigate → screenshot
+- Report: `[VERIFY] Screenshot saved: {name}`
 
-**MCP: GitHub** — PR status check (when working on a PR branch):
-```
-- mcp__github__get_pull_request_status(owner, repo, pull_number)
-- If CI failing: [VERIFY] Warning: PR CI is failing on {checks}
-- If CI passing: [VERIFY] PR CI is green
-- If CI pending: [VERIFY] PR CI still running...
-```
+**MCP: GitHub** — PR status check:
+- Check CI status: passing/failing/pending
+- Report: `[VERIFY] PR CI is {status}`
 
 **On gate failure — WebSearch before asking:**
-```
 1. Extract error message from gate output
 2. WebSearch("{language} {error_message} fix 2026")
 3. If solution found: apply fix automatically
-4. If fix works: continue
-5. If still failing after 2 attempts: stop and report with search findings
-```
-
-Example flow:
-```
-[VERIFY] pytest failed: "AttributeError: module 'jwt' has no attribute 'encode'"
-[VERIFY] Searching for solution...
-[VERIFY] Found: PyJWT vs jwt package conflict. Uninstall jwt, keep PyJWT.
-[VERIFY] Applying fix: pip uninstall jwt && pip install PyJWT
-[VERIFY] Retrying tests...
-```
+4. If still failing after 2 attempts: stop and report
 
 ### 6. COMMIT
 
@@ -284,25 +199,13 @@ Example flow:
 3. **Auto-update STATUS.md** with session progress
 4. **Auto-update CHANGELOG.md** for `feat:` and `fix:` commits
 
-**MCP: GitHub** — Link commits to issues and optionally create PRs:
-```
-- If task referenced an issue:
-  1. Include "Fixes #123" or "Closes #123" in commit message
-  2. Optionally: mcp__github__add_issue_comment with progress update
-- If on feature branch and task is complete:
-  1. Ask user: "Create PR for this branch?"
-  2. If yes: mcp__github__create_pull_request(owner, repo, title, head, base)
-  3. Report: [COMMIT] PR created: {url}
-```
+**MCP: GitHub** — Link commits to issues:
+- Include "Fixes #123" or "Closes #123" in commit message
+- Optionally create PR if on feature branch
 
-**MCP: Memory** — Persist session state for resumability:
-```
-- mcp__memory__create_entities or mcp__memory__add_observations:
-  - Current task progress
-  - Decisions made during session
-  - Any blockers encountered
+**MCP: Memory** — Persist session state:
+- Save current task progress, decisions made, blockers
 - Enables `/cs-loop` to resume where it left off
-```
 
 5. Report: `[COMMIT] Created checkpoint: {hash}`
 
@@ -311,14 +214,11 @@ Example flow:
 - All tasks complete? → `[DONE] {summary}` and exit
 - More work? → `[LOOP] Continuing...` and return to EXECUTE
 
-**MCP: Memory** — On completion, save final state:
-```
-- mcp__memory__add_observations with:
-  - Session summary
-  - What was accomplished
-  - Any follow-up tasks identified
-```
+**MCP: Memory** — On completion:
+- Save session summary, accomplishments, follow-up tasks
+</steps>
 
+<constraints>
 ## Error Handling
 
 | Situation | Response |
@@ -330,20 +230,52 @@ Example flow:
 
 **claude-code-guide fallback** — When stuck on Claude Code capabilities:
 ```
-Trigger: Same operation failed 3+ times, or unsure about tool usage
-
 Task:
   subagent_type: claude-code-guide
   prompt: "How do I {describe the operation}? I've tried {what failed}."
-  model: haiku  # Fast, focused answers
-
-Example scenarios:
-- "How do I edit a Jupyter notebook cell?"
-- "What's the correct way to use TaskStop?"
-- "Can Claude Code interact with MCP servers directly?"
+  model: haiku
 ```
 
 This prevents spinning on operations that might have native solutions.
+</constraints>
+
+<avoid>
+## Common Mistakes to Prevent
+
+- **Overengineering**: Don't add features, refactor code, or make "improvements" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability.
+
+- **Speculation**: Don't propose changes to code you haven't read. ALWAYS read and understand relevant files before editing. Never make claims about code before investigating.
+
+- **Test hacking**: Don't hard-code values or create workarounds to pass tests. Implement general solutions that work for all valid inputs.
+
+- **Premature abstractions**: Don't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements.
+
+- **Skipping verification**: Don't skip quality gates. Fix issues, don't bypass them.
+
+- **Context abandonment**: Don't stop tasks early due to context concerns. Save progress and continue.
+
+- **Dismissing errors as "pre-existing"**: Don't claim an error existed before your changes without proof (git blame). Investigate every error. Own mistakes.
+
+- **Quick-fix workarounds**: Don't create "temporary" solutions to get around problems. Solve root causes, not symptoms.
+
+- **Ignoring architecture**: Don't invent new patterns when existing ones exist. Check DECISIONS.md and match existing codebase conventions.
+
+- **Gaslighting**: Don't claim you said something you didn't, or that code does something it doesn't. If uncertain, say so.
+</avoid>
+
+<output_format>
+## Progress Reporting
+
+Report progress using these prefixes:
+- `[INIT]` — Initialization steps
+- `[UNDERSTAND]` — Complexity classification
+- `[PLAN]` — Task creation
+- `[EXECUTE]` — Work in progress
+- `[VERIFY]` — Quality gate results
+- `[COMMIT]` — Checkpoint creation
+- `[LOOP]` — Continuing to next iteration
+- `[DONE]` — Final summary
+</output_format>
 
 ## Notes
 

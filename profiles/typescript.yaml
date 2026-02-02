@@ -54,9 +54,27 @@ patterns:
     tools:
       build: npm run build
       test: npx vitest run
+    auto_rules: [ui-ux-design]
 
   - name: react
     indicator: "from 'react'"
+    auto_rules: [ui-ux-design]
+
+  - name: vue
+    indicator: "vue.config|from 'vue'|.vue"
+    auto_rules: [ui-ux-design]
+
+  - name: svelte
+    indicator: "svelte.config|from 'svelte'"
+    auto_rules: [ui-ux-design]
+
+  - name: angular
+    indicator: "angular.json|@angular"
+    auto_rules: [ui-ux-design]
+
+  - name: vite
+    indicator: vite.config
+    auto_rules: [ui-ux-design]
 
   - name: node-backend
     indicator: "express|fastify|hono"
@@ -65,6 +83,23 @@ patterns:
     indicator: packages/
     tools:
       test: npx turbo run test
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  files:
+    - next.config.js
+    - next.config.mjs
+    - vite.config.js
+    - vite.config.ts
+    - vue.config.js
+    - svelte.config.js
+    - angular.json
+  patterns:
+    - "from 'react'"
+    - "from 'vue'"
+    - "from 'svelte'"
+    - "@angular"
+  auto_rules: [ui-ux-design]
 
 # Conventions
 conventions:

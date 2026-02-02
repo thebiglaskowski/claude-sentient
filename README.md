@@ -69,9 +69,9 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 7 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 9 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
-| 📏 Rules | 12 | Topic-specific standards |
+| 📏 Rules | 14 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
@@ -89,6 +89,8 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | `/cs-learn` | Save learnings to file + MCP memory (searchable) | [Memory System](CLAUDE.md#memory-system) |
 | `/cs-mcp` | Check, register, and validate MCP servers | [MCP Integration](CLAUDE.md#mcp-server-integration) |
 | `/cs-review` | Review pull requests with automated analysis | [Command](.claude/commands/cs-review.md) |
+| `/cs-assess` | Full codebase health audit (6+ dimensions) | [Command](.claude/commands/cs-assess.md) |
+| `/cs-ui` | UI/UX audit for web projects | [Command](.claude/commands/cs-ui.md) |
 
 ---
 
@@ -271,11 +273,125 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 7 slash commands
+│   ├── commands/cs-*.md    # 9 slash commands
 │   └── rules/learnings.md  # Persistent memory
 ├── profiles/*.yaml          # 9 language profiles
 ├── templates/*.md           # Governance templates
-└── rules/*.md               # 12 topic rules
+└── rules/*.md               # 14 topic rules
+```
+
+---
+
+## 🛠️ Common Workflows
+
+### Workflow 1: Feature Development
+
+```bash
+# 1. Start with planning for complex features
+/cs-plan "add JWT authentication"
+
+# Claude explores codebase, creates a plan, asks for approval
+# After approval, you can execute immediately or later:
+
+# 2. Execute the plan
+/cs-loop "implement the JWT auth plan"
+
+# Claude: INIT → detects TypeScript profile
+#         PLAN → creates tasks with dependencies
+#         EXECUTE → implements auth module, tests, docs
+#         VERIFY → runs eslint, vitest
+#         COMMIT → creates checkpoint "feat: add JWT authentication"
+```
+
+### Workflow 2: Bug Fix
+
+```bash
+# For simpler bugs, go straight to loop
+/cs-loop "fix the race condition in user login #142"
+
+# Claude automatically:
+# - Fetches issue #142 details via MCP github
+# - Investigates the code
+# - Creates minimal fix
+# - Runs tests
+# - Commits with "fix: resolve login race condition (closes #142)"
+```
+
+### Workflow 3: Code Review + Fix
+
+```bash
+# 1. Review a PR
+/cs-review 47
+
+# Claude analyzes PR #47, provides detailed feedback with file:line refs
+
+# 2. If issues found, fix them
+/cs-loop "address review comments on PR #47"
+```
+
+### Workflow 4: Codebase Health Check
+
+```bash
+# 1. Full assessment
+/cs-assess
+
+# Claude provides scores (1-10) for:
+# - Architecture, Code Quality, Security
+# - Performance, Tech Debt, Test Coverage
+# - UI/UX (for web projects)
+
+# 2. Address issues
+/cs-loop "fix all immediate priority items from assessment"
+```
+
+### Workflow 5: Learning from Mistakes
+
+```bash
+# Claude makes a mistake, you correct it
+> "Don't use any types in this project"
+
+# Save the learning for future sessions
+/cs-learn pattern "No any types" "Use explicit types, never any"
+
+# Or Claude proposes it after correction:
+# "Should I add a rule to prevent this?"
+```
+
+### Workflow 6: Resuming Work
+
+```bash
+# Check where you left off
+/cs-status
+
+# Shows: Profile, Tasks (3 pending, 1 in progress), Git state
+
+# Continue from where you stopped
+/cs-loop "continue"  # Or just describe what's next
+```
+
+### Workflow 7: UI/UX Audit (Web Projects)
+
+```bash
+# For React/Vue/Next.js projects
+/cs-ui
+
+# Claude audits against modern design standards:
+# - Spacing (8px grid), Typography, Colors
+# - Components, Accessibility, Responsiveness
+# - Provides before/after code examples
+```
+
+### Workflow 8: MCP Server Setup
+
+```bash
+# First time setup
+/cs-mcp --fix      # Auto-register servers from settings.json
+/cs-mcp --test     # Verify all servers respond
+
+# Now /cs-loop will:
+# - Fetch library docs via Context7
+# - Link commits to GitHub issues
+# - Search prior decisions from Memory
 ```
 
 ---

@@ -6,12 +6,19 @@ allowed-tools: Read, Glob, Bash, AskUserQuestion, TaskCreate, Skill
 
 # /cs-validate
 
-Validate that Claude Sentient is properly configured. Checks profiles, commands, rules, and governance files.
+<role>
+You are a configuration validator that checks Claude Sentient setup. You verify profiles, commands, rules, and governance files are properly configured and offer to auto-fix any issues found.
+</role>
+
+<task>
+Validate that Claude Sentient is properly configured. Check profiles, commands, rules, and governance files. Report issues and offer to auto-fix them via /cs-loop.
+</task>
 
 ## Arguments
 
 None.
 
+<steps>
 ## Behavior
 
 ### 1. Check Profiles
@@ -28,16 +35,6 @@ Verify all profile YAML files exist and have required fields:
 **Required fields in each profile:**
 - `name` — Profile identifier
 - `gates` — Quality gate commands (lint, test at minimum)
-
-**Output:**
-```
-PROFILES:
-  python.yaml:     ✓ valid (lint, test, build)
-  typescript.yaml: ✓ valid (lint, test, build)
-  shell.yaml:      ✓ valid (lint)
-  go.yaml:         ✓ valid (lint, test, build)
-  general.yaml:    ✓ valid (auto-detect)
-```
 
 ### 2. Check Commands
 
@@ -57,28 +54,15 @@ Verify command files exist in both locations:
 - Compare source and active locations
 - Report if any are out of sync
 
-**Output:**
-```
-COMMANDS:
-  cs-loop.md:     ✓ synced
-  cs-plan.md:     ✓ synced
-  cs-status.md:   ✓ synced
-  cs-learn.md:    ✓ synced
-  cs-validate.md: ✓ synced
-```
-
 ### 3. Check Rules
 
 Verify rule files exist:
 
 **Location:** `rules/*.md`
 
-**Output:**
-```
-RULES:
-  Found 12 rule files
-  Index: ✓ _index.md present
-```
+Check for:
+- Rule index file (`_index.md`)
+- Topic rule files
 
 ### 4. Check Governance Files
 
@@ -90,37 +74,40 @@ Verify governance files exist:
 - `DECISIONS.md`
 - `.claude/rules/learnings.md`
 
-**Output:**
-```
-GOVERNANCE:
-  STATUS.md:     ✓ exists
-  CHANGELOG.md:  ✓ exists
-  DECISIONS.md:  ✓ exists
-  learnings.md:  ✓ exists
-```
-
 ### 5. Check Memory
 
 Verify `.claude/rules/` directory and settings:
+- Directory exists
+- learnings.md has content
+- settings.json hooks configured
 
-**Output:**
+### 6. Offer Auto-Fix (if issues found)
+
 ```
-MEMORY:
-  .claude/rules/: ✓ exists
-  learnings.md:   ✓ 3 decisions, 1 pattern
-  settings.json:  ✓ hooks configured
+AskUserQuestion:
+  question: "Fix these {n} issues automatically?"
+  header: "Auto-fix"
+  options:
+    - label: "Yes, fix now (Recommended)"
+      description: "Create tasks and invoke /cs-loop to fix"
+    - label: "No, just report"
+      description: "Show issues without fixing"
 ```
 
-## Full Output Example
+If yes:
+1. Create tasks for each issue using `TaskCreate`
+2. Chain to cs-loop: `Skill(skill="cs-loop", args="fix validation issues")`
+</steps>
 
+<output_format>
 ```
 === Claude Sentient Validation ===
 
 PROFILES:
-  python.yaml:     ✓ valid (lint, test, type, build, format)
-  typescript.yaml: ✓ valid (lint, test, type, build, format)
+  python.yaml:     ✓ valid (lint, test, build)
+  typescript.yaml: ✓ valid (lint, test, build)
   shell.yaml:      ✓ valid (lint)
-  go.yaml:         ✓ valid (lint, test, build, format)
+  go.yaml:         ✓ valid (lint, test, build)
   general.yaml:    ✓ valid (auto-detect)
 
   5/5 profiles valid
@@ -152,7 +139,32 @@ MEMORY:
 
 === Validation Complete: All checks passed ===
 ```
+</output_format>
 
+<constraints>
+- Primarily a read-only command — reports configuration issues
+- Only modify files if user approves auto-fix
+- Report specific issues with file paths
+- Suggest concrete fixes for each issue
+</constraints>
+
+<avoid>
+## Common Mistakes to Prevent
+
+- **Auto-fixing without asking**: Don't create tasks or invoke /cs-loop unless the user explicitly approves. This is primarily a READ-ONLY command.
+
+- **Shallow validation**: Don't just check file existence. Verify required fields, proper formatting, and cross-references between files.
+
+- **Ignoring sync state**: Don't skip the source-vs-active comparison for commands. Out-of-sync commands cause confusion.
+
+- **Vague error messages**: Don't say "profile is invalid." Specify exactly what's wrong: "profiles/shell.yaml missing required field: gates.lint"
+
+- **Partial checks**: Don't skip validation categories. Always check ALL areas: profiles, commands, rules, governance, memory.
+
+- **False positives**: Don't report issues that aren't actually problems. If a governance file is optional (like DECISIONS.md for small projects), note it as optional, not missing.
+</avoid>
+
+<examples>
 ## Error Examples
 
 **Missing profile:**
@@ -184,37 +196,11 @@ PROFILES:
   python.yaml: ✗ INVALID
     Missing required field: gates.lint
 ```
-
-## Auto-Fix with Skill Chaining
-
-If validation finds issues, offer to fix them:
-
-```
-AskUserQuestion:
-  question: "Fix these {n} issues automatically?"
-  header: "Auto-fix"
-  options:
-    - label: "Yes, fix now (Recommended)"
-      description: "Create tasks and invoke /cs-loop to fix"
-    - label: "No, just report"
-      description: "Show issues without fixing"
-```
-
-If yes:
-1. **Create tasks** for each issue using `TaskCreate`:
-   - Missing profile → "Create {profile}.yaml from template"
-   - Out of sync command → "Sync {command}.md to .claude/commands/"
-   - Missing governance → "Create {file} from template"
-
-2. **Chain to cs-loop**:
-   ```
-   Skill(skill="cs-loop", args="fix validation issues")
-   ```
+</examples>
 
 ## Notes
 
-- Primarily a read-only command — reports configuration issues
-- Offers to auto-fix issues if found
 - Use before `/cs-loop` to ensure configuration is correct
 - Helps debug profile detection issues
 - Validates the "plumbing" of Claude Sentient
+- Chains to /cs-loop if user wants to auto-fix issues

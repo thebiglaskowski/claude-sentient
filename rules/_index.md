@@ -14,12 +14,15 @@ During `/cs-loop` INIT, rules are loaded based on task keywords:
 | database, query, schema, migration | `database` |
 | performance, optimize, cache, slow | `performance` |
 | ui, component, css, style | `ui-ux-design` |
+| react, vue, svelte, angular, next, nuxt | `ui-ux-design` |
+| frontend, web, responsive, tailwind | `ui-ux-design` |
 | cli, terminal, command | `terminal-ui` |
 | docs, readme, changelog | `documentation` |
 | refactor, cleanup, quality | `code-quality` |
 | git, commit, branch, pr | `git-workflow` |
 | log, debug, trace | `logging` |
 | error, exception, catch | `error-handling` |
+| prompt, command, xml, template | `prompt-structure` |
 
 ## Available Rules
 
@@ -37,6 +40,7 @@ During `/cs-loop` INIT, rules are loaded based on task keywords:
 | `logging` | Structured logs, levels, context |
 | `ui-ux-design` | Spacing, typography, a11y |
 | `terminal-ui` | Spinners, colors, progress |
+| `prompt-structure` | XML tags, command templates |
 
 ## Usage
 

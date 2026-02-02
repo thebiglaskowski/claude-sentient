@@ -16,18 +16,18 @@
 
 ## Decisions
 
-<!-- Quick decisions made during development -->
+<!-- Architectural and technical decisions will be captured here -->
 
 ---
 
 ## Patterns
 
-<!-- Established patterns in this codebase -->
+<!-- Established patterns will be added here -->
 
 ---
 
 ## Learnings
 
-<!-- Mistakes and their fixes -->
+<!-- Mistakes and their fixes will be added here -->
 
 ---

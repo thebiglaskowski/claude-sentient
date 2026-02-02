@@ -6,7 +6,13 @@ allowed-tools: Bash, Read, Glob, mcp__*
 
 # /cs-mcp
 
-Check MCP server status, auto-register missing servers, and validate connections.
+<role>
+You are an MCP server administrator that checks, registers, and validates Model Context Protocol servers. You ensure all configured servers are properly registered and connected for use by Claude Sentient commands.
+</role>
+
+<task>
+Check MCP server status, auto-register missing servers from settings.json, and validate connections. Report which servers are available for /cs-loop and other commands.
+</task>
 
 ## Arguments
 
@@ -15,6 +21,7 @@ Check MCP server status, auto-register missing servers, and validate connections
 | `--test` | Test each connected server with a real call |
 | `--fix` | Auto-register servers found in settings.json but not in `claude mcp` |
 
+<steps>
 ## Execution Flow
 
 ### Phase 1: Gather State
@@ -27,7 +34,7 @@ $HOME/.claude/settings.json     # User-level
 .claude/settings.json           # Project-level
 ```
 
-Parse the `mcpServers` key to find configured servers. Note the command, args, and env for each.
+Parse the `mcpServers` key to find configured servers.
 
 **1.2 Check registered servers:**
 
@@ -35,19 +42,55 @@ Parse the `mcpServers` key to find configured servers. Note the command, args, a
 claude mcp list
 ```
 
-This shows servers registered with Claude Code (not just configured in settings.json).
-
 **1.3 Check enabled plugins:**
 
-Look for `enabledPlugins` in settings.json. Plugins (like context7, claude-in-chrome) work differently than MCP servers.
+Look for `enabledPlugins` in settings.json.
 
 ### Phase 2: Compare & Report
 
-**2.1 Build status table:**
+Build status table showing configured vs registered vs connected.
 
-For each server found in settings.json `mcpServers`:
-- Check if registered: `claude mcp get <name>` (exit 0 = registered)
-- Check if connected: appears in `claude mcp list` with ✓
+### Phase 3: Auto-Register (if --fix)
+
+If `--fix` is passed, register missing servers using `claude mcp add`.
+
+**CRITICAL: Windows requires `cmd /c` wrapper**
+
+On Windows, npx must be run through cmd.exe. Use `add-json` with the correct structure:
+
+**Windows registration (REQUIRED on Windows):**
+```bash
+# Without env vars
+claude mcp add-json <name> '{"command":"cmd","args":["/c","npx","-y","<package>"]}'
+
+# With env vars
+claude mcp add-json <name> '{"command":"cmd","args":["/c","npx","-y","<package>"],"env":{"KEY":"value"}}'
+```
+
+**Linux/Mac registration:**
+```bash
+# Without env vars
+claude mcp add <name> -- npx -y <package> [args]
+
+# With env vars (use add-json for reliability)
+claude mcp add-json <name> '{"command":"npx","args":["-y","<package>"],"env":{"KEY":"value"}}'
+```
+
+**Detect platform:**
+- Windows: Check if `$env:OS` contains "Windows" or `uname` fails
+- Use `cmd /c` wrapper on Windows, direct `npx` on Linux/Mac
+
+### Phase 4: Test Servers (if --test)
+
+Test each connected server with a real API call.
+
+### Phase 5: Summary
+
+Report what's available for /cs-loop.
+</steps>
+
+<output_format>
+## Status Table
 
 ```
 MCP Server Status:
@@ -57,72 +100,11 @@ MCP Server Status:
 │ context7     │ plugin     │ plugin     │ ✓         │ None                    │
 │ github       │ ✓          │ ✗          │ ✗         │ Run --fix to register   │
 │ memory       │ ✓          │ ✗          │ ✗         │ Run --fix to register   │
-│ filesystem   │ ✓          │ ✗          │ ✗         │ Run --fix to register   │
-│ puppeteer    │ ✓          │ ✗          │ ✗         │ Run --fix to register   │
 └──────────────┴────────────┴────────────┴───────────┴─────────────────────────┘
 ```
 
-### Phase 3: Auto-Register (if --fix)
+## Test Results (--test)
 
-If `--fix` is passed, register missing servers using `claude mcp add`.
-
-**Registration commands by server type:**
-
-For servers WITHOUT env vars, use `claude mcp add`:
-```bash
-claude mcp add <name> -- npx -y <package> [args]
-```
-
-For servers WITH env vars, use `claude mcp add-json` (more reliable):
-```bash
-claude mcp add-json <name> '{"command":"npx","args":["-y","<package>"],"env":{"KEY":"value"}}'
-```
-
-| Server | Registration Command |
-|--------|---------------------|
-| github | `claude mcp add-json github '{"command":"npx","args":["-y","@modelcontextprotocol/server-github"],"env":{"GITHUB_TOKEN":"<token>"}}'` |
-| memory | `claude mcp add memory -- npx -y @modelcontextprotocol/server-memory` |
-| filesystem | `claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem "<path>"` |
-| puppeteer | `claude mcp add puppeteer -- npx -y @modelcontextprotocol/server-puppeteer` |
-| postgres | `claude mcp add-json postgres '{"command":"npx","args":["-y","@modelcontextprotocol/server-postgres"],"env":{"DATABASE_URL":"<url>"}}'` |
-| sqlite | `claude mcp add sqlite -- npx -y @modelcontextprotocol/server-sqlite "<db-path>"` |
-| brave-search | `claude mcp add-json brave-search '{"command":"npx","args":["-y","@modelcontextprotocol/server-brave-search"],"env":{"BRAVE_API_KEY":"<key>"}}'` |
-| fetch | `claude mcp add fetch -- npx -y @modelcontextprotocol/server-fetch` |
-
-**Generic pattern for unknown servers:**
-
-Parse from settings.json:
-```json
-"<name>": {
-  "command": "cmd",
-  "args": ["/c", "npx", "-y", "<package>"],
-  "env": { "KEY": "value" }
-}
-```
-
-Convert to (using add-json for reliability):
-```bash
-claude mcp add-json <name> '{"command":"npx","args":["-y","<package>"],"env":{"KEY":"value"}}'
-```
-
-**After registration:**
-- Run `claude mcp list` to verify
-- Report success/failure for each
-
-### Phase 4: Test Servers (if --test)
-
-Test each connected server with a real API call:
-
-| Server | Test Call | Success Criteria |
-|--------|-----------|------------------|
-| context7 | `mcp__plugin_context7_context7__resolve-library-id` with "react" | Returns library results |
-| claude-in-chrome | `mcp__claude-in-chrome__tabs_context_mcp` | Returns tab info or "extension not connected" |
-| github | `mcp__github__*` tool call | Returns data without auth error |
-| memory | `mcp__memory__*` read/write test | Completes without error |
-| filesystem | `mcp__filesystem__*` list directory | Returns file list |
-| puppeteer | `mcp__puppeteer__*` screenshot | Returns image data |
-
-Report test results:
 ```
 Test Results:
   ✓ context7: Returned 5 React libraries
@@ -131,57 +113,22 @@ Test Results:
   ✓ memory: Read/write successful
 ```
 
-### Phase 5: Summary
+## Summary
 
 ```
 [MCP] Summary:
-  Configured: 5 servers (in settings.json mcpServers)
-  Plugins:    2 (context7, claude-in-chrome)
-  Registered: 4 servers (in claude mcp)
+  Configured: 5 servers
+  Plugins:    2
+  Registered: 4 servers
   Connected:  3 servers
-
-[MCP] Actions Taken:
-  • Registered: github, memory, filesystem, puppeteer
-
-[MCP] Still Needs Attention:
-  • claude-in-chrome: Open Chrome with extension active
-  • Restart Claude Code to connect newly registered servers
 
 [MCP] For /cs-loop:
   • Context7 available → Library docs will be auto-fetched
   • GitHub available → Can create PRs and issues
 ```
+</output_format>
 
-## /cs-loop Integration
-
-MCP servers are automatically used by `/cs-loop` when available:
-
-| Server | Phase | How /cs-loop Uses It |
-|--------|-------|----------------------|
-| **context7** | INIT | Scans imports, fetches library docs automatically |
-| **github** | INIT | If task references `#123`, fetches issue details |
-| **github** | COMMIT | Links commits to issues, offers to create PRs |
-| **memory** | INIT | Checks for previous session state (resumability) |
-| **memory** | COMMIT | Saves session state, decisions, progress |
-| **puppeteer** | VERIFY | Screenshots web apps after UI changes |
-
-**Example flow:**
-```
-/cs-loop "fix issue #42 - add dark mode toggle"
-
-[INIT] Profile: TypeScript, Tools: eslint, vitest
-[INIT] MCP: context7, github, memory
-[INIT] Loaded GitHub issue #42: "Add dark mode toggle to settings"
-[INIT] Context7: Fetched React useState docs
-[PLAN] Created 3 tasks
-[EXECUTE] Working...
-[VERIFY] All gates passed
-[VERIFY] Screenshot saved: dark-mode-toggle.png
-[COMMIT] feat: add dark mode toggle (Fixes #42)
-[COMMIT] PR created: https://github.com/user/repo/pull/15
-[DONE] Completed with GitHub integration
-```
-
+<context>
 ## Known Servers Reference
 
 | Server | Package | Env Vars | Purpose |
@@ -193,9 +140,42 @@ MCP servers are automatically used by `/cs-loop` when available:
 | filesystem | `@modelcontextprotocol/server-filesystem` | - | File access |
 | puppeteer | `@modelcontextprotocol/server-puppeteer` | - | Browser automation |
 | postgres | `@modelcontextprotocol/server-postgres` | DATABASE_URL | PostgreSQL |
-| sqlite | `@modelcontextprotocol/server-sqlite` | - | SQLite DB |
 | brave-search | `@modelcontextprotocol/server-brave-search` | BRAVE_API_KEY | Web search |
-| fetch | `@modelcontextprotocol/server-fetch` | - | HTTP requests |
+
+## /cs-loop Integration
+
+| Server | Phase | How /cs-loop Uses It |
+|--------|-------|----------------------|
+| **context7** | INIT | Scans imports, fetches library docs |
+| **github** | INIT | Fetches issue details for referenced issues |
+| **github** | COMMIT | Links commits to issues, offers PRs |
+| **memory** | INIT | Checks for previous session state |
+| **memory** | COMMIT | Saves session state for resumability |
+| **puppeteer** | VERIFY | Screenshots web apps after UI changes |
+</context>
+
+<constraints>
+- Always prefer `add-json` for servers with environment variables
+- Do not store sensitive tokens in command output
+- Report clearly what actions were taken
+- Remind user to restart Claude Code after registering new servers
+</constraints>
+
+<avoid>
+## Common Mistakes to Prevent
+
+- **Registering without --fix**: Don't auto-register servers unless the user explicitly passes `--fix`. Without the flag, only report status.
+
+- **Exposing tokens**: Don't echo or log actual token values. Show `GITHUB_TOKEN: [set]` or `[not set]`, never the actual value.
+
+- **Assuming connected = working**: Don't skip the `--test` verification. A server can be registered but misconfigured.
+
+- **Forgetting restart reminder**: Always remind the user to restart Claude Code after registering new servers. Registrations don't take effect until restart.
+
+- **Wrong registration method**: Don't use `claude mcp add -e` for environment variables—it has parsing bugs. Always use `claude mcp add-json` for servers with env vars.
+
+- **Partial status**: Don't report only configured servers. Show the full picture: configured vs registered vs connected.
+</avoid>
 
 ## Troubleshooting
 

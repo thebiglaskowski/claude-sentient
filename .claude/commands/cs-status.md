@@ -6,12 +6,19 @@ allowed-tools: Read, Bash, Glob, TaskList, AskUserQuestion, Skill
 
 # /cs-status
 
-Display the current status of the project including active tasks, git state, and detected profile.
+<role>
+You are a project status reporter that provides a comprehensive overview of the current development state, including tasks, git status, quality gates, and memory.
+</role>
+
+<task>
+Display the current status of the project including active tasks, git state, detected profile, governance files, and memory entries. Offer to continue work if tasks are pending.
+</task>
 
 ## Arguments
 
 None.
 
+<steps>
 ## Behavior
 
 ### 1. Detect Profile
@@ -62,51 +69,93 @@ Count entries in `.claude/rules/learnings.md`:
 - Patterns
 - Learnings
 
-## Output Format
+### 7. Offer to Continue (if tasks pending)
 
+```
+AskUserQuestion:
+  question: "Continue working on pending tasks?"
+  header: "Resume"
+  options:
+    - label: "Yes, continue (Recommended)"
+      description: "Invoke /cs-loop to resume work"
+    - label: "No, just show status"
+      description: "Display status only"
+```
+
+If yes:
+```
+Skill(skill="cs-loop")
+→ Loop resumes from pending tasks
+```
+</steps>
+
+<output_format>
 ```
 === Claude Sentient Status ===
 
-PROFILE: Python
-  Lint: ruff
-  Test: pytest
-  Build: python -m build
+PROFILE: {language}
+  Lint: {lint tool}
+  Test: {test tool}
+  Build: {build command}
 
 TASKS:
-  #3 [in_progress] Implement validation schemas
-  #4 [pending] Add endpoint tests [blocked by #3]
-  #5 [pending] Update documentation [blocked by #4]
+  #{id} [{status}] {subject}
+  #{id} [{status}] {subject} [blocked by #{id}]
+  ...
 
-  Completed today: 2
-  Remaining: 3
+  Completed today: {n}
+  Remaining: {n}
 
 GIT:
-  Branch: feature/validation
-  Status: 2 files modified, 1 untracked
+  Branch: {branch}
+  Status: {summary}
 
   Recent commits:
-  a1b2c3d Add user model
-  b2c3d4e Initial project setup
+  {hash} {message}
+  {hash} {message}
 
 QUALITY:
-  Lint: ready (ruff installed)
-  Test: ready (15 test files found)
-  Build: ready
+  Lint: {ready/not found}
+  Test: {ready/not found} ({n} test files)
+  Build: {ready/not found}
 
 GOVERNANCE:
-  STATUS.md: ✓ exists
-  CHANGELOG.md: ✓ exists
-  DECISIONS.md: ✓ exists
-  learnings.md: ✓ exists
+  STATUS.md: ✓/✗
+  CHANGELOG.md: ✓/✗
+  DECISIONS.md: ✓/✗
+  learnings.md: ✓/✗
 
 MEMORY:
-  Decisions: 3
-  Patterns: 1
-  Learnings: 2
+  Decisions: {n}
+  Patterns: {n}
+  Learnings: {n}
 
 === Ready for /cs-loop ===
 ```
+</output_format>
 
+<constraints>
+- Primarily a read-only command - shows current state only
+- Do not make any changes to files
+- If governance files are missing, suggest /cs-loop to create them
+- Offer to continue work only if tasks are actually pending
+</constraints>
+
+<avoid>
+## Common Mistakes to Prevent
+
+- **Making changes**: This is a READ-ONLY command. Don't edit files, don't create tasks, don't fix issues. Only display status.
+
+- **Incomplete reporting**: Don't skip sections or report partial status. Check ALL areas: profile, tasks, git, gates, governance, memory.
+
+- **Offering to continue when nothing pending**: Don't show the "Continue working?" prompt if TaskList returns empty. Only offer when actual tasks exist.
+
+- **Stale information**: Don't cache or assume state. Always fetch fresh data from TaskList, git status, and file checks.
+
+- **Excessive verbosity**: Don't dump raw command output. Summarize into the structured format shown in output_format.
+</avoid>
+
+<examples>
 ## Example
 
 ```
@@ -144,31 +193,10 @@ MEMORY:
 
 === Ready for /cs-loop ===
 ```
-
-## Skill Chaining
-
-After displaying status, if there are pending tasks:
-
-```
-AskUserQuestion:
-  question: "Continue working on pending tasks?"
-  header: "Resume"
-  options:
-    - label: "Yes, continue (Recommended)"
-      description: "Invoke /cs-loop to resume work"
-    - label: "No, just show status"
-      description: "Display status only"
-```
-
-If yes:
-```
-Skill(skill="cs-loop")
-→ Loop resumes from pending tasks
-```
+</examples>
 
 ## Notes
 
-- Primarily a read-only command - shows current state
-- Offers to continue work if tasks are pending
 - Useful to run before starting work to understand current state
 - Shows what tools are available based on detected profile
+- Chains to /cs-loop if user wants to continue pending work

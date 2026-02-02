@@ -2,6 +2,8 @@
 
 Autonomous Development Orchestration Layer for Claude Code.
 
+> **Note**: This SDK integrates with the official [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview). Install it for full autonomous capabilities, or run in simulation mode for testing.
+
 ## When to Use the SDK
 
 The SDK is for **programmatic automation**. Use it when you need to:
@@ -11,6 +13,7 @@ The SDK is for **programmatic automation**. Use it when you need to:
 - Trigger via webhooks or external events
 - Resume work across terminal sessions
 - Run headless without user interaction
+- Build custom applications on top of Claude's capabilities
 
 For **interactive development**, use the CLI instead:
 ```bash
@@ -23,7 +26,15 @@ curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/mai
 ```bash
 # From local repo (editable install)
 pip install -e sdk/python/
+
+# With full Claude Agent SDK support (recommended)
+pip install -e "sdk/python/[sdk]"
+
+# Or install claude-agent-sdk separately
+pip install claude-agent-sdk
 ```
+
+> **Requires**: Claude Code installed and `ANTHROPIC_API_KEY` set for full functionality. Without these, the SDK runs in simulation mode.
 
 ### Library Usage (No PATH Change Needed)
 
@@ -114,6 +125,91 @@ print(sentient.profile_name)  # "python"
 sentient = ClaudeSentient(cwd=".", profile="typescript")
 ```
 
+### Continuous Conversation Mode
+
+Use `client()` for multi-turn conversations where Claude remembers context:
+
+```python
+async with sentient.client() as client:
+    await client.query("What files are in this project?")
+    async for msg in client.receive_response():
+        print(msg)
+
+    # Follow-up in same conversation - Claude remembers context
+    await client.query("Which one handles authentication?")
+    async for msg in client.receive_response():
+        print(msg)
+
+    # Interrupt if needed
+    await client.interrupt()
+```
+
+### Custom Permission Handling
+
+Use `can_use_tool` callback for custom permission logic:
+
+```python
+async def my_permission_handler(tool_name, input_data, context):
+    # Block dangerous commands
+    if tool_name == "Bash" and "rm -rf" in input_data.get("command", ""):
+        return PermissionResultDeny(message="Dangerous command blocked")
+    # Allow everything else
+    return PermissionResultAllow(updated_input=input_data)
+
+sentient = ClaudeSentient(
+    cwd="./my-project",
+    can_use_tool=my_permission_handler
+)
+```
+
+### Sandbox Mode
+
+Run commands in a sandbox for security:
+
+```python
+from claude_sentient import ClaudeSentient, SandboxConfig
+
+sentient = ClaudeSentient(
+    cwd="./my-project",
+    sandbox=SandboxConfig(
+        enabled=True,
+        auto_allow_bash_if_sandboxed=True
+    )
+)
+```
+
+### File Checkpointing
+
+Enable file rollback to undo changes:
+
+```python
+sentient = ClaudeSentient(
+    cwd="./my-project",
+    enable_file_checkpointing=True
+)
+
+async with sentient.client() as client:
+    await client.query("Refactor the auth module")
+    # ... some work happens ...
+
+    # Oops, need to rollback!
+    await client.rewind_files(user_message_uuid)
+```
+
+### Budget Control
+
+Set a maximum budget for API costs:
+
+```python
+sentient = ClaudeSentient(
+    cwd="./my-project",
+    max_budget_usd=5.00  # Stop if cost exceeds $5
+)
+
+async for result in sentient.loop("Large refactoring task"):
+    print(f"Cost so far: ${result.cost_usd:.2f}")
+```
+
 ## API Reference
 
 ### ClaudeSentient
@@ -122,20 +218,29 @@ Main orchestrator class.
 
 ```python
 ClaudeSentient(
-    cwd: str = ".",              # Working directory
-    profile: str | None = None,  # Profile name (auto-detected)
-    permission_mode: str = "acceptEdits",
+    cwd: str = ".",                    # Working directory
+    profile: str | None = None,        # Profile name (auto-detected)
+    permission_mode: str = "acceptEdits",  # default, acceptEdits, plan, bypassPermissions
     profiles_dir: str | None = None,
+    setting_sources: list[str] | None = None,  # ["user", "project", "local"]
+    can_use_tool: Callable | None = None,      # Custom permission callback
+    hooks: dict | None = None,                  # Hook configurations
+    sandbox: SandboxConfig | None = None,       # Sandbox settings
+    enable_file_checkpointing: bool = False,    # Enable file rollback
+    max_budget_usd: float | None = None,        # Budget limit
+    model: str | None = None,                   # Model override
 )
 ```
 
 #### Methods
 
 - `loop(task, resume=False)` - Run the autonomous development loop
-- `plan(task)` - Plan without executing
+- `plan(task)` - Plan without executing (uses plan permission mode)
 - `resume()` - Resume the last session
 - `get_session_state()` - Get current session state
 - `get_gate_results()` - Get quality gate results
+- `get_total_cost()` - Get total API cost in USD
+- `client()` - Get a continuous conversation client
 
 ### LoopResult
 

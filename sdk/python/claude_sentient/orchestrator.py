@@ -1,17 +1,53 @@
-"""Main orchestrator for Claude Sentient SDK."""
+"""Main orchestrator for Claude Sentient SDK.
 
-import subprocess
+This module integrates with the official Claude Agent SDK to provide
+autonomous development capabilities.
+
+See: https://platform.claude.com/docs/en/agent-sdk/overview
+"""
+
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Callable, Awaitable, Literal
+
+try:
+    from claude_agent_sdk import (
+        query,
+        ClaudeAgentOptions,
+        ClaudeSDKClient,
+        HookMatcher as AgentHookMatcher,
+        ResultMessage,
+        AssistantMessage,
+        SystemMessage,
+        TextBlock,
+        ToolUseBlock,
+    )
+    from claude_agent_sdk.types import (
+        PermissionResultAllow,
+        PermissionResultDeny,
+        ToolPermissionContext,
+        HookContext,
+        AgentDefinition as SDKAgentDefinition,
+    )
+    AGENT_SDK_AVAILABLE = True
+except ImportError:
+    AGENT_SDK_AVAILABLE = False
+    # Define stubs for type hints when SDK not available
+    SDKAgentDefinition = None
+    PermissionResultAllow = None
+    PermissionResultDeny = None
 
 from .gates import QualityGates, create_gate_hooks
 from .hooks import HookManager, HookMatcher
 from .profiles import ProfileLoader, Profile
 from .session import SessionManager, SessionState
 from .types import Phase, GateStatus
+
+# Type aliases for permission callbacks
+PermissionResult = Any  # Union[PermissionResultAllow, PermissionResultDeny]
+CanUseTool = Callable[[str, dict[str, Any], Any], Awaitable[PermissionResult]]
+HookCallback = Callable[[dict[str, Any], str | None, Any], Awaitable[dict[str, Any]]]
 
 
 @dataclass
@@ -33,12 +69,28 @@ class LoopResult:
 
 @dataclass
 class AgentDefinition:
-    """Definition for a subagent."""
+    """Definition for a subagent.
+
+    See: https://platform.claude.com/docs/en/agent-sdk/subagents
+    """
 
     description: str
     prompt: str
-    tools: list[str] = field(default_factory=list)
-    model: str = "sonnet"
+    tools: list[str] | None = None  # If None, inherits all tools
+    model: Literal["sonnet", "opus", "haiku", "inherit"] | None = None
+
+
+@dataclass
+class SandboxConfig:
+    """Configuration for sandbox mode.
+
+    See: https://platform.claude.com/docs/en/agent-sdk/python#sandboxsettings
+    """
+
+    enabled: bool = False
+    auto_allow_bash_if_sandboxed: bool = False
+    excluded_commands: list[str] = field(default_factory=list)
+    allow_unsandboxed_commands: bool = False
 
 
 class ClaudeSentient:
@@ -46,6 +98,9 @@ class ClaudeSentient:
 
     This class provides programmatic access to Claude Sentient's capabilities,
     enabling session persistence, SDK-based orchestration, and production deployment.
+
+    Integrates with the official Claude Agent SDK for full autonomous capabilities.
+    See: https://platform.claude.com/docs/en/agent-sdk/overview
 
     Example:
         sentient = ClaudeSentient(cwd="./my-project")
@@ -63,20 +118,34 @@ class ClaudeSentient:
         # Resume a previous session
         async for result in sentient.resume():
             print(f"Resumed: {result.phase}")
+
+        # Use continuous conversation mode
+        async with sentient.client() as client:
+            await client.query("Analyze this codebase")
+            async for msg in client.receive_response():
+                print(msg)
     """
 
     DEFAULT_TOOLS = [
         "Read", "Write", "Edit", "Bash", "Glob", "Grep",
-        "Task", "TaskCreate", "TaskUpdate", "TaskList",
-        "EnterPlanMode", "ExitPlanMode",
+        "Task", "TaskCreate", "TaskUpdate", "TaskList", "TaskGet",
+        "EnterPlanMode", "ExitPlanMode", "AskUserQuestion",
+        "WebSearch", "WebFetch", "NotebookEdit", "Skill",
     ]
 
     def __init__(
         self,
         cwd: str | Path = ".",
         profile: str | None = None,
-        permission_mode: str = "acceptEdits",
+        permission_mode: Literal["default", "acceptEdits", "plan", "bypassPermissions"] = "acceptEdits",
         profiles_dir: str | Path | None = None,
+        setting_sources: list[Literal["user", "project", "local"]] | None = None,
+        can_use_tool: CanUseTool | None = None,
+        hooks: dict[str, list[HookMatcher]] | None = None,
+        sandbox: SandboxConfig | None = None,
+        enable_file_checkpointing: bool = False,
+        max_budget_usd: float | None = None,
+        model: str | None = None,
     ):
         """Initialize Claude Sentient.
 
@@ -84,10 +153,36 @@ class ClaudeSentient:
             cwd: Working directory for the project
             profile: Profile name (auto-detected if not provided)
             permission_mode: Permission mode for Claude Agent SDK
+                - "default": Standard permission behavior
+                - "acceptEdits": Auto-accept file edits (recommended)
+                - "plan": Planning mode - no execution
+                - "bypassPermissions": Bypass all checks (use with caution)
             profiles_dir: Directory containing profile YAML files
+            setting_sources: Which filesystem settings to load
+                - "user": Global user settings (~/.claude/settings.json)
+                - "project": Project settings (.claude/settings.json)
+                - "local": Local settings (.claude/settings.local.json)
+                If None (default), no filesystem settings are loaded.
+                Must include "project" to load CLAUDE.md files.
+            can_use_tool: Callback for custom tool permission handling.
+                Receives (tool_name, input_data, context) and returns
+                PermissionResultAllow or PermissionResultDeny.
+            hooks: Hook configurations for intercepting events.
+                Keys: "PreToolUse", "PostToolUse", "UserPromptSubmit", etc.
+            sandbox: Sandbox configuration for command execution.
+            enable_file_checkpointing: Enable file change tracking for rewinding.
+            max_budget_usd: Maximum budget in USD for the session.
+            model: Claude model to use (e.g., "claude-sonnet-4-20250514").
         """
         self.cwd = Path(cwd).resolve()
         self.permission_mode = permission_mode
+        self.setting_sources = setting_sources
+        self.can_use_tool = can_use_tool
+        self.custom_hooks = hooks
+        self.sandbox = sandbox
+        self.enable_file_checkpointing = enable_file_checkpointing
+        self.max_budget_usd = max_budget_usd
+        self.model = model
 
         # Initialize managers
         self.session_manager = SessionManager(self.cwd / ".claude/state")
@@ -105,6 +200,8 @@ class ClaudeSentient:
             self.gates = None
 
         self.session_id: str | None = None
+        self._client: Any = None  # ClaudeSDKClient instance when using client mode
+        self._total_cost_usd: float = 0.0
 
     async def loop(
         self,
@@ -139,9 +236,13 @@ class ClaudeSentient:
             )
 
         try:
-            # Note: In a real implementation, this would use the Claude Agent SDK
-            # For now, we provide a simulation that shows the expected interface
-            yield await self._simulate_loop(task, max_iterations)
+            if AGENT_SDK_AVAILABLE:
+                # Use the official Claude Agent SDK
+                async for result in self._run_with_agent_sdk(task, max_iterations):
+                    yield result
+            else:
+                # Fallback to simulation mode
+                yield await self._run_simulation(task, max_iterations)
 
         except Exception as e:
             yield LoopResult(
@@ -158,15 +259,279 @@ class ClaudeSentient:
                 message=str(e),
             )
 
-    async def _simulate_loop(
+    def _build_sdk_agents(self) -> dict[str, dict[str, Any]]:
+        """Build SDK-compatible agent definitions.
+
+        Returns:
+            Dictionary of agent configurations for Claude Agent SDK
+        """
+        agents = self._define_agents()
+        sdk_agents = {}
+
+        if SDKAgentDefinition is not None:
+            for name, agent in agents.items():
+                sdk_agents[name] = {
+                    "description": agent.description,
+                    "prompt": agent.prompt,
+                    "tools": agent.tools,
+                    "model": agent.model,
+                }
+
+        return sdk_agents
+
+    def _build_sandbox_config(self) -> dict[str, Any] | None:
+        """Build sandbox configuration dictionary.
+
+        Returns:
+            Sandbox configuration dict or None if not configured
+        """
+        if not self.sandbox:
+            return None
+
+        return {
+            "enabled": self.sandbox.enabled,
+            "autoAllowBashIfSandboxed": self.sandbox.auto_allow_bash_if_sandboxed,
+            "excludedCommands": self.sandbox.excluded_commands,
+            "allowUnsandboxedCommands": self.sandbox.allow_unsandboxed_commands,
+        }
+
+    def _build_merged_hooks(self) -> dict[str, list[Any]] | None:
+        """Merge custom hooks with quality gate hooks.
+
+        Returns:
+            Merged hook configuration or None
+        """
+        all_hooks = self._create_hooks()
+
+        if self.custom_hooks:
+            for event, matchers in self.custom_hooks.items():
+                if event in all_hooks:
+                    all_hooks[event].extend(matchers)
+                else:
+                    all_hooks[event] = matchers
+
+        return all_hooks if all_hooks else None
+
+    def _build_sdk_options(
+        self,
+        task: str,
+        max_iterations: int,
+    ) -> "ClaudeAgentOptions":
+        """Build Claude Agent SDK options.
+
+        Args:
+            task: The task description
+            max_iterations: Maximum loop iterations
+
+        Returns:
+            Configured ClaudeAgentOptions instance
+        """
+        system_prompt = self._build_system_prompt(task)
+        sdk_agents = self._build_sdk_agents()
+        all_hooks = self._build_merged_hooks()
+        sandbox_config = self._build_sandbox_config()
+
+        return ClaudeAgentOptions(
+            allowed_tools=self.DEFAULT_TOOLS,
+            agents=sdk_agents if sdk_agents else None,
+            permission_mode=self.permission_mode,
+            cwd=str(self.cwd),
+            system_prompt={
+                "type": "preset",
+                "preset": "claude_code",
+                "append": system_prompt,
+            },
+            setting_sources=self.setting_sources,
+            can_use_tool=self.can_use_tool,
+            hooks=all_hooks,
+            enable_file_checkpointing=self.enable_file_checkpointing,
+            max_budget_usd=self.max_budget_usd,
+            model=self.model,
+            sandbox=sandbox_config,
+            max_turns=max_iterations,
+        )
+
+    def _process_message(
+        self,
+        message: Any,
+        current_phase: str,
+        tasks_completed: int,
+        total_cost_usd: float,
+    ) -> tuple[str, int, float]:
+        """Process a single message from the SDK stream.
+
+        Args:
+            message: SDK message object
+            current_phase: Current phase name
+            tasks_completed: Running count of completed tasks
+            total_cost_usd: Running total cost
+
+        Returns:
+            Tuple of (updated_phase, tasks_completed, total_cost_usd)
+        """
+        if isinstance(message, SystemMessage):
+            if message.subtype == "init":
+                session_id = getattr(message, "session_id", None)
+                if session_id:
+                    self.session_id = session_id
+
+        elif isinstance(message, AssistantMessage):
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    current_phase = self._extract_phase(block.text, current_phase)
+                elif isinstance(block, ToolUseBlock):
+                    if block.name in ("TaskCreate", "TaskUpdate"):
+                        tasks_completed += 1
+
+        elif isinstance(message, ResultMessage):
+            if message.total_cost_usd:
+                total_cost_usd = message.total_cost_usd
+            if message.subtype == "success":
+                current_phase = "done"
+            elif message.subtype == "error":
+                current_phase = "error"
+
+        return current_phase, tasks_completed, total_cost_usd
+
+    async def _run_with_agent_sdk(
+        self,
+        task: str,
+        max_iterations: int,
+    ) -> AsyncIterator[LoopResult]:
+        """Run the loop using the official Claude Agent SDK.
+
+        Uses ClaudeAgentOptions with full feature support including:
+        - Custom hooks for quality gates and state tracking
+        - canUseTool callback for permission handling
+        - Subagent definitions for parallel work
+        - Session management with cost tracking
+        - File checkpointing for rollback
+
+        See: https://platform.claude.com/docs/en/agent-sdk/python
+        """
+        import time
+        start_time = time.time()
+        iteration = 0
+        tasks_completed = 0
+        total_cost_usd = 0.0
+        commit_hash = None
+        current_phase = "init"
+        gates_passed: dict[str, bool] = {}
+
+        options = self._build_sdk_options(task, max_iterations)
+
+        try:
+            async for message in query(prompt=task, options=options):
+                iteration += 1
+
+                # Process message and update state
+                current_phase, tasks_completed, total_cost_usd = self._process_message(
+                    message, current_phase, tasks_completed, total_cost_usd
+                )
+
+                # Update session state
+                self.session_manager.update_phase(current_phase)
+
+                duration_ms = (time.time() - start_time) * 1000
+
+                yield LoopResult(
+                    success=current_phase == "done",
+                    session_id=self.session_id or "",
+                    phase=current_phase,
+                    iteration=iteration,
+                    tasks_completed=tasks_completed,
+                    tasks_remaining=0,
+                    gates_passed=gates_passed,
+                    commit_hash=commit_hash,
+                    duration_ms=duration_ms,
+                    cost_usd=total_cost_usd,
+                    message=self._extract_message(message),
+                )
+
+                if current_phase in ("done", "error") or iteration >= max_iterations:
+                    break
+
+            self._total_cost_usd = total_cost_usd
+
+        except Exception as e:
+            yield LoopResult(
+                success=False,
+                session_id=self.session_id or "",
+                phase="error",
+                iteration=iteration,
+                tasks_completed=tasks_completed,
+                tasks_remaining=0,
+                gates_passed={},
+                commit_hash=None,
+                duration_ms=(time.time() - start_time) * 1000,
+                cost_usd=total_cost_usd,
+                message=f"Error: {str(e)}",
+            )
+
+    def _extract_phase(self, content: str, current_phase: str) -> str:
+        """Extract phase from message content."""
+        phase_markers = {
+            "[INIT]": "init",
+            "[UNDERSTAND]": "understand",
+            "[PLAN]": "plan",
+            "[EXECUTE]": "execute",
+            "[VERIFY]": "verify",
+            "[COMMIT]": "commit",
+            "[DONE]": "done",
+            "[EVALUATE]": "evaluate",
+        }
+        for marker, phase in phase_markers.items():
+            if marker in content:
+                return phase
+        return current_phase
+
+    def _extract_message(self, message: Any) -> str:
+        """Extract readable message from SDK message."""
+        if isinstance(message, AssistantMessage):
+            parts = []
+            for block in message.content:
+                if isinstance(block, TextBlock):
+                    parts.append(block.text)
+            return "\n".join(parts)
+        elif isinstance(message, ResultMessage):
+            return message.result or ""
+        elif hasattr(message, "content"):
+            return str(message.content)
+        return ""
+
+    def _build_system_prompt(self, task: str) -> str:
+        """Build the system prompt appendix with profile context."""
+        profile_info = f"Profile: {self.profile_name}"
+        if self.profile:
+            gates_info = ", ".join(self.profile.gates.keys())
+            profile_info += f"\nGates: {gates_info}"
+
+        return f"""
+## Claude Sentient Context
+
+{profile_info}
+
+Execute the autonomous development loop for this task using these phases:
+1. [INIT] - Load context and detect profile
+2. [UNDERSTAND] - Classify request, assess scope
+3. [PLAN] - Create tasks with dependencies using TaskCreate
+4. [EXECUTE] - Work through tasks, update status
+5. [VERIFY] - Run quality gates (lint, test, build)
+6. [COMMIT] - Create checkpoint commit
+7. [EVALUATE] - Check if done, loop if needed
+
+Mark phase transitions with [PHASE_NAME] tags.
+"""
+
+    async def _run_simulation(
         self,
         task: str,
         max_iterations: int,
     ) -> LoopResult:
-        """Simulate the loop for SDK interface demonstration.
+        """Fallback simulation when Claude Agent SDK is not installed.
 
-        In a real implementation, this would call the Claude Agent SDK.
-        This simulation shows the expected return values and structure.
+        This provides a demonstration of the expected interface.
+        Install claude-agent-sdk for full functionality.
         """
         import time
         start_time = time.time()
@@ -196,11 +561,16 @@ class ClaudeSentient:
             commit_hash=None,
             duration_ms=duration_ms,
             cost_usd=0.0,
-            message="SDK simulation complete. Install claude-agent-sdk for full functionality.",
+            message="Simulation mode. Install claude-agent-sdk (`pip install claude-agent-sdk`) for full functionality.",
         )
 
     async def plan(self, task: str) -> str:
         """Plan a task without executing (plan mode).
+
+        Uses Claude Agent SDK's "plan" permission mode which prevents
+        tool execution while allowing Claude to analyze and plan.
+
+        See: https://platform.claude.com/docs/en/agent-sdk/permissions#plan-mode-plan
 
         Args:
             task: The task description to plan
@@ -208,9 +578,43 @@ class ClaudeSentient:
         Returns:
             The generated plan as a string
         """
-        # In a real implementation, this would use the Claude Agent SDK
-        # with permission_mode="plan"
-        return f"Plan for: {task}\n\nNote: Install claude-agent-sdk for full planning functionality."
+        if not AGENT_SDK_AVAILABLE:
+            return f"Plan for: {task}\n\nNote: Install claude-agent-sdk (`pip install claude-agent-sdk`) for full planning functionality."
+
+        # Use Claude Agent SDK in plan-only mode
+        plan_parts = []
+        options = ClaudeAgentOptions(
+            allowed_tools=["Read", "Glob", "Grep", "Task", "AskUserQuestion"],
+            permission_mode="plan",
+            cwd=str(self.cwd),
+            setting_sources=self.setting_sources,
+            system_prompt={
+                "type": "preset",
+                "preset": "claude_code",
+                "append": f"""## Planning Mode
+
+Profile: {self.profile_name}
+
+Task to plan: {task}
+
+Create a structured plan with:
+1. Task summary
+2. Approach
+3. Files to change
+4. Dependencies
+5. Risks
+6. Quality gates
+
+Do NOT make any changes. Only analyze and plan.
+Use AskUserQuestion if you need clarification on the approach.""",
+            },
+            model=self.model,
+        )
+
+        async for message in query(prompt=f"Plan: {task}", options=options):
+            plan_parts.append(self._extract_message(message))
+
+        return "\n".join(filter(None, plan_parts)) if plan_parts else f"Plan created for: {task}"
 
     async def resume(self) -> AsyncIterator[LoopResult]:
         """Resume the last session.
@@ -242,29 +646,38 @@ class ClaudeSentient:
             return {}
         return self.gates.get_summary()
 
-    def _build_loop_prompt(self, task: str) -> str:
-        """Build the /cs-loop system prompt with profile context."""
-        profile_info = f"Profile: {self.profile_name}"
-        if self.profile:
-            gates_info = ", ".join(self.profile.gates.keys())
-            profile_info += f"\nGates: {gates_info}"
+    def get_total_cost(self) -> float:
+        """Get total cost in USD for all operations in this instance."""
+        return self._total_cost_usd
 
-        return f"""
-Execute the Claude Sentient autonomous development loop for this task:
+    def client(self) -> "ClaudeSentientClient":
+        """Create a continuous conversation client.
 
-Task: {task}
+        Use this for multi-turn conversations where Claude remembers context.
+        The client maintains a session across multiple query() calls.
 
-{profile_info}
+        See: https://platform.claude.com/docs/en/agent-sdk/python#claudesdkclient
 
-Follow the /cs-loop phases:
-1. INIT - Load context and detect profile
-2. UNDERSTAND - Classify request, assess scope
-3. PLAN - Create tasks with dependencies
-4. EXECUTE - Work through tasks
-5. VERIFY - Run quality gates
-6. COMMIT - Create checkpoint commit
-7. EVALUATE - Check if done, loop if needed
-"""
+        Example:
+            async with sentient.client() as client:
+                await client.query("What files are in this project?")
+                async for msg in client.receive_response():
+                    print(msg)
+
+                # Follow-up in same conversation
+                await client.query("Which one handles authentication?")
+                async for msg in client.receive_response():
+                    print(msg)
+
+        Returns:
+            ClaudeSentientClient context manager
+        """
+        if not AGENT_SDK_AVAILABLE:
+            raise RuntimeError(
+                "ClaudeSDKClient requires claude-agent-sdk. "
+                "Install with: pip install claude-agent-sdk"
+            )
+        return ClaudeSentientClient(self)
 
     def _create_hooks(self) -> dict[str, list[HookMatcher]]:
         """Create hooks for quality gates and state tracking."""
@@ -279,27 +692,161 @@ Follow the /cs-loop phases:
         return session_hooks
 
     def _define_agents(self) -> dict[str, AgentDefinition]:
-        """Define subagents for specialized tasks."""
+        """Define subagents for specialized tasks.
+
+        These agents are used by the Task tool for parallel or specialized work.
+        See: https://platform.claude.com/docs/en/agent-sdk/subagents
+        """
         return {
             "explore": AgentDefinition(
-                description="Fast codebase exploration",
-                prompt="Search and analyze code patterns",
+                description="Fast codebase exploration and file search",
+                prompt="Search and analyze code patterns. Use Glob to find files, Grep to search content, Read to examine files.",
                 tools=["Read", "Glob", "Grep"],
                 model="haiku",
             ),
             "test-runner": AgentDefinition(
-                description="Run and analyze tests",
-                prompt="Execute test suites and report results",
+                description="Run and analyze test suites",
+                prompt="Execute test suites and report results. Identify failing tests and their causes.",
                 tools=["Bash", "Read"],
                 model="sonnet",
             ),
             "lint-fixer": AgentDefinition(
-                description="Fix linting issues",
-                prompt="Analyze lint errors and fix them",
+                description="Fix linting and formatting issues",
+                prompt="Analyze lint errors and fix them. Run linter, read errors, apply fixes.",
                 tools=["Read", "Edit", "Bash"],
                 model="sonnet",
             ),
+            "reviewer": AgentDefinition(
+                description="Code review and quality analysis",
+                prompt="Review code for quality, security, and best practices. Provide specific feedback with file:line references.",
+                tools=["Read", "Glob", "Grep"],
+                model="sonnet",
+            ),
         }
+
+
+class ClaudeSentientClient:
+    """Continuous conversation client wrapping ClaudeSDKClient.
+
+    Provides a context manager interface for multi-turn conversations
+    where Claude remembers previous context.
+
+    See: https://platform.claude.com/docs/en/agent-sdk/python#claudesdkclient
+    """
+
+    def __init__(self, sentient: ClaudeSentient):
+        """Initialize the client wrapper.
+
+        Args:
+            sentient: Parent ClaudeSentient instance with configuration
+        """
+        self.sentient = sentient
+        self._client: Any = None
+
+    async def __aenter__(self) -> "ClaudeSentientClient":
+        """Enter the context manager and connect."""
+        # Build hooks
+        all_hooks = self.sentient._create_hooks()
+        if self.sentient.custom_hooks:
+            for event, matchers in self.sentient.custom_hooks.items():
+                if event in all_hooks:
+                    all_hooks[event].extend(matchers)
+                else:
+                    all_hooks[event] = matchers
+
+        # Build agents
+        agents = self.sentient._define_agents()
+        sdk_agents = {}
+        for name, agent in agents.items():
+            sdk_agents[name] = {
+                "description": agent.description,
+                "prompt": agent.prompt,
+                "tools": agent.tools,
+                "model": agent.model,
+            }
+
+        # Build sandbox config
+        sandbox_config = None
+        if self.sentient.sandbox:
+            sandbox_config = {
+                "enabled": self.sentient.sandbox.enabled,
+                "autoAllowBashIfSandboxed": self.sentient.sandbox.auto_allow_bash_if_sandboxed,
+                "excludedCommands": self.sentient.sandbox.excluded_commands,
+                "allowUnsandboxedCommands": self.sentient.sandbox.allow_unsandboxed_commands,
+            }
+
+        options = ClaudeAgentOptions(
+            allowed_tools=self.sentient.DEFAULT_TOOLS,
+            agents=sdk_agents if sdk_agents else None,
+            permission_mode=self.sentient.permission_mode,
+            cwd=str(self.sentient.cwd),
+            setting_sources=self.sentient.setting_sources,
+            can_use_tool=self.sentient.can_use_tool,
+            hooks=all_hooks if all_hooks else None,
+            enable_file_checkpointing=self.sentient.enable_file_checkpointing,
+            max_budget_usd=self.sentient.max_budget_usd,
+            model=self.sentient.model,
+            sandbox=sandbox_config,
+        )
+
+        self._client = ClaudeSDKClient(options)
+        await self._client.connect()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager and disconnect."""
+        if self._client:
+            await self._client.disconnect()
+            self._client = None
+
+    async def query(self, prompt: str) -> None:
+        """Send a query to Claude.
+
+        Args:
+            prompt: The message to send
+        """
+        if not self._client:
+            raise RuntimeError("Client not connected. Use 'async with' context manager.")
+        await self._client.query(prompt)
+
+    async def receive_response(self):
+        """Receive messages until result.
+
+        Yields:
+            Messages from Claude
+        """
+        if not self._client:
+            raise RuntimeError("Client not connected. Use 'async with' context manager.")
+        async for message in self._client.receive_response():
+            yield message
+
+    async def receive_messages(self):
+        """Receive all messages.
+
+        Yields:
+            All messages from Claude
+        """
+        if not self._client:
+            raise RuntimeError("Client not connected. Use 'async with' context manager.")
+        async for message in self._client.receive_messages():
+            yield message
+
+    async def interrupt(self) -> None:
+        """Interrupt the current operation."""
+        if self._client:
+            await self._client.interrupt()
+
+    async def rewind_files(self, user_message_uuid: str) -> None:
+        """Rewind files to state at a specific user message.
+
+        Requires enable_file_checkpointing=True in ClaudeSentient.
+
+        Args:
+            user_message_uuid: UUID of the user message to rewind to
+        """
+        if not self._client:
+            raise RuntimeError("Client not connected. Use 'async with' context manager.")
+        await self._client.rewind_files(user_message_uuid)
 
 
 # CLI entry point

@@ -48,6 +48,10 @@ Write-Host "Installing profiles..."
 New-Item -ItemType Directory -Force -Path "profiles" | Out-Null
 Copy-Item "$TempDir/profiles/*.yaml" -Destination "profiles/" -Force
 
+Write-Host "Installing rules..."
+New-Item -ItemType Directory -Force -Path "rules" | Out-Null
+Copy-Item "$TempDir/rules/*.md" -Destination "rules/" -Force
+
 Write-Host "Installing templates..."
 New-Item -ItemType Directory -Force -Path "templates" | Out-Null
 Copy-Item "$TempDir/templates/*.md" -Destination "templates/" -Force
@@ -68,8 +72,9 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "Installed:"
-Write-Host "  .claude/commands/cs-*.md  (6 commands)"
-Write-Host "  profiles/*.yaml           (5 profiles)"
+Write-Host "  .claude/commands/cs-*.md  (9 commands)"
+Write-Host "  profiles/*.yaml           (9 profiles)"
+Write-Host "  rules/*.md                (14 topic rules)"
 Write-Host "  templates/*.md            (4 templates)"
 Write-Host "  .claude/rules/learnings.md"
 Write-Host ""
@@ -78,4 +83,7 @@ Write-Host "  1. Run /cs-validate to verify installation"
 Write-Host "  2. Run /cs-mcp --fix to register MCP servers"
 Write-Host "  3. Run /cs-status to see detected profile"
 Write-Host "  4. Run /cs-loop `"your task`" to start working"
+Write-Host ""
+Write-Host "Note (Windows): MCP servers require 'cmd /c' wrapper." -ForegroundColor Yellow
+Write-Host "  Run /cs-mcp --fix after restarting Claude Code."
 Write-Host ""

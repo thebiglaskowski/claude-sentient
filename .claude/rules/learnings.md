@@ -26,6 +26,18 @@
 - **Decision**: Use `cs-` prefix (e.g., `/cs-loop`, `/cs-plan`)
 - **Rationale**: Short, memorable, avoids conflicts with other tools
 
+### 2026-02-02: Integrity Rules to prevent common Claude failure modes
+- **Context**: User saw X post complaining about Claude "destroying codebases" with workarounds, dismissing errors as "pre-existing", gaslighting, ignoring CLAUDE.md, ignoring architecture
+- **Decision**: Added explicit "Integrity Rules" section to CLAUDE.md covering:
+  1. Never dismiss errors as "pre-existing" without proof (git blame)
+  2. No workarounds or quick fixes - solve root causes
+  3. Re-read CLAUDE.md periodically during significant work
+  4. Verify architecture alignment before implementing
+  5. Admit mistakes immediately and clearly
+  6. Never gaslight - don't claim things that aren't true
+- **Implementation**: Added to CLAUDE.md, anthropic-patterns.md, and cs-loop `<avoid>` section
+- **Rationale**: These are the most frustrating Claude behaviors - explicit rules help prevent them
+
 ### 2026-02-01: Native-first approach - use built-in Claude Code features
 - **Context**: Original V2 GAMEPLAN proposed custom implementations for task queues, planning modes, sub-agents
 - **Decision**: Use native Claude Code tools instead of reimplementing:
@@ -60,7 +72,20 @@
   Instructions...
   ```
 
-<!-- Established patterns will be added here -->
+### 2026-02-02: XML prompt structure for commands
+- **Pattern**: All commands use XML tags to structure instructions
+- **Core tags**:
+  - `<role>` — Define Claude's expertise/persona
+  - `<task>` — Clear statement of what to do (REQUIRED)
+  - `<context>` — Background info, nested data
+  - `<steps>` — Ordered procedure
+  - `<thinking>` — Request reasoning steps
+  - `<criteria>` — Success metrics
+  - `<output_format>` — How to structure response
+  - `<constraints>` — Rules and limitations
+  - `<examples>` — Sample inputs/outputs
+- **Rationale**: XML tags separate WHAT from HOW, improve parsing, and enable structured reasoning
+- **Reference**: Full guidelines in `rules/prompt-structure.md`
 
 ---
 
@@ -97,6 +122,18 @@
   - Check for `poetry.lock` → use `poetry run` prefix
   - Check for `pdm.lock` → use `pdm run` prefix
 - **Rule**: Always detect and report the Python environment during INIT phase
+
+### 2026-02-02: Windows MCP servers require `cmd /c` wrapper
+- **Context**: `/doctor` showed warnings that MCP servers (memory, filesystem, puppeteer, github) need Windows wrapper
+- **Problem**: Direct `npx` command doesn't work on Windows for MCP servers - causes connection failures
+- **Solution**: Use `cmd /c` wrapper in MCP config:
+  ```json
+  {
+    "command": "cmd",
+    "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-memory"]
+  }
+  ```
+- **Rule**: On Windows, always use `cmd /c npx` instead of direct `npx` for MCP servers. Updated `/cs-mcp` command to document this.
 
 <!-- Mistakes and their fixes will be added here -->
 

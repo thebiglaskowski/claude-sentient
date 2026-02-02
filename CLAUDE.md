@@ -67,6 +67,9 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 
 # Review a pull request
 /cs-review 42
+
+# UI/UX audit (web projects)
+/cs-ui
 ```
 
 ---
@@ -139,6 +142,8 @@ Before committing, these must pass:
 | `/cs-learn [type] [title] [content]` | Save to memory (file + MCP) |
 | `/cs-mcp [--test] [--fix]` | Check, register, and validate MCP servers |
 | `/cs-review [PR]` | Review a pull request |
+| `/cs-assess [dir] [--ultrathink]` | Full codebase health audit (6+ dimensions) |
+| `/cs-ui [dir] [--full]` | UI/UX audit for web projects |
 
 ### Skill Chaining
 
@@ -445,6 +450,56 @@ Full mapping: `rules/_index.md`
 3. **Create checkpoints** — Before risky changes
 4. **Respect profiles** — Match existing code style
 5. **Ask when ambiguous** — One question, then proceed
+
+---
+
+## Integrity Rules
+
+**These rules prevent the most common Claude failure modes that frustrate users.**
+
+### 1. Never Dismiss Errors as "Pre-existing"
+
+If you encounter an error during your work:
+- **Own it.** Investigate whether your changes caused or exposed it.
+- **Never say** "this error was pre-existing" without proof (git blame, commit history).
+- **If truly pre-existing:** Still report it clearly, don't use it as an excuse to skip quality gates.
+- **Fix it or flag it** — either fix the issue or explicitly add it to a TODO with context.
+
+### 2. No Workarounds or Quick Fixes
+
+When facing a problem:
+- **Solve the root cause**, not the symptom.
+- **Never hard-code values** to make tests pass.
+- **Never create "temporary" workarounds** — they become permanent.
+- **If a proper fix is complex**, explain why and get user approval before proceeding.
+
+### 3. Re-read CLAUDE.md Periodically
+
+At the start of significant work:
+- Re-read `CLAUDE.md` and `.claude/rules/learnings.md` to refresh context.
+- Check for architecture decisions in `DECISIONS.md` that affect your approach.
+- **Never assume** you remember the rules — verify.
+
+### 4. Verify Architecture Alignment
+
+Before implementing changes:
+- Check if the change aligns with documented architecture decisions.
+- Look for patterns in the existing codebase — match them, don't invent new ones.
+- If your approach conflicts with existing patterns, **stop and ask** rather than proceeding.
+
+### 5. Admit Mistakes Immediately
+
+When you make an error:
+- **Acknowledge it clearly** — "I made a mistake" not "there was an issue."
+- **Don't deflect** — no blaming "context limitations" or "the code was confusing."
+- **Fix it and capture a learning** to prevent recurrence.
+
+### 6. Never Gaslight
+
+- **Don't claim** you said something you didn't.
+- **Don't claim** the code does something it doesn't.
+- **Don't claim** a test passes when it doesn't.
+- **If uncertain**, say "I'm not sure" rather than making confident wrong statements.
 
 ---
 

@@ -1,13 +1,32 @@
 """Quality gate execution for Claude Sentient SDK."""
 
 import asyncio
+import shlex
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from .profiles import ProfileLoader, Profile
 from .types import GateResult, GateStatus
+
+
+def _parse_command(command: str) -> list[str]:
+    """Parse a command string into a list for subprocess.
+
+    Uses shlex.split on Unix, or splits on Windows with shell awareness.
+    Falls back to shell=True behavior if parsing fails.
+    """
+    if sys.platform == "win32":
+        # On Windows, many commands need shell for built-ins (dir, echo, etc.)
+        # Return None to signal shell=True should be used
+        return None
+    try:
+        return shlex.split(command)
+    except ValueError:
+        # Malformed command string, fall back to shell
+        return None
 
 
 @dataclass
@@ -31,9 +50,13 @@ class QualityGates:
         start_time = time.time()
 
         try:
+            # Parse command to avoid shell=True when possible (security)
+            parsed_cmd = _parse_command(gate_config.command)
+            use_shell = parsed_cmd is None
+
             result = subprocess.run(
-                gate_config.command,
-                shell=True,
+                gate_config.command if use_shell else parsed_cmd,
+                shell=use_shell,
                 capture_output=True,
                 text=True,
                 cwd=cwd,

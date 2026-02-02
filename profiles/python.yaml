@@ -108,6 +108,7 @@ patterns:
     indicator: manage.py
     tools:
       test: python manage.py test
+    auto_rules: [ui-ux-design]
 
   - name: fastapi
     indicator: "from fastapi import"
@@ -122,6 +123,24 @@ patterns:
       test: pytest --nbval
     # Use NotebookEdit tool for cell modifications
     native_tool: NotebookEdit
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  directories:
+    - templates/
+    - static/
+    - frontend/
+  files:
+    - templates/*.html
+    - static/css/
+    - static/js/
+  patterns:
+    - "from django.shortcuts import render"
+    - "render_template"
+    - "jinja2"
+    - "@app.route"
+    - "from flask import"
+  auto_rules: [ui-ux-design]
 
 # Conventions
 conventions:

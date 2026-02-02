@@ -41,6 +41,10 @@ echo "Installing profiles..."
 mkdir -p profiles
 cp "$TEMP_DIR"/profiles/*.yaml profiles/
 
+echo "Installing rules..."
+mkdir -p rules
+cp "$TEMP_DIR"/rules/*.md rules/
+
 echo "Installing templates..."
 mkdir -p templates
 cp "$TEMP_DIR"/templates/*.md templates/
@@ -61,8 +65,9 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
-echo "  .claude/commands/cs-*.md  (6 commands)"
-echo "  profiles/*.yaml           (5 profiles)"
+echo "  .claude/commands/cs-*.md  (9 commands)"
+echo "  profiles/*.yaml           (9 profiles)"
+echo "  rules/*.md                (14 topic rules)"
 echo "  templates/*.md            (4 templates)"
 echo "  .claude/rules/learnings.md"
 echo ""
