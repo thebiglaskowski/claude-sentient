@@ -26,7 +26,7 @@ Claude Sentient coordinates Claude Code's native capabilities into an autonomous
 
 ---
 
-## 🎯 What is Claude Sentient?
+## 🤖 What is Claude Sentient?
 
 Claude Sentient transforms Claude Code sessions into **autonomous development loops**:
 
