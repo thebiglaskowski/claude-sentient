@@ -35,6 +35,14 @@
   - `.claude/rules/*.md` for memory (already decided)
 - **Rationale**: Don't reinvent the wheel. Native tools are tested, maintained, and work out of the box. Claude Sentient becomes a thin orchestration layer, not a parallel implementation.
 
+### 2026-02-01: Deep MCP server integration in /cs-loop
+- **Context**: MCP servers (context7, github, memory, puppeteer) were connected but only context7 was being used
+- **Decision**: Integrate all available MCP servers into /cs-loop phases:
+  - **INIT**: context7 for library docs, github for issue details, memory for session resumability
+  - **VERIFY**: puppeteer for web project screenshots
+  - **COMMIT**: github for PR creation and issue linking, memory for state persistence
+- **Rationale**: MCP servers are native Claude Code capabilities — use them to their full potential rather than leaving features on the table
+
 ---
 
 ## Patterns

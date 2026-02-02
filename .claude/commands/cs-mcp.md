@@ -152,6 +152,36 @@ Test Results:
   • GitHub available → Can create PRs and issues
 ```
 
+## /cs-loop Integration
+
+MCP servers are automatically used by `/cs-loop` when available:
+
+| Server | Phase | How /cs-loop Uses It |
+|--------|-------|----------------------|
+| **context7** | INIT | Scans imports, fetches library docs automatically |
+| **github** | INIT | If task references `#123`, fetches issue details |
+| **github** | COMMIT | Links commits to issues, offers to create PRs |
+| **memory** | INIT | Checks for previous session state (resumability) |
+| **memory** | COMMIT | Saves session state, decisions, progress |
+| **puppeteer** | VERIFY | Screenshots web apps after UI changes |
+
+**Example flow:**
+```
+/cs-loop "fix issue #42 - add dark mode toggle"
+
+[INIT] Profile: TypeScript, Tools: eslint, vitest
+[INIT] MCP: context7, github, memory
+[INIT] Loaded GitHub issue #42: "Add dark mode toggle to settings"
+[INIT] Context7: Fetched React useState docs
+[PLAN] Created 3 tasks
+[EXECUTE] Working...
+[VERIFY] All gates passed
+[VERIFY] Screenshot saved: dark-mode-toggle.png
+[COMMIT] feat: add dark mode toggle (Fixes #42)
+[COMMIT] PR created: https://github.com/user/repo/pull/15
+[DONE] Completed with GitHub integration
+```
+
 ## Known Servers Reference
 
 | Server | Package | Env Vars | Purpose |
