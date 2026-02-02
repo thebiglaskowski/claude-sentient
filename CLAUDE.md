@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 0.2.0
+> **Version:** 0.3.0
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -32,6 +32,7 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 | **Memory** | `.claude/rules/*.md` | Persistent learnings across sessions |
 | **Commands** | `commands/*.md` + `Skill` tool | Custom `/cs-*` commands |
 | **Git** | Built-in git workflow | Commits, branches, PRs |
+| **MCP Servers** | `mcp__*` tools | Library docs, GitHub API, browser automation |
 
 ---
 
@@ -52,6 +53,9 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 
 # Save a learning
 /cs-learn decision "Use PostgreSQL" "Chose for JSON support"
+
+# Check and fix MCP servers
+/cs-mcp --fix
 ```
 
 ---
@@ -122,6 +126,78 @@ Before committing, these must pass:
 | `/cs-status` | Show tasks, git state, profile |
 | `/cs-validate` | Validate configuration |
 | `/cs-learn [type] [title] [content]` | Save to memory |
+| `/cs-mcp [--test] [--fix]` | Check, register, and validate MCP servers |
+
+---
+
+## MCP Server Integration
+
+MCP (Model Context Protocol) servers extend Claude Code with additional capabilities. `/cs-mcp` manages these servers.
+
+### How MCP Servers Work
+
+```
+settings.json (configured)  →  claude mcp add (registered)  →  Available in session
+      ↓                              ↓                              ↓
+ User defines servers         Claude Code knows about them    mcp__* tools work
+```
+
+**Key insight:** Servers in `settings.json` must be registered with `claude mcp add` to work. The `/cs-mcp --fix` command detects this mismatch and fixes it.
+
+### Available MCP Servers
+
+| Server | Package | Env Vars | Purpose |
+|--------|---------|----------|---------|
+| context7 | `@upstash/context7-mcp` | - | Library documentation (used by `/cs-loop`) |
+| github | `@modelcontextprotocol/server-github` | GITHUB_TOKEN | GitHub API (PRs, issues) |
+| memory | `@modelcontextprotocol/server-memory` | - | Persistent key-value store |
+| filesystem | `@modelcontextprotocol/server-filesystem` | - | File system access |
+| puppeteer | `@modelcontextprotocol/server-puppeteer` | - | Browser automation |
+| postgres | `@modelcontextprotocol/server-postgres` | DATABASE_URL | PostgreSQL database |
+| brave-search | `@modelcontextprotocol/server-brave-search` | BRAVE_API_KEY | Web search |
+
+### `/cs-mcp` Command
+
+```bash
+/cs-mcp              # Show status of all servers
+/cs-mcp --test       # Test each connected server with real API call
+/cs-mcp --fix        # Auto-register servers from settings.json
+```
+
+**What `--fix` does:**
+
+1. Reads `~/.claude/settings.json` for `mcpServers` entries
+2. Checks which are registered with `claude mcp get <name>`
+3. For missing servers, runs `claude mcp add` or `claude mcp add-json`
+4. Reports what was registered
+
+**Registration commands:**
+
+```bash
+# Servers WITHOUT env vars
+claude mcp add <name> -- npx -y <package> [args]
+
+# Servers WITH env vars (use add-json for reliability)
+claude mcp add-json <name> '{"command":"npx","args":["-y","<package>"],"env":{"KEY":"value"}}'
+```
+
+### MCP Server Scope
+
+MCP servers are registered at the **user level** (`~/.claude.json`), not per-project:
+
+- Register once → available in all projects
+- `/cs-mcp --fix` only needed once per machine
+- New projects automatically have access to registered servers
+
+### Integration with `/cs-loop`
+
+When Context7 is available, `/cs-loop` auto-fetches library documentation:
+
+```
+[INIT] Detected imports: fastapi, sqlalchemy, pydantic
+[INIT] Loading docs from Context7...
+[INIT] Loaded: FastAPI routing, SQLAlchemy ORM basics
+```
 
 ---
 
@@ -392,6 +468,276 @@ When applied to any project:
 4. Quality gates use profile-appropriate tools
 
 No external dependencies. No custom scripts. Just Claude Code + thin orchestration.
+
+---
+
+## CLI vs SDK: Two Ways to Use Claude Sentient
+
+Claude Sentient offers two modes of operation for different use cases.
+
+### Overview
+
+| Aspect | CLI Mode | SDK Mode |
+|--------|----------|----------|
+| **Entry point** | `/cs-loop "task"` in terminal | `ClaudeSentient.loop("task")` in code |
+| **Installation** | One-line install script | `pip install -e` or `npm install` |
+| **Use case** | Interactive development | Automation, CI/CD, scripts |
+| **Session persistence** | Per-terminal session | Persists to `.claude/state/` |
+| **User interaction** | Claude asks questions via terminal | Programmatic control, no prompts |
+| **Best for** | Day-to-day development | Production pipelines, scheduled tasks |
+
+### CLI Mode (Interactive Development)
+
+**What it is:** Slash commands (`/cs-loop`, `/cs-plan`, etc.) that you run in Claude Code's terminal.
+
+**How to install:**
+```bash
+# Linux/Mac
+curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/install.sh | bash
+
+# Windows PowerShell
+iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/install.ps1 | iex
+```
+
+**What gets installed:**
+```
+your-project/
+├── .claude/commands/cs-*.md   # 5 slash commands
+├── .claude/rules/learnings.md # Persistent memory
+├── profiles/*.yaml            # Language profiles
+└── templates/*.md             # Governance templates
+```
+
+**How it works:**
+1. You type `/cs-loop "add user authentication"` in Claude Code
+2. Claude reads the command file (`.claude/commands/cs-loop.md`)
+3. Claude executes the loop: init → plan → execute → verify → commit
+4. You interact with Claude as it works (answering questions, approving commits)
+5. Session ends when you close the terminal
+
+**When to use:**
+- Daily development work
+- Exploring a codebase
+- Interactive code reviews
+- Tasks where you want to guide Claude's decisions
+
+---
+
+### SDK Mode (Programmatic Automation)
+
+**What it is:** Python/TypeScript libraries that let you run Claude Sentient from code.
+
+**How to install:**
+```bash
+# Python (from claude-sentient repo)
+pip install -e sdk/python/
+
+# TypeScript (from claude-sentient repo)
+cd sdk/typescript && npm install && npm run build
+
+# Or direct import without install
+import sys
+sys.path.insert(0, "path/to/claude-sentient/sdk/python")
+```
+
+**How it works:**
+1. Your script creates a `ClaudeSentient` instance
+2. Calls `loop()`, `plan()`, or `resume()` methods
+3. SDK manages session state in `.claude/state/session.json`
+4. Quality gates run as hooks (lint on file change, test before commit)
+5. Session can be resumed later, even after terminal closes
+
+**When to use:**
+- CI/CD pipelines (run Claude Sentient on every PR)
+- Scheduled tasks (nightly refactoring, dependency updates)
+- Webhooks (trigger Claude Sentient from external events)
+- Scripts that need to resume work across sessions
+- Headless/automated environments
+
+**Example use cases:**
+
+```python
+# CI/CD: Run on every PR
+async def ci_check(pr_branch: str):
+    sentient = ClaudeSentient(cwd="./repo")
+    async for result in sentient.loop(f"Review changes in {pr_branch}"):
+        if not result.gates_passed.get("lint"):
+            raise Exception("Lint failed")
+        if not result.gates_passed.get("test"):
+            raise Exception("Tests failed")
+
+# Scheduled: Nightly maintenance
+async def nightly_maintenance():
+    sentient = ClaudeSentient(cwd="./repo")
+    async for result in sentient.loop("Update dependencies and fix deprecations"):
+        print(f"Completed: {result.commit_hash}")
+
+# Resumable: Long-running task
+async def long_task():
+    sentient = ClaudeSentient(cwd="./repo")
+
+    # Start or resume
+    try:
+        async for result in sentient.resume():
+            print(f"Resumed from {result.phase}")
+    except ValueError:
+        async for result in sentient.loop("Large refactoring task"):
+            print(f"Phase: {result.phase}")
+```
+
+---
+
+### Key Differences
+
+**Session Persistence:**
+- CLI: Session lives in terminal. Close terminal = lose context.
+- SDK: Session saved to `.claude/state/session.json`. Resume anytime with `sentient.resume()`.
+
+**User Interaction:**
+- CLI: Claude can ask you questions, you see output in real-time.
+- SDK: Non-interactive by default. Configure hooks for custom behavior.
+
+**Quality Gates:**
+- CLI: Gates run as part of the loop, Claude reports results.
+- SDK: Gates run as hooks (`PostToolUse`, `PreToolUse`), can block commits programmatically.
+
+**Installation Scope:**
+- CLI: Installs into a specific project (`.claude/commands/`).
+- SDK: Installed globally or per-environment via pip/npm.
+
+---
+
+### Using Both Together
+
+You can use both modes on the same project:
+
+1. **Install CLI** for interactive development:
+   ```bash
+   curl -fsSL .../install.sh | bash
+   ```
+
+2. **Use SDK** for automation:
+   ```python
+   # CI pipeline
+   sentient = ClaudeSentient(cwd="./my-project")
+   async for result in sentient.loop("Run pre-merge checks"):
+       ...
+   ```
+
+Both share:
+- Same `profiles/*.yaml` configuration
+- Same `.claude/rules/learnings.md` memory
+- Same quality gate definitions
+
+---
+
+## SDK Reference
+
+### Installation
+
+**Python (from repo):**
+```bash
+pip install -e sdk/python/
+```
+
+**TypeScript (from repo):**
+```bash
+cd sdk/typescript && npm install && npm run build
+```
+
+**Direct import (no install):**
+```python
+import sys
+sys.path.insert(0, "path/to/claude-sentient/sdk/python")
+from claude_sentient import ClaudeSentient
+```
+
+### Basic Usage
+
+**Python:**
+```python
+from claude_sentient import ClaudeSentient
+
+async def main():
+    sentient = ClaudeSentient(cwd="./my-project")
+
+    # Run the autonomous loop
+    async for result in sentient.loop("Add user authentication"):
+        print(f"Phase: {result.phase}, Tasks: {result.tasks_completed}")
+        if result.success:
+            print(f"Done! Commit: {result.commit_hash}")
+
+    # Or plan without executing
+    plan = await sentient.plan("Refactor the API layer")
+
+    # Resume a previous session
+    async for result in sentient.resume():
+        print(f"Resumed: {result.phase}")
+```
+
+**TypeScript:**
+```typescript
+import { ClaudeSentient } from "@claude-sentient/sdk";
+
+const sentient = new ClaudeSentient({ cwd: "./my-project" });
+
+for await (const result of sentient.loop("Add user authentication")) {
+  console.log(`Phase: ${result.phase}, Tasks: ${result.tasksCompleted}`);
+  if (result.success) {
+    console.log(`Done! Commit: ${result.commitHash}`);
+  }
+}
+```
+
+### SDK Features
+
+| Feature | Description |
+|---------|-------------|
+| **Session Persistence** | Resume work across terminal closures via `.claude/state/session.json` |
+| **Programmatic Control** | SDK-based orchestration for CI/CD, webhooks, scheduled tasks |
+| **Quality Gate Hooks** | Automated lint/test enforcement as SDK hooks |
+| **Profile Detection** | Auto-detect project type from files |
+| **Subagent Definitions** | Pre-configured agents for exploration, testing, lint-fixing |
+
+### Dual-Mode Architecture
+
+| Mode | Entry Point | Use Case |
+|------|-------------|----------|
+| CLI | `/cs-loop`, `/cs-plan` | Interactive development |
+| SDK | `ClaudeSentient.loop()` | Production automation |
+
+Both modes share the same profiles, quality gates, and session state.
+
+### SDK Directory Structure
+
+```
+sdk/
+├── python/
+│   ├── claude_sentient/
+│   │   ├── __init__.py       # Package exports
+│   │   ├── orchestrator.py   # Main ClaudeSentient class
+│   │   ├── session.py        # Session persistence
+│   │   ├── profiles.py       # Profile detection/loading
+│   │   ├── gates.py          # Quality gate execution
+│   │   ├── hooks.py          # Custom hook definitions
+│   │   └── types.py          # Dataclasses
+│   ├── pyproject.toml
+│   └── README.md
+│
+└── typescript/
+    ├── src/
+    │   ├── index.ts          # Package exports
+    │   ├── orchestrator.ts   # Main class
+    │   ├── session.ts        # Session persistence
+    │   ├── profiles.ts       # Profile detection
+    │   ├── gates.ts          # Quality gates
+    │   ├── hooks.ts          # Hook definitions
+    │   └── types.ts          # Type definitions
+    ├── package.json
+    └── README.md
+```
+
+See `sdk/python/README.md` and `sdk/typescript/README.md` for full API documentation.
 
 ---
 

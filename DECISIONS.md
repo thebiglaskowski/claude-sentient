@@ -396,6 +396,51 @@ This applies to both claude-sentient itself and any project using claude-sentien
 
 ---
 
+### DEC-012: Claude Agent SDK Integration
+
+**Date:** 2026-02-01
+**Status:** Accepted
+
+**Context:**
+Claude Sentient was originally designed as a CLI-first orchestration layer using slash commands. However, users needed:
+- Session persistence across terminal closures
+- Programmatic control for CI/CD, webhooks, and scheduled tasks
+- SDK-based orchestration instead of text commands
+
+The Claude Agent SDK provides the infrastructure for these capabilities.
+
+**Decision:**
+Implement dual-mode support: maintain CLI compatibility while adding SDK capabilities.
+
+| Mode | Entry Point | Use Case |
+|------|-------------|----------|
+| CLI | `/cs-loop`, `/cs-plan` | Interactive development |
+| SDK | `ClaudeSentient.loop()` | Production automation |
+
+The SDK is implemented in both Python and TypeScript:
+- `sdk/python/claude_sentient/` - Python package
+- `sdk/typescript/src/` - TypeScript package
+
+**Rationale:**
+- Enables production deployment (CI/CD, webhooks, scheduled tasks)
+- Session persistence allows resuming work across terminal closures
+- Programmatic control enables integration with existing toolchains
+- Dual-mode ensures backward compatibility with existing CLI workflows
+- Both languages provide first-class SDK support
+
+**Consequences:**
+- Additional maintenance for two SDK implementations
+- SDK users need to install separate packages
+- Session state stored in `.claude/state/session.json`
+- Quality gates run as SDK hooks, not just CLI commands
+
+**Alternatives Considered:**
+- SDK only (rejected: breaks existing CLI workflows)
+- Python only (rejected: TypeScript projects need native SDK)
+- External session service (rejected: adds infrastructure dependency)
+
+---
+
 ## Pending Decisions
 
 None currently.

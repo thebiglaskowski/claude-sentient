@@ -63,6 +63,23 @@
 - **Correction**: User pointed out README.md still said "4 Commands"
 - **Rule**: When adding a new command, update ALL documentation: README.md, CLAUDE.md, STATUS.md, CHANGELOG.md
 
+### 2026-02-01: Simplify command files with tables
+- **Context**: `/cs-loop` was 320 lines with verbose prose explanations and examples
+- **Learning**: Tables are more scannable than prose for phase/rule documentation
+- **Result**: Reduced to 106 lines (67% reduction) while preserving all functionality
+
+### 2026-02-01: MCP servers in settings.json must be registered with `claude mcp add`
+- **Context**: User had 5 MCP servers configured in `~/.claude/settings.json` under `mcpServers` key, but only Context7 (a plugin) was working
+- **Discovery**: The `mcpServers` section in settings.json is NOT automatically loaded by Claude Code. Servers must be registered using `claude mcp add` command.
+- **Solution**: Use `claude mcp add <name> -- npx -y <package>` for simple servers, or `claude mcp add-json <name> '{...}'` for servers with environment variables (the `-e` flag parsing is buggy)
+- **Rule**: `/cs-mcp --fix` should detect servers in settings.json that aren't registered and offer to register them
+
+### 2026-02-01: Use `claude mcp add-json` for servers with env vars
+- **Context**: `claude mcp add -e GITHUB_TOKEN=$TOKEN github -- npx ...` failed with "Invalid environment variable format"
+- **Discovery**: The `-e` flag parser has issues with certain token formats
+- **Solution**: Use `claude mcp add-json github '{"command":"npx","args":["-y","@modelcontextprotocol/server-github"],"env":{"GITHUB_TOKEN":"<token>"}}'`
+- **Rule**: Always prefer `add-json` for servers that require environment variables
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

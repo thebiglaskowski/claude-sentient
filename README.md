@@ -4,7 +4,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -65,7 +65,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 5 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 6 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 12 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
@@ -83,6 +83,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | `/cs-status` | Show tasks, git state, detected profile |
 | `/cs-validate` | Validate profiles, commands, rules, governance |
 | `/cs-learn` | Save learnings to persistent memory |
+| `/cs-mcp` | Check, register, and validate MCP servers |
 
 ---
 
@@ -142,6 +143,93 @@ Claude Sentient leverages built-in Claude Code features:
 | Sub-agents | `Task` with `subagent_type` |
 | Memory | `.claude/rules/*.md` |
 | Commands | `commands/*.md` + `Skill` |
+| MCP Servers | `mcp__*` tools (context7, github, etc.) |
+
+---
+
+## 🔗 MCP Server Integration
+
+Claude Sentient can leverage MCP (Model Context Protocol) servers for extended capabilities:
+
+| Server | Purpose | Auto-Used By |
+|--------|---------|--------------|
+| **context7** | Library documentation | `/cs-loop` (fetches docs for imports) |
+| **github** | GitHub API (PRs, issues) | `/cs-loop` (when creating PRs) |
+| **memory** | Persistent key-value store | Manual |
+| **filesystem** | File system access | Manual |
+| **puppeteer** | Browser automation | Manual |
+
+### Setup MCP Servers
+
+```bash
+/cs-mcp              # Check what's configured vs connected
+/cs-mcp --fix        # Auto-register servers from settings.json
+/cs-mcp --test       # Validate servers are responding
+```
+
+**Note:** MCP servers are registered at the user level (`~/.claude.json`). Once registered, they're available in all projects.
+
+---
+
+## 🔧 Two Ways to Use Claude Sentient
+
+### CLI Mode vs SDK Mode
+
+| Aspect | CLI Mode | SDK Mode |
+|--------|----------|----------|
+| **Entry point** | `/cs-loop "task"` | `ClaudeSentient.loop("task")` |
+| **Install** | One-line script | `pip install -e` / `npm install` |
+| **Use case** | Interactive development | CI/CD, automation, scripts |
+| **Session** | Per-terminal | Persists to disk, resumable |
+
+### CLI Mode (Interactive)
+
+Use the one-line install (see Quick Start above). Then run commands in Claude Code:
+
+```bash
+/cs-loop "add user authentication"   # Interactive loop
+/cs-plan "refactor the API"          # Plan first, execute later
+```
+
+Best for: Daily development, exploring code, tasks where you want to guide Claude.
+
+### SDK Mode (Programmatic)
+
+```bash
+# Python
+pip install -e sdk/python/
+
+# TypeScript
+cd sdk/typescript && npm install && npm run build
+```
+
+```python
+from claude_sentient import ClaudeSentient
+
+async def main():
+    sentient = ClaudeSentient(cwd="./my-project")
+
+    # Run the loop
+    async for result in sentient.loop("Add user authentication"):
+        print(f"Phase: {result.phase}, Tasks: {result.tasks_completed}")
+
+    # Or resume a previous session
+    async for result in sentient.resume():
+        print(f"Resumed from: {result.phase}")
+```
+
+Best for: CI/CD pipelines, scheduled tasks, webhooks, headless automation.
+
+### SDK Features
+
+| Feature | Description |
+|---------|-------------|
+| **Session Persistence** | Resume work across terminal closures (`.claude/state/`) |
+| **Programmatic Control** | Run from scripts, pipelines, webhooks |
+| **Quality Gate Hooks** | Lint/test run automatically on file changes |
+| **Profile Detection** | Auto-detect Python, TypeScript, Go, etc. |
+
+See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comprehensive documentation on when to use each mode.
 
 ---
 

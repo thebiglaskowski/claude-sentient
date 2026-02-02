@@ -9,11 +9,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Claude Agent SDK Integration** (`sdk/`)
+  - Python SDK (`sdk/python/`) - `pip install claude-sentient`
+  - TypeScript SDK (`sdk/typescript/`) - `npm install @claude-sentient/sdk`
+  - Session persistence across terminal closures
+  - Programmatic orchestration via `ClaudeSentient` class
+  - Quality gate hooks for automated lint/test enforcement
+  - Profile detection and loading
+  - Subagent definitions for specialized tasks
 - Rust profile (`profiles/rust.yaml`) - clippy, cargo test
 - Java profile (`profiles/java.yaml`) - checkstyle, JUnit, maven/gradle
 - C/C++ profile (`profiles/cpp.yaml`) - clang-tidy, ctest, cmake
 - Ruby profile (`profiles/ruby.yaml`) - rubocop, rspec
 - `install.sh` and `install.ps1` installer scripts
+- `/cs-mcp` command to check, register, and validate MCP servers
+  - `--test` flag to test each connected server with real API calls
+  - `--fix` flag to auto-register servers from settings.json that aren't in `claude mcp`
+  - Uses `claude mcp add-json` for servers with env vars (more reliable than `-e` flag)
 
 ### Changed
 - Simplified `/cs-loop` command from 320 to 106 lines (67% reduction)
@@ -32,6 +44,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Documentation policy with automation levels in CLAUDE.md
 - Commands now in `.claude/commands/` for Claude Code recognition
 - DEC-011: Self-Improvement via CLAUDE.md Updates
+- DEC-012: Claude Agent SDK Integration
 
 ### Changed
 - `/cs-loop` INIT phase now loads rules based on task keywords
