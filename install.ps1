@@ -86,14 +86,14 @@ Remove-Item -Recurse -Force $TempDir
 Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
-Write-Host "Installed:"
-Write-Host "  .claude/commands/cs-*.md  (9 commands)"
-Write-Host "  .claude/hooks/*.js        (10 hook scripts)"
-Write-Host "  .claude/settings.json     (hook configuration)"
-Write-Host "  profiles/*.yaml           (9 profiles)"
-Write-Host "  rules/*.md                (14 topic rules)"
-Write-Host "  templates/*.md            (4 templates)"
-Write-Host "  .claude/rules/learnings.md"
+Write-Host 'Installed:'
+Write-Host '  .claude/commands/cs-*.md  - 9 commands'
+Write-Host '  .claude/hooks/*.js        - 10 hook scripts'
+Write-Host '  .claude/settings.json     - hook configuration'
+Write-Host '  profiles/*.yaml           - 10 profiles'
+Write-Host '  rules/*.md                - 15 topic rules'
+Write-Host '  templates/*.md            - 4 templates'
+Write-Host '  .claude/rules/learnings.md'
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host "  1. Run /cs-validate to verify installation"
