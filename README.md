@@ -69,7 +69,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 6 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 7 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 12 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
@@ -83,11 +83,12 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | Command | Purpose | Docs |
 |---------|---------|------|
 | `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit | [Details](CLAUDE.md#the-loop) |
-| `/cs-plan` | Plan complex tasks before executing | [Command](.claude/commands/cs-plan.md) |
-| `/cs-status` | Show tasks, git state, detected profile | [Command](.claude/commands/cs-status.md) |
-| `/cs-validate` | Validate profiles, commands, rules, governance | [Command](.claude/commands/cs-validate.md) |
-| `/cs-learn` | Save learnings to persistent memory | [Memory System](CLAUDE.md#memory-system) |
+| `/cs-plan` | Plan complex tasks before executing (chains to cs-loop) | [Command](.claude/commands/cs-plan.md) |
+| `/cs-status` | Show tasks, git state, profile (can resume work) | [Command](.claude/commands/cs-status.md) |
+| `/cs-validate` | Validate configuration (can auto-fix issues) | [Command](.claude/commands/cs-validate.md) |
+| `/cs-learn` | Save learnings to file + MCP memory (searchable) | [Memory System](CLAUDE.md#memory-system) |
 | `/cs-mcp` | Check, register, and validate MCP servers | [MCP Integration](CLAUDE.md#mcp-server-integration) |
+| `/cs-review` | Review pull requests with automated analysis | [Command](.claude/commands/cs-review.md) |
 
 ---
 
@@ -151,14 +152,20 @@ All gates must pass before committing:
 
 Claude Sentient leverages built-in Claude Code features:
 
-| Feature | Native Tool |
-|---------|-------------|
-| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` |
-| Planning | `EnterPlanMode`, `ExitPlanMode` |
-| Sub-agents | `Task` with `subagent_type` |
-| Memory | `.claude/rules/*.md` |
-| Commands | `commands/*.md` + `Skill` |
-| MCP Servers | `mcp__*` tools (context7, github, etc.) |
+| Feature | Native Tool | How Used |
+|---------|-------------|----------|
+| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet` | Work tracking |
+| Task Control | `TaskStop`, `TaskOutput` | Background task timeouts |
+| Planning | `EnterPlanMode`, `ExitPlanMode` | Complex tasks |
+| Sub-agents | `Task` with `subagent_type` | Parallel work |
+| Memory (File) | `.claude/rules/*.md` | Persistent learnings |
+| Memory (MCP) | `search_nodes`, `open_nodes` | Searchable prior decisions |
+| Skill Chaining | `Skill` tool | Commands invoke each other |
+| Web Tools | `WebSearch`, `WebFetch` | Find fixes, fetch changelogs |
+| GitHub PR | `get_pull_request*`, `create_review` | Full PR workflow |
+| GitHub Search | `search_code` | Find reference implementations |
+| Questions | `AskUserQuestion` | Structured decision options |
+| MCP Servers | `mcp__*` tools | Library docs, GitHub, memory |
 
 ---
 
@@ -168,11 +175,11 @@ Claude Sentient can leverage MCP (Model Context Protocol) servers for extended c
 
 | Server | Purpose | Auto-Used By |
 |--------|---------|--------------|
-| **context7** | Library documentation | `/cs-loop` (fetches docs for imports) |
-| **github** | GitHub API (PRs, issues) | `/cs-loop` (when creating PRs) |
-| **memory** | Persistent key-value store | Manual |
+| **context7** | Library documentation | `/cs-loop` INIT (fetches docs for imports) |
+| **github** | GitHub API (PRs, issues, code search) | `/cs-loop` INIT/VERIFY, `/cs-review` |
+| **memory** | Searchable knowledge graph | `/cs-loop` INIT (search prior decisions), `/cs-learn` |
 | **filesystem** | File system access | Manual |
-| **puppeteer** | Browser automation | Manual |
+| **puppeteer** | Browser automation | `/cs-loop` VERIFY (web projects) |
 
 ### Setup MCP Servers
 
@@ -264,7 +271,7 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 5 slash commands
+│   ├── commands/cs-*.md    # 7 slash commands
 │   └── rules/learnings.md  # Persistent memory
 ├── profiles/*.yaml          # 9 language profiles
 ├── templates/*.md           # Governance templates

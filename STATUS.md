@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-01
-> **Current Phase:** Phase 1 — MVP Core
-> **Version:** 0.2.0
+> **Last Updated:** 2026-02-02
+> **Current Phase:** Phase 2 — Native Tools Integration
+> **Version:** 0.3.0
 
 ---
 
@@ -29,11 +29,13 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 - [x] Captured decision in `.claude/rules/learnings.md`
 
 ### Commands
-- [x] `/cs-loop` - Autonomous development loop
-- [x] `/cs-plan` - Plan before executing
-- [x] `/cs-status` - Show current status
-- [x] `/cs-learn` - Save learnings to memory
-- [x] `/cs-validate` - Validate configuration
+- [x] `/cs-loop` - Autonomous development loop (with PR workflow, memory search, code search)
+- [x] `/cs-plan` - Plan before executing (chains to cs-loop)
+- [x] `/cs-status` - Show current status (can resume work)
+- [x] `/cs-learn` - Save learnings to file + MCP memory (searchable)
+- [x] `/cs-validate` - Validate configuration (can auto-fix)
+- [x] `/cs-mcp` - Check/register/validate MCP servers
+- [x] `/cs-review` - Review pull requests with automated analysis
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -87,17 +89,24 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 
 | Feature | Tool | Status |
 |---------|------|--------|
-| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList` | ✓ Working |
-| Planning | `EnterPlanMode`, `ExitPlanMode` | ✓ Available |
-| Sub-agents | `Task` with `subagent_type` | ✓ Available |
-| Memory | `.claude/rules/*.md` | ✓ Working |
-| Commands | `commands/*.md` + `Skill` | ✓ Working |
+| Task Queue | `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet` | ✓ Working |
+| Task Control | `TaskStop`, `TaskOutput` | ✓ Working |
+| Planning | `EnterPlanMode`, `ExitPlanMode` | ✓ Working |
+| Sub-agents | `Task` with `subagent_type` | ✓ Working |
+| Memory (File) | `.claude/rules/*.md` | ✓ Working |
+| Memory (MCP) | `search_nodes`, `open_nodes` | ✓ Working |
+| Skill Chaining | `Skill` tool | ✓ Working |
+| Web Tools | `WebSearch`, `WebFetch` | ✓ Working |
+| GitHub PR | `get_pull_request*`, `create_review` | ✓ Working |
+| GitHub Search | `search_code` | ✓ Working |
+| Questions | `AskUserQuestion` (structured) | ✓ Working |
+| Commands | `commands/*.md` | ✓ Working |
 
 ### Custom Components
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 5 created |
+| Commands | `commands/cs-*.md` | ✓ 7 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
 
@@ -107,14 +116,27 @@ Testing             [░░░░░░░░░░░░░░░░░░░�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 5 | 5 ✓ |
+| Commands | 7 | 7 ✓ |
 | Profiles | 9 | 9 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
+| GitHub tools integrated | 13 | 13 ✓ |
+| Memory tools integrated | 5 | 5 ✓ |
 
 ---
 
 ## Recent Activity
+
+### 2026-02-02 (Session 4)
+- **Native Tools Integration (Phase 1):** WebSearch, WebFetch, TaskStop, TaskGet, NotebookEdit, AskUserQuestion structured patterns, claude-code-guide subagent
+- **High-Value Native Integration (Phase 2):**
+  - Memory search: `search_nodes`, `open_nodes` in cs-loop INIT
+  - GitHub PR workflow: Full PR context loading, status checks, reviews
+  - Created `/cs-review` command for PR review automation
+  - Skill chaining: cs-plan→cs-loop, cs-status→cs-loop, cs-validate→cs-loop
+  - GitHub code search: Reference implementations in UNDERSTAND phase
+- Updated `/cs-learn` to save to both file and MCP memory (searchable)
+- All documentation updated (CLAUDE.md, README.md, STATUS.md)
 
 ### 2026-02-01 (Session 3 - continued)
 - Added AskUserQuestion support for structured decisions
