@@ -103,6 +103,17 @@ Sentient auto-detects your project type and loads appropriate tooling:
 | Shell | `*.sh`, `*.ps1` | shellcheck |
 | General | (fallback) | auto-detect |
 
+### Python Environment Detection
+
+For Python projects, Sentient detects and uses the correct environment:
+
+| Indicator | Environment | How Commands Run |
+|-----------|-------------|------------------|
+| `environment.yml` | Conda | `conda run -n <env> pytest` |
+| `.venv/`, `venv/` | Virtualenv | Uses venv's Python |
+| `poetry.lock` | Poetry | `poetry run pytest` |
+| `pdm.lock` | PDM | `pdm run pytest` |
+
 ---
 
 ## 🔄 The Loop
@@ -195,7 +206,13 @@ Best for: Daily development, exploring code, tasks where you want to guide Claud
 
 ### SDK Mode (Programmatic)
 
+**Important:** SDK mode requires installing from the claude-sentient repository itself, not from a target project.
+
 ```bash
+# Clone claude-sentient repo first
+git clone https://github.com/thebiglaskowski/claude-sentient.git
+cd claude-sentient
+
 # Python
 pip install -e sdk/python/
 
@@ -203,11 +220,14 @@ pip install -e sdk/python/
 cd sdk/typescript && npm install && npm run build
 ```
 
+Then use the SDK to orchestrate work in any project:
+
 ```python
 from claude_sentient import ClaudeSentient
 
 async def main():
-    sentient = ClaudeSentient(cwd="./my-project")
+    # Point to your target project
+    sentient = ClaudeSentient(cwd="/path/to/my-project")
 
     # Run the loop
     async for result in sentient.loop("Add user authentication"):

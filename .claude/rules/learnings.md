@@ -88,6 +88,16 @@
 - **Solution**: Use `claude mcp add-json github '{"command":"npx","args":["-y","@modelcontextprotocol/server-github"],"env":{"GITHUB_TOKEN":"<token>"}}'`
 - **Rule**: Always prefer `add-json` for servers that require environment variables
 
+### 2026-02-01: Detect Python environments (conda, venv, poetry)
+- **Context**: User ran `/cs-loop` on a project that uses a specific conda environment, but commands ran in system Python
+- **Problem**: Profile commands like `pytest` and `ruff` ran without the correct environment
+- **Solution**: Added environment detection to Python profile:
+  - Check for `environment.yml` → use `conda run -n <env> --no-capture-output` prefix
+  - Check for `.venv/` or `venv/` → activate or use venv python directly
+  - Check for `poetry.lock` → use `poetry run` prefix
+  - Check for `pdm.lock` → use `pdm run` prefix
+- **Rule**: Always detect and report the Python environment during INIT phase
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

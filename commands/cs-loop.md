@@ -37,7 +37,26 @@ This command leverages available MCP servers for enhanced capabilities:
    | `*.sh`, `*.ps1` | Shell | shellcheck |
    | (fallback) | General | auto-detect |
 
-2. **Load rules** based on task keywords:
+2. **Detect Python environment** (if Python profile):
+
+   | Indicator | Environment | Command Prefix |
+   |-----------|-------------|----------------|
+   | `environment.yml` | Conda | `conda run -n <env> --no-capture-output` |
+   | `.venv/`, `venv/` | Virtualenv | Activate first or use `.venv/bin/python` |
+   | `poetry.lock` | Poetry | `poetry run` |
+   | `pdm.lock` | PDM | `pdm run` |
+
+   **Detection steps:**
+   ```
+   - Check for environment.yml → parse for env name → use conda prefix
+   - Check for .venv/ or venv/ → commands use venv python
+   - Check for poetry.lock → prefix with "poetry run"
+   - Ask user if unclear: "I detected conda env 'myenv'. Use it?"
+   ```
+
+   Report: `[INIT] Environment: conda (myenv)` or `[INIT] Environment: system python`
+
+3. **Load rules** based on task keywords:
 
    | Keywords | Rules |
    |----------|-------|

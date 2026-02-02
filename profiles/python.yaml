@@ -2,7 +2,7 @@
 # Loaded when pyproject.toml or requirements.txt detected
 
 name: python
-version: "1.0"
+version: "1.1"
 
 # How to detect this profile
 detection:
@@ -13,7 +13,44 @@ detection:
   patterns:
     - "**/*.py"
 
-# Quality gate commands
+# Environment detection (checked in order)
+# Claude should detect these and prefix commands accordingly
+environment:
+  # Conda environment detection
+  conda:
+    indicators:
+      - environment.yml
+      - environment.yaml
+      - conda.yaml
+    # Check for env name in these files or use directory name
+    detect_command: conda info --envs
+    # If detected, prefix commands with: conda run -n <env_name> --no-capture-output
+    prefix: "conda run -n {env_name} --no-capture-output"
+
+  # Virtual environment detection
+  venv:
+    indicators:
+      - .venv/
+      - venv/
+      - .virtualenv/
+    # If detected on Windows: .venv\Scripts\activate &&
+    # If detected on Unix: source .venv/bin/activate &&
+    activate_windows: ".venv\\Scripts\\activate &&"
+    activate_unix: "source .venv/bin/activate &&"
+
+  # Poetry detection
+  poetry:
+    indicators:
+      - poetry.lock
+    prefix: "poetry run"
+
+  # PDM detection
+  pdm:
+    indicators:
+      - pdm.lock
+    prefix: "pdm run"
+
+# Quality gate commands (base commands - may be prefixed by environment)
 gates:
   lint:
     command: ruff check .
