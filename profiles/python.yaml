@@ -12,6 +12,7 @@ detection:
     - setup.py
   patterns:
     - "**/*.py"
+    - "**/*.ipynb"
 
 # Environment detection (checked in order)
 # Claude should detect these and prefix commands accordingly
@@ -78,6 +79,18 @@ gates:
     check_command: ruff format . --check
     description: Format code
 
+  # Jupyter notebook support (when *.ipynb files present)
+  notebook:
+    lint_command: nbqa ruff .
+    lint_fix_command: nbqa ruff . --fix
+    format_command: nbqa ruff format .
+    test_command: pytest --nbval
+    test_strict_command: pytest --nbval-lax
+    description: Jupyter notebook quality checks
+    requires:
+      - nbqa
+      - nbval
+
 # Thresholds
 thresholds:
   coverage: 80
@@ -101,6 +114,14 @@ patterns:
 
   - name: flask
     indicator: "from flask import"
+
+  - name: jupyter
+    indicator: "**/*.ipynb"
+    tools:
+      lint: nbqa ruff .
+      test: pytest --nbval
+    # Use NotebookEdit tool for cell modifications
+    native_tool: NotebookEdit
 
 # Conventions
 conventions:

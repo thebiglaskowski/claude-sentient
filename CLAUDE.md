@@ -26,12 +26,16 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 
 | Feature | Native Tool | How We Use It |
 |---------|-------------|---------------|
-| **Task Queue** | `TaskCreate`, `TaskUpdate`, `TaskList` | Work item tracking with dependencies |
+| **Task Queue** | `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet` | Work item tracking with dependencies |
+| **Task Control** | `TaskStop`, `TaskOutput` | Background task timeouts and monitoring |
 | **Planning** | `EnterPlanMode`, `ExitPlanMode` | Architecture decisions, complex tasks |
 | **Sub-agents** | `Task` with `subagent_type` | Parallel research, exploration, background tasks |
 | **Memory** | `.claude/rules/*.md` | Persistent learnings across sessions |
 | **Commands** | `commands/*.md` + `Skill` tool | Custom `/cs-*` commands |
 | **Git** | Built-in git workflow | Commits, branches, PRs |
+| **Web Tools** | `WebSearch`, `WebFetch` | Search for solutions, fetch changelogs |
+| **Notebooks** | `NotebookEdit` | Jupyter notebook cell editing |
+| **Questions** | `AskUserQuestion` (structured) | Decision points with predefined options |
 | **MCP Servers** | `mcp__*` tools | Library docs, GitHub API, browser automation |
 
 ---
@@ -82,7 +86,7 @@ Sentient auto-detects project type and loads appropriate tooling:
 
 | Profile | Detected By | Tools |
 |---------|-------------|-------|
-| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
+| Python | `pyproject.toml`, `*.py`, `*.ipynb` | ruff, pytest, pyright, nbqa |
 | TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
 | Go | `go.mod`, `*.go` | golangci-lint, go test |
 | Rust | `Cargo.toml` | clippy, cargo test |

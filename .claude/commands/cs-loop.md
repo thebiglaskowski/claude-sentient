@@ -1,12 +1,12 @@
 ---
 description: Autonomous development loop - init, plan, execute, verify, commit
 argument-hint: <task description>
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, EnterPlanMode, AskUserQuestion, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__get_issue, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, AskUserQuestion, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__get_issue, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
 ---
 
 # /cs-loop
 
-Autonomous development loop: understand → plan → execute → verify → commit.
+Autonomous development loop: understand -> plan -> execute -> verify -> commit.
 
 ## MCP Server Integration
 
@@ -48,9 +48,9 @@ This command leverages available MCP servers for enhanced capabilities:
 
    **Detection steps:**
    ```
-   - Check for environment.yml → parse for env name → use conda prefix
-   - Check for .venv/ or venv/ → commands use venv python
-   - Check for poetry.lock → prefix with "poetry run"
+   - Check for environment.yml -> parse for env name -> use conda prefix
+   - Check for .venv/ or venv/ -> commands use venv python
+   - Check for poetry.lock -> prefix with "poetry run"
    - Ask user if unclear: "I detected conda env 'myenv'. Use it?"
    ```
 
@@ -67,10 +67,10 @@ This command leverages available MCP servers for enhanced capabilities:
    | refactor, quality | code-quality |
    | cli, command | terminal-ui |
 
-3. **Check governance files** — create from `templates/` if missing:
+3. **Check governance files** -- create from `templates/` if missing:
    - `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`
 
-4. **MCP: Context7** — Fetch library documentation:
+4. **MCP: Context7** -- Fetch library documentation:
    ```
    - Scan task-related files for imports/dependencies
    - For each unfamiliar library:
@@ -79,7 +79,7 @@ This command leverages available MCP servers for enhanced capabilities:
    - Inject relevant docs into context
    ```
 
-5. **MCP: GitHub** — If task references issues:
+5. **MCP: GitHub** -- If task references issues:
    ```
    - Detect patterns: "fix #123", "closes #456", "issue 789"
    - Fetch issue details: mcp__github__get_issue(owner, repo, issue_number)
@@ -87,21 +87,59 @@ This command leverages available MCP servers for enhanced capabilities:
    - Report: [INIT] Loaded GitHub issue #123: {title}
    ```
 
-6. **MCP: Memory** — Check for previous session state:
+6. **MCP: Memory** -- Check for previous session state:
    ```
    - mcp__memory__read_graph() to check for prior context
    - If found: load previous tasks, decisions, blockers
    - Report: [INIT] Resumed from previous session (if applicable)
    ```
 
-7. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
+7. **WebFetch: Dependency changelogs** -- If task involves dependencies:
+   ```
+   Trigger keywords: "update", "upgrade", "migrate", "add dependency", "bump"
+
+   For each dependency mentioned:
+   1. Identify package name and registry (npm, PyPI, crates.io)
+   2. WebFetch("https://github.com/{owner}/{repo}/blob/main/CHANGELOG.md",
+              "Extract breaking changes and migration notes for version X")
+   3. Or fetch release notes: https://github.com/{owner}/{repo}/releases
+   4. Report: [INIT] Fetched changelog for {package}: {summary}
+   ```
+
+   This prevents breaking changes from surprising you during implementation.
+
+8. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
 
 ### 2. UNDERSTAND
 
 Classify complexity:
-- **Simple**: Single file → proceed
-- **Moderate**: Multiple files, clear path → proceed
-- **Complex**: Architecture decisions → use `EnterPlanMode`
+- **Simple**: Single file -> proceed
+- **Moderate**: Multiple files, clear path -> proceed
+- **Complex**: Architecture decisions -> use `EnterPlanMode`
+
+**Structured decisions** -- When task is ambiguous, use `AskUserQuestion` with predefined options:
+
+| Decision | Options |
+|----------|---------|
+| Auth approach | JWT (stateless, scalable) / Sessions (simpler, server-side) / OAuth (third-party) |
+| Database | PostgreSQL (relational, JSON support) / SQLite (simple, file-based) / MongoDB (document store) |
+| Testing strategy | Unit only (fast, isolated) / Integration (realistic) / E2E (full coverage) |
+| Error handling | Exceptions (Python/Java style) / Result types (Rust/Go style) / Status codes (HTTP style) |
+| State management | Local state (simpler) / Context/Redux (global) / Server state (real-time) |
+
+Example:
+```
+AskUserQuestion:
+  question: "Which authentication approach should we use?"
+  header: "Auth"
+  options:
+    - label: "JWT tokens (Recommended)"
+      description: "Stateless, scalable, good for APIs"
+    - label: "Server sessions"
+      description: "Simpler setup, requires session store"
+    - label: "OAuth/OIDC"
+      description: "Delegate to identity provider"
+```
 
 ### 3. PLAN
 
@@ -111,13 +149,38 @@ Classify complexity:
 
 ### 4. EXECUTE
 
-1. `TaskList` → pick first unblocked task
-2. `TaskUpdate(status: in_progress)`
-3. Do the work
-4. `TaskUpdate(status: completed)`
-5. Repeat until all complete
+1. `TaskList` -> pick first unblocked task
+2. `TaskGet(taskId)` -> fetch full description and context
+3. `TaskUpdate(status: in_progress)`
+4. Do the work (using description for guidance)
+5. `TaskUpdate(status: completed)`
+6. Repeat until all complete
+
+**Why TaskGet matters:** Task subjects are brief. The description contains:
+- Detailed requirements
+- Acceptance criteria
+- Dependencies and constraints
+- Links to relevant issues or docs
 
 Use `Task` tool with `run_in_background: true` for parallel work (e.g., running tests while continuing).
+
+**Background task timeout handling:**
+
+| Task Type | Timeout | Action |
+|-----------|---------|--------|
+| Tests | 10 min | TaskStop + report partial results |
+| Build | 5 min | TaskStop + check for infinite loops |
+| Exploration | 3 min | TaskStop + use partial findings |
+
+```
+When running background tasks:
+1. Note the task_id from Task tool response
+2. Use TaskOutput(task_id, block=false) to check progress periodically
+3. If task exceeds timeout:
+   - TaskStop(task_id)
+   - Report: [EXECUTE] Task {id} timed out after {N} minutes
+   - Attempt smaller scope or ask user
+```
 
 ### 5. VERIFY
 
@@ -130,7 +193,7 @@ Run quality gates from profile:
 | BUILD | Run build command if defined |
 | GIT | Check `git status` is clean |
 
-**MCP: Puppeteer** — For web projects (detected by `package.json` with web framework):
+**MCP: Puppeteer** -- For web projects (detected by `package.json` with web framework):
 ```
 - If significant UI changes were made:
   1. mcp__puppeteer__puppeteer_navigate(url) to dev server
@@ -139,7 +202,23 @@ Run quality gates from profile:
 - Skip if no dev server running or not a web project
 ```
 
-If gate fails: attempt fix, retry twice, then stop and report.
+**On gate failure -- WebSearch before asking:**
+```
+1. Extract error message from gate output
+2. WebSearch("{language} {error_message} fix 2026")
+3. If solution found: apply fix automatically
+4. If fix works: continue
+5. If still failing after 2 attempts: stop and report with search findings
+```
+
+Example flow:
+```
+[VERIFY] pytest failed: "AttributeError: module 'jwt' has no attribute 'encode'"
+[VERIFY] Searching for solution...
+[VERIFY] Found: PyJWT vs jwt package conflict. Uninstall jwt, keep PyJWT.
+[VERIFY] Applying fix: pip uninstall jwt && pip install PyJWT
+[VERIFY] Retrying tests...
+```
 
 ### 6. COMMIT
 
@@ -148,7 +227,7 @@ If gate fails: attempt fix, retry twice, then stop and report.
 3. **Auto-update STATUS.md** with session progress
 4. **Auto-update CHANGELOG.md** for `feat:` and `fix:` commits
 
-**MCP: GitHub** — Link commits to issues and optionally create PRs:
+**MCP: GitHub** -- Link commits to issues and optionally create PRs:
 ```
 - If task referenced an issue:
   1. Include "Fixes #123" or "Closes #123" in commit message
@@ -159,7 +238,7 @@ If gate fails: attempt fix, retry twice, then stop and report.
   3. Report: [COMMIT] PR created: {url}
 ```
 
-**MCP: Memory** — Persist session state for resumability:
+**MCP: Memory** -- Persist session state for resumability:
 ```
 - mcp__memory__create_entities or mcp__memory__add_observations:
   - Current task progress
@@ -172,10 +251,10 @@ If gate fails: attempt fix, retry twice, then stop and report.
 
 ### 7. EVALUATE
 
-- All tasks complete? → `[DONE] {summary}` and exit
-- More work? → `[LOOP] Continuing...` and return to EXECUTE
+- All tasks complete? -> `[DONE] {summary}` and exit
+- More work? -> `[LOOP] Continuing...` and return to EXECUTE
 
-**MCP: Memory** — On completion, save final state:
+**MCP: Memory** -- On completion, save final state:
 ```
 - mcp__memory__add_observations with:
   - Session summary
@@ -188,9 +267,26 @@ If gate fails: attempt fix, retry twice, then stop and report.
 | Situation | Response |
 |-----------|----------|
 | Complex task | `EnterPlanMode`, wait for approval |
-| Gate failure | Fix, retry twice, then stop |
-| Ambiguous | `AskUserQuestion` with options |
-| Stuck > 3 attempts | Stop and report |
+| Gate failure | WebSearch for fix, retry twice, then stop |
+| Ambiguous | `AskUserQuestion` with structured options |
+| Stuck > 3 attempts | Use claude-code-guide subagent, then stop if still stuck |
+
+**claude-code-guide fallback** -- When stuck on Claude Code capabilities:
+```
+Trigger: Same operation failed 3+ times, or unsure about tool usage
+
+Task:
+  subagent_type: claude-code-guide
+  prompt: "How do I {describe the operation}? I've tried {what failed}."
+  model: haiku  # Fast, focused answers
+
+Example scenarios:
+- "How do I edit a Jupyter notebook cell?"
+- "What's the correct way to use TaskStop?"
+- "Can Claude Code interact with MCP servers directly?"
+```
+
+This prevents spinning on operations that might have native solutions.
 
 ## Notes
 

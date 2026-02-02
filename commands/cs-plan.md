@@ -1,7 +1,7 @@
 ---
 description: Plan a complex task before executing
 argument-hint: <task description>
-allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate
+allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate, AskUserQuestion
 ---
 
 # /cs-plan
@@ -137,6 +137,16 @@ AskUserQuestion:
     - label: "Adapter pattern"
       description: "Wrap old code, minimal changes"
 ```
+
+**Common architecture decisions:**
+
+| Decision | Header | Options |
+|----------|--------|---------|
+| API style | "API" | REST (standard), GraphQL (flexible queries), gRPC (high perf) |
+| Data layer | "Data" | ORM (convenient), Query builder (control), Raw SQL (performance) |
+| Async pattern | "Async" | Callbacks, Promises/async-await, Reactive streams |
+| Caching | "Cache" | In-memory (simple), Redis (distributed), CDN (edge) |
+| Deployment | "Deploy" | Containers (portable), Serverless (scaling), VMs (control) |
 
 This is better than free-form questions because:
 - User sees all options at once
