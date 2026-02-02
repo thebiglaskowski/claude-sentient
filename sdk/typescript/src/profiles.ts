@@ -4,7 +4,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import type { Profile, GateConfig } from "./types";
+import type { Profile, GateConfig } from "./types.js";
 
 /** Default profile definitions */
 const DEFAULT_PROFILES: Record<string, Partial<Profile>> = {

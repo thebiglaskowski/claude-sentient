@@ -4,7 +4,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import type { SessionState, Phase, Task, GateResult } from "./types";
+import type { SessionState, Phase, GateResult } from "./types.js";
 
 export class SessionManager {
   private stateDir: string;

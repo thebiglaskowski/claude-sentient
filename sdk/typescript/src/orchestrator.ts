@@ -9,14 +9,12 @@ import type {
   LoopOptions,
   ClaudeSentientOptions,
   SessionState,
-  AgentDefinition,
-  HookMatcher,
-  Phase,
-} from "./types";
-import { SessionManager } from "./session";
-import { ProfileLoader, Profile } from "./profiles";
-import { QualityGates, createGateHooks } from "./gates";
-import { HookManager } from "./hooks";
+} from "./types.js";
+import { SessionManager } from "./session.js";
+import { ProfileLoader, Profile } from "./profiles.js";
+import { QualityGates } from "./gates.js";
+// Note: HookManager import reserved for future Claude Agent SDK integration
+// import { HookManager } from "./hooks.js";
 
 /**
  * SDK wrapper for Claude Sentient autonomous development loop.
@@ -48,14 +46,13 @@ import { HookManager } from "./hooks";
  */
 export class ClaudeSentient {
   private cwd: string;
-  private permissionMode: string;
   private sessionManager: SessionManager;
   private profileLoader: ProfileLoader;
-  private hookManager: HookManager;
   private profileName: string;
   private profile: Profile | null;
   private gates: QualityGates | null;
   private sessionId: string | null = null;
+  // Note: HookManager reserved for future Claude Agent SDK integration
 
   static readonly DEFAULT_TOOLS = [
     "Read",
@@ -74,14 +71,13 @@ export class ClaudeSentient {
 
   constructor(options: ClaudeSentientOptions = {}) {
     this.cwd = path.resolve(options.cwd ?? ".");
-    this.permissionMode = options.permissionMode ?? "acceptEdits";
+    // Note: permissionMode reserved for future Claude Agent SDK integration
 
     // Initialize managers
     this.sessionManager = new SessionManager(
       path.join(this.cwd, ".claude/state")
     );
     this.profileLoader = new ProfileLoader(options.profilesDir);
-    this.hookManager = new HookManager(this.sessionManager);
 
     // Detect or load profile
     this.profileName = options.profile ?? this.profileLoader.detect(this.cwd);
@@ -225,79 +221,11 @@ export class ClaudeSentient {
     return this.gates?.getSummary() ?? null;
   }
 
-  /** Build the /cs-loop system prompt with profile context */
-  private buildLoopPrompt(task: string): string {
-    let profileInfo = `Profile: ${this.profileName}`;
-    if (this.profile) {
-      const gatesInfo = Object.keys(this.profile.gates).join(", ");
-      profileInfo += `\nGates: ${gatesInfo}`;
-    }
-
-    return `
-Execute the Claude Sentient autonomous development loop for this task:
-
-Task: ${task}
-
-${profileInfo}
-
-Follow the /cs-loop phases:
-1. INIT - Load context and detect profile
-2. UNDERSTAND - Classify request, assess scope
-3. PLAN - Create tasks with dependencies
-4. EXECUTE - Work through tasks
-5. VERIFY - Run quality gates
-6. COMMIT - Create checkpoint commit
-7. EVALUATE - Check if done, loop if needed
-`;
-  }
-
-  /** Create hooks for quality gates and state tracking */
-  private createHooks(): Map<string, HookMatcher[]> {
-    // Get default session tracking hooks
-    const sessionHooks = this.hookManager.createDefaultHooks();
-
-    // Get gate hooks if profile is available
-    if (this.profile) {
-      const gateHooksObj = createGateHooks(this.profile);
-      const gateHooks = new Map<string, HookMatcher[]>();
-      for (const [event, matchers] of Object.entries(gateHooksObj)) {
-        gateHooks.set(
-          event,
-          matchers.map((m) => ({
-            matcher: m.matcher,
-            hooks: m.hooks as any[],
-          }))
-        );
-      }
-      return this.hookManager.mergeHooks(sessionHooks, gateHooks);
-    }
-
-    return sessionHooks;
-  }
-
-  /** Define subagents for specialized tasks */
-  private defineAgents(): Record<string, AgentDefinition> {
-    return {
-      explore: {
-        description: "Fast codebase exploration",
-        prompt: "Search and analyze code patterns",
-        tools: ["Read", "Glob", "Grep"],
-        model: "haiku",
-      },
-      "test-runner": {
-        description: "Run and analyze tests",
-        prompt: "Execute test suites and report results",
-        tools: ["Bash", "Read"],
-        model: "sonnet",
-      },
-      "lint-fixer": {
-        description: "Fix linting issues",
-        prompt: "Analyze lint errors and fix them",
-        tools: ["Read", "Edit", "Bash"],
-        model: "sonnet",
-      },
-    };
-  }
+  // Note: The following methods are reserved for future Claude Agent SDK integration:
+  // - buildLoopPrompt(task: string): Build system prompt with profile context
+  // - createHooks(): Create hooks for quality gates and state tracking
+  // - defineAgents(): Define subagents for specialized tasks (explore, test-runner, lint-fixer)
+  // These will be implemented when @anthropic-ai/claude-agent-sdk is available.
 }
 
 export type { LoopResult, ClaudeSentientOptions, LoopOptions };

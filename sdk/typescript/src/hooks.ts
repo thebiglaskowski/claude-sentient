@@ -2,8 +2,8 @@
  * Custom hook definitions for Claude Sentient SDK.
  */
 
-import type { HookFunction, HookMatcher, HookContext, Phase } from "./types";
-import { SessionManager } from "./session";
+import type { HookFunction, HookMatcher, HookContext, Phase } from "./types.js";
+import { SessionManager } from "./session.js";
 
 export class HookManager {
   private sessionManager: SessionManager;

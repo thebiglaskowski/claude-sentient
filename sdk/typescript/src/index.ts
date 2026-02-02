@@ -27,24 +27,24 @@
  * @packageDocumentation
  */
 
-export { ClaudeSentient } from "./orchestrator";
+export { ClaudeSentient } from "./orchestrator.js";
 export type {
   LoopResult,
   ClaudeSentientOptions,
   LoopOptions,
-} from "./orchestrator";
+} from "./orchestrator.js";
 
-export { SessionManager } from "./session";
-export type { SessionState } from "./session";
+export { SessionManager } from "./session.js";
+export type { SessionState } from "./session.js";
 
-export { ProfileLoader } from "./profiles";
-export type { Profile, GateConfig } from "./profiles";
+export { ProfileLoader } from "./profiles.js";
+export type { Profile, GateConfig } from "./profiles.js";
 
-export { QualityGates, createGateHooks } from "./gates";
-export type { GateResult } from "./gates";
+export { QualityGates, createGateHooks } from "./gates.js";
+export type { GateResult } from "./gates.js";
 
-export { HookManager } from "./hooks";
-export type { HookFunction, HookMatcher } from "./hooks";
+export { HookManager } from "./hooks.js";
+export type { HookFunction, HookMatcher } from "./hooks.js";
 
 export type {
   Phase,
@@ -54,7 +54,7 @@ export type {
   ToolUseEvent,
   HookContext,
   AgentDefinition,
-} from "./types";
+} from "./types.js";
 
 /** SDK version */
 export const VERSION = "0.3.0";

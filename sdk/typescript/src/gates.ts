@@ -3,7 +3,7 @@
  */
 
 import { execSync, spawn } from "child_process";
-import type { Profile, GateResult, GateStatus, HookContext } from "./types";
+import type { Profile, GateResult, GateStatus, HookContext, GateConfig } from "./types.js";
 
 export class QualityGates {
   private profile: Profile;
@@ -137,7 +137,8 @@ export class QualityGates {
 
   /** Run all blocking gates */
   runAllBlocking(cwd: string = "."): Map<string, GateResult> {
-    for (const [gateName, gateConfig] of Object.entries(this.profile.gates)) {
+    const gateEntries = Object.entries(this.profile.gates) as [string, GateConfig][];
+    for (const [gateName, gateConfig] of gateEntries) {
       if (gateConfig.blocking) {
         this.runGate(gateName, cwd);
       }
@@ -149,7 +150,8 @@ export class QualityGates {
 
   /** Run all blocking gates asynchronously (in parallel) */
   async runAllBlockingAsync(cwd: string = "."): Promise<Map<string, GateResult>> {
-    const blockingGates = Object.entries(this.profile.gates)
+    const gateEntries = Object.entries(this.profile.gates) as [string, GateConfig][];
+    const blockingGates = gateEntries
       .filter(([, config]) => config.blocking)
       .map(([name]) => name);
 
@@ -162,7 +164,8 @@ export class QualityGates {
 
   /** Check if all blocking gates passed */
   allBlockingPassed(): boolean {
-    for (const [gateName, gateConfig] of Object.entries(this.profile.gates)) {
+    const gateEntries = Object.entries(this.profile.gates) as [string, GateConfig][];
+    for (const [gateName, gateConfig] of gateEntries) {
       if (gateConfig.blocking) {
         const result = this.results.get(gateName);
         if (!result || result.status !== "passed") {
