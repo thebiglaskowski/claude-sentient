@@ -38,13 +38,16 @@ try {
 
 // Detect keywords for rule loading
 const keywords = {
-    auth: ['auth', 'login', 'jwt', 'oauth', 'session', 'password'],
-    test: ['test', 'coverage', 'mock', 'spec', 'unittest'],
-    api: ['api', 'endpoint', 'rest', 'graphql', 'route'],
-    database: ['database', 'query', 'sql', 'orm', 'migration'],
-    performance: ['performance', 'cache', 'optimize', 'speed'],
-    ui: ['ui', 'component', 'css', 'style', 'layout'],
-    security: ['security', 'vulnerability', 'xss', 'injection', 'sanitize']
+    auth: ['auth', 'login', 'jwt', 'oauth', 'session', 'password', 'token', 'credential'],
+    test: ['test', 'coverage', 'mock', 'spec', 'unittest', 'pytest', 'vitest', 'jest'],
+    api: ['api', 'endpoint', 'rest', 'graphql', 'route', 'http', 'request', 'response'],
+    database: ['database', 'query', 'sql', 'orm', 'migration', 'schema', 'table', 'model'],
+    performance: ['performance', 'cache', 'optimize', 'speed', 'slow', 'fast', 'memory', 'latency'],
+    ui: ['ui', 'component', 'css', 'style', 'layout', 'design', 'theme', 'color', 'responsive'],
+    security: ['security', 'vulnerability', 'xss', 'injection', 'sanitize', 'encrypt', 'hash', 'secret'],
+    codeQuality: ['lint', 'format', 'refactor', 'clean', 'organize', 'style', 'convention', 'typing'],
+    errorHandling: ['error', 'bug', 'fix', 'exception', 'catch', 'throw', 'handle', 'crash'],
+    documentation: ['doc', 'readme', 'comment', 'docstring', 'explain', 'document']
 };
 
 const promptLower = promptText.toLowerCase();
