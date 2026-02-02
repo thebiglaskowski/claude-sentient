@@ -1,7 +1,7 @@
 ---
 description: Show current project status - tasks, git state, profile
 argument-hint: (no arguments)
-allowed-tools: Read, Bash, Glob, TaskList
+allowed-tools: Read, Bash, Glob, TaskList, AskUserQuestion, Skill
 ---
 
 # /cs-status
@@ -145,8 +145,30 @@ MEMORY:
 === Ready for /cs-loop ===
 ```
 
+## Skill Chaining
+
+After displaying status, if there are pending tasks:
+
+```
+AskUserQuestion:
+  question: "Continue working on pending tasks?"
+  header: "Resume"
+  options:
+    - label: "Yes, continue (Recommended)"
+      description: "Invoke /cs-loop to resume work"
+    - label: "No, just show status"
+      description: "Display status only"
+```
+
+If yes:
+```
+Skill(skill="cs-loop")
+→ Loop resumes from pending tasks
+```
+
 ## Notes
 
-- This is a read-only command - it doesn't modify anything
+- Primarily a read-only command - shows current state
+- Offers to continue work if tasks are pending
 - Useful to run before starting work to understand current state
 - Shows what tools are available based on detected profile

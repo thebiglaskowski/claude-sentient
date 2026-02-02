@@ -1,7 +1,7 @@
 ---
 description: Plan a complex task before executing
 argument-hint: <task description>
-allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate, AskUserQuestion, Skill
 ---
 
 # /cs-plan
@@ -65,12 +65,35 @@ Create a structured plan covering:
 
 Use `ExitPlanMode` to present the plan to the user for approval.
 
-### 5. After Approval (Optional)
+### 5. After Approval
 
-If the user approves and wants to proceed:
-- Use `TaskCreate` to create work items from the plan
-- Set dependencies with `TaskUpdate`
-- Report: `[PLAN] Ready to execute. Run /cs-loop to begin.`
+When user approves the plan:
+
+1. **Create tasks** from the plan using `TaskCreate`
+2. **Set dependencies** with `TaskUpdate(addBlockedBy: [...])`
+3. **Offer to execute**:
+
+```
+AskUserQuestion:
+  question: "Execute this plan now?"
+  header: "Execute"
+  options:
+    - label: "Yes, start now (Recommended)"
+      description: "Invoke /cs-loop to begin working through tasks"
+    - label: "No, I'll run it later"
+      description: "Tasks created, run /cs-loop when ready"
+```
+
+4. **If yes**: Chain to cs-loop
+   ```
+   Skill(skill="cs-loop", args="{original task}")
+   ```
+   The loop will pick up the created tasks and execute them.
+
+5. **If no**: Report tasks created
+   ```
+   [PLAN] Created {n} tasks. Run /cs-loop when ready.
+   ```
 
 ## Example
 
@@ -116,7 +139,7 @@ Replace session-based authentication with JWT tokens.
 
 ## Quality Gates
 - All auth tests pass
-- Manual test: login -> access protected route -> refresh
+- Manual test: login → access protected route → refresh
 
 [Waiting for approval...]
 ```

@@ -1,7 +1,7 @@
 ---
 description: Validate Claude Sentient configuration - profiles, commands, rules
 argument-hint: (no arguments)
-allowed-tools: Read, Glob, Bash
+allowed-tools: Read, Glob, Bash, AskUserQuestion, TaskCreate, Skill
 ---
 
 # /cs-validate
@@ -185,9 +185,36 @@ PROFILES:
     Missing required field: gates.lint
 ```
 
+## Auto-Fix with Skill Chaining
+
+If validation finds issues, offer to fix them:
+
+```
+AskUserQuestion:
+  question: "Fix these {n} issues automatically?"
+  header: "Auto-fix"
+  options:
+    - label: "Yes, fix now (Recommended)"
+      description: "Create tasks and invoke /cs-loop to fix"
+    - label: "No, just report"
+      description: "Show issues without fixing"
+```
+
+If yes:
+1. **Create tasks** for each issue using `TaskCreate`:
+   - Missing profile → "Create {profile}.yaml from template"
+   - Out of sync command → "Sync {command}.md to .claude/commands/"
+   - Missing governance → "Create {file} from template"
+
+2. **Chain to cs-loop**:
+   ```
+   Skill(skill="cs-loop", args="fix validation issues")
+   ```
+
 ## Notes
 
-- This is a read-only command — it doesn't fix issues, just reports them
+- Primarily a read-only command — reports configuration issues
+- Offers to auto-fix issues if found
 - Use before `/cs-loop` to ensure configuration is correct
 - Helps debug profile detection issues
 - Validates the "plumbing" of Claude Sentient

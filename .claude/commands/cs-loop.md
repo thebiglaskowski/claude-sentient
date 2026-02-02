@@ -1,12 +1,12 @@
 ---
 description: Autonomous development loop - init, plan, execute, verify, commit
 argument-hint: <task description>
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, AskUserQuestion, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__get_issue, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, AskUserQuestion, WebSearch, WebFetch, Skill, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__get_issue, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__github__get_pull_request, mcp__github__get_pull_request_files, mcp__github__get_pull_request_status, mcp__github__get_pull_request_comments, mcp__github__get_pull_request_reviews, mcp__github__create_pull_request_review, mcp__github__list_commits, mcp__github__search_code, mcp__github__search_issues, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
 ---
 
 # /cs-loop
 
-Autonomous development loop: understand -> plan -> execute -> verify -> commit.
+Autonomous development loop: understand → plan → execute → verify → commit.
 
 ## MCP Server Integration
 
@@ -48,9 +48,9 @@ This command leverages available MCP servers for enhanced capabilities:
 
    **Detection steps:**
    ```
-   - Check for environment.yml -> parse for env name -> use conda prefix
-   - Check for .venv/ or venv/ -> commands use venv python
-   - Check for poetry.lock -> prefix with "poetry run"
+   - Check for environment.yml → parse for env name → use conda prefix
+   - Check for .venv/ or venv/ → commands use venv python
+   - Check for poetry.lock → prefix with "poetry run"
    - Ask user if unclear: "I detected conda env 'myenv'. Use it?"
    ```
 
@@ -67,10 +67,10 @@ This command leverages available MCP servers for enhanced capabilities:
    | refactor, quality | code-quality |
    | cli, command | terminal-ui |
 
-3. **Check governance files** -- create from `templates/` if missing:
+3. **Check governance files** — create from `templates/` if missing:
    - `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`
 
-4. **MCP: Context7** -- Fetch library documentation:
+4. **MCP: Context7** — Fetch library documentation:
    ```
    - Scan task-related files for imports/dependencies
    - For each unfamiliar library:
@@ -79,22 +79,54 @@ This command leverages available MCP servers for enhanced capabilities:
    - Inject relevant docs into context
    ```
 
-5. **MCP: GitHub** -- If task references issues:
+5. **MCP: GitHub** — Load issue and PR context:
+
+   **For issues** (patterns: "fix #123", "closes #456", "issue 789"):
    ```
-   - Detect patterns: "fix #123", "closes #456", "issue 789"
-   - Fetch issue details: mcp__github__get_issue(owner, repo, issue_number)
+   - mcp__github__get_issue(owner, repo, issue_number)
    - Extract requirements, acceptance criteria from issue body
-   - Report: [INIT] Loaded GitHub issue #123: {title}
+   - Report: [INIT] Loaded issue #123: {title}
    ```
 
-6. **MCP: Memory** -- Check for previous session state:
+   **For pull requests** (patterns: "review PR #42", "PR feedback", "fix PR comments"):
    ```
-   - mcp__memory__read_graph() to check for prior context
+   Step 1: mcp__github__get_pull_request(owner, repo, pull_number)
+   Step 2: mcp__github__get_pull_request_files → list changed files
+   Step 3: mcp__github__get_pull_request_comments → load review feedback
+   Step 4: mcp__github__get_pull_request_reviews → check approval status
+   Report: [INIT] Loaded PR #42: {title} ({n} files, {m} comments)
+   ```
+
+   **For recent changes** (patterns: "what changed", "recent work"):
+   ```
+   - mcp__github__list_commits(owner, repo, sha=branch)
+   - Summarize: [INIT] Recent commits: {commit summaries}
+   ```
+
+6. **MCP: Memory** — Search for relevant prior decisions:
+   ```
+   Step 1: Extract keywords from task description
+   Step 2: mcp__memory__search_nodes(query="{keywords}")
+   Step 3: If matches found:
+     - mcp__memory__open_nodes(names=[...matching entities...])
+     - Inject prior decisions into context
+     - Report: [INIT] Found {n} relevant prior decisions
+
+   Example:
+   Task: "Add JWT authentication"
+   → search_nodes("authentication JWT")
+   → Found: "decision_auth_2026_01", "pattern_jwt_tokens"
+   → Load and apply those decisions
+   ```
+
+   Also check for session state:
+   ```
+   - mcp__memory__read_graph() for prior session context
    - If found: load previous tasks, decisions, blockers
    - Report: [INIT] Resumed from previous session (if applicable)
    ```
 
-7. **WebFetch: Dependency changelogs** -- If task involves dependencies:
+7. **WebFetch: Dependency changelogs** — If task involves dependencies:
    ```
    Trigger keywords: "update", "upgrade", "migrate", "add dependency", "bump"
 
@@ -113,11 +145,28 @@ This command leverages available MCP servers for enhanced capabilities:
 ### 2. UNDERSTAND
 
 Classify complexity:
-- **Simple**: Single file -> proceed
-- **Moderate**: Multiple files, clear path -> proceed
-- **Complex**: Architecture decisions -> use `EnterPlanMode`
+- **Simple**: Single file → proceed
+- **Moderate**: Multiple files, clear path → proceed
+- **Complex**: Architecture decisions → use `EnterPlanMode`
 
-**Structured decisions** -- When task is ambiguous, use `AskUserQuestion` with predefined options:
+**GitHub code search** — For unfamiliar patterns (use sparingly):
+```
+Trigger: Task involves implementing a standard pattern you're unsure about
+
+mcp__github__search_code(q="{pattern} language:{lang}")
+→ Review top results for common approaches
+→ Report: [UNDERSTAND] Found {n} reference implementations
+
+Example:
+Task: "Add rate limiting to the API"
+→ search_code("rate limit middleware language:typescript")
+→ Found: express-rate-limit patterns, custom token bucket implementations
+→ Summarize common approaches
+
+Note: Use sparingly to avoid GitHub rate limits. Only for genuinely unfamiliar patterns.
+```
+
+**Structured decisions** — When task is ambiguous, use `AskUserQuestion` with predefined options:
 
 | Decision | Options |
 |----------|---------|
@@ -149,8 +198,8 @@ AskUserQuestion:
 
 ### 4. EXECUTE
 
-1. `TaskList` -> pick first unblocked task
-2. `TaskGet(taskId)` -> fetch full description and context
+1. `TaskList` → pick first unblocked task
+2. `TaskGet(taskId)` → fetch full description and context
 3. `TaskUpdate(status: in_progress)`
 4. Do the work (using description for guidance)
 5. `TaskUpdate(status: completed)`
@@ -193,7 +242,7 @@ Run quality gates from profile:
 | BUILD | Run build command if defined |
 | GIT | Check `git status` is clean |
 
-**MCP: Puppeteer** -- For web projects (detected by `package.json` with web framework):
+**MCP: Puppeteer** — For web projects (detected by `package.json` with web framework):
 ```
 - If significant UI changes were made:
   1. mcp__puppeteer__puppeteer_navigate(url) to dev server
@@ -202,7 +251,15 @@ Run quality gates from profile:
 - Skip if no dev server running or not a web project
 ```
 
-**On gate failure -- WebSearch before asking:**
+**MCP: GitHub** — PR status check (when working on a PR branch):
+```
+- mcp__github__get_pull_request_status(owner, repo, pull_number)
+- If CI failing: [VERIFY] Warning: PR CI is failing on {checks}
+- If CI passing: [VERIFY] PR CI is green
+- If CI pending: [VERIFY] PR CI still running...
+```
+
+**On gate failure — WebSearch before asking:**
 ```
 1. Extract error message from gate output
 2. WebSearch("{language} {error_message} fix 2026")
@@ -227,7 +284,7 @@ Example flow:
 3. **Auto-update STATUS.md** with session progress
 4. **Auto-update CHANGELOG.md** for `feat:` and `fix:` commits
 
-**MCP: GitHub** -- Link commits to issues and optionally create PRs:
+**MCP: GitHub** — Link commits to issues and optionally create PRs:
 ```
 - If task referenced an issue:
   1. Include "Fixes #123" or "Closes #123" in commit message
@@ -238,7 +295,7 @@ Example flow:
   3. Report: [COMMIT] PR created: {url}
 ```
 
-**MCP: Memory** -- Persist session state for resumability:
+**MCP: Memory** — Persist session state for resumability:
 ```
 - mcp__memory__create_entities or mcp__memory__add_observations:
   - Current task progress
@@ -251,10 +308,10 @@ Example flow:
 
 ### 7. EVALUATE
 
-- All tasks complete? -> `[DONE] {summary}` and exit
-- More work? -> `[LOOP] Continuing...` and return to EXECUTE
+- All tasks complete? → `[DONE] {summary}` and exit
+- More work? → `[LOOP] Continuing...` and return to EXECUTE
 
-**MCP: Memory** -- On completion, save final state:
+**MCP: Memory** — On completion, save final state:
 ```
 - mcp__memory__add_observations with:
   - Session summary
@@ -271,7 +328,7 @@ Example flow:
 | Ambiguous | `AskUserQuestion` with structured options |
 | Stuck > 3 attempts | Use claude-code-guide subagent, then stop if still stuck |
 
-**claude-code-guide fallback** -- When stuck on Claude Code capabilities:
+**claude-code-guide fallback** — When stuck on Claude Code capabilities:
 ```
 Trigger: Same operation failed 3+ times, or unsure about tool usage
 

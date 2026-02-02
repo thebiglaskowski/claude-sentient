@@ -30,9 +30,13 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 | **Task Control** | `TaskStop`, `TaskOutput` | Background task timeouts and monitoring |
 | **Planning** | `EnterPlanMode`, `ExitPlanMode` | Architecture decisions, complex tasks |
 | **Sub-agents** | `Task` with `subagent_type` | Parallel research, exploration, background tasks |
-| **Memory** | `.claude/rules/*.md` | Persistent learnings across sessions |
+| **Memory (File)** | `.claude/rules/*.md` | Persistent learnings across sessions |
+| **Memory (MCP)** | `mcp__memory__search_nodes`, `open_nodes` | Searchable prior decisions |
 | **Commands** | `commands/*.md` + `Skill` tool | Custom `/cs-*` commands |
+| **Skill Chaining** | `Skill` tool | Commands invoke other commands |
 | **Git** | Built-in git workflow | Commits, branches, PRs |
+| **GitHub PR** | `mcp__github__get_pull_request*` | PR context, status, reviews |
+| **GitHub Search** | `mcp__github__search_code` | Find reference implementations |
 | **Web Tools** | `WebSearch`, `WebFetch` | Search for solutions, fetch changelogs |
 | **Notebooks** | `NotebookEdit` | Jupyter notebook cell editing |
 | **Questions** | `AskUserQuestion` (structured) | Decision points with predefined options |
@@ -60,6 +64,9 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 
 # Check and fix MCP servers
 /cs-mcp --fix
+
+# Review a pull request
+/cs-review 42
 ```
 
 ---
@@ -129,8 +136,19 @@ Before committing, these must pass:
 | `/cs-plan [task]` | Plan before executing |
 | `/cs-status` | Show tasks, git state, profile |
 | `/cs-validate` | Validate configuration |
-| `/cs-learn [type] [title] [content]` | Save to memory |
+| `/cs-learn [type] [title] [content]` | Save to memory (file + MCP) |
 | `/cs-mcp [--test] [--fix]` | Check, register, and validate MCP servers |
+| `/cs-review [PR]` | Review a pull request |
+
+### Skill Chaining
+
+Commands can invoke each other via the `Skill` tool:
+
+| From | To | When |
+|------|----|------|
+| `/cs-plan` | `/cs-loop` | After plan approval, user chooses to execute |
+| `/cs-status` | `/cs-loop` | When pending tasks exist, user chooses to continue |
+| `/cs-validate` | `/cs-loop` | When issues found, user chooses to auto-fix |
 
 ---
 
