@@ -1,16 +1,27 @@
 """Custom hook definitions for Claude Sentient SDK."""
 
+import re
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
-from .datatypes import Phase
+from .datatypes import (
+    CostTracking,
+    HookContext,
+    HookDecision,
+    HookEvent,
+    HookResult,
+    HookType,
+    Phase,
+    SubagentInfo,
+)
 from .session import SessionManager
 
 # Type alias for hook functions
 HookFunction = Callable[
     [dict[str, Any], str, Any],
-    Awaitable[dict[str, Any]]
+    Awaitable[HookResult]
 ]
 
 
@@ -20,6 +31,18 @@ class HookMatcher:
 
     matcher: str | None = None  # Regex pattern for tool names
     hooks: list[HookFunction] = field(default_factory=list)
+    hook_type: HookType = HookType.COMMAND
+    run_in_background: bool = False
+    timeout: int = 5000  # milliseconds
+
+
+@dataclass
+class HookConfig:
+    """Complete hook configuration."""
+
+    event: HookEvent
+    matchers: list[HookMatcher] = field(default_factory=list)
+    enabled: bool = True
 
 
 class HookManager:
@@ -28,93 +51,487 @@ class HookManager:
     def __init__(self, session_manager: SessionManager | None = None):
         self.session_manager = session_manager or SessionManager()
         self._custom_hooks: dict[str, list[HookMatcher]] = {
-            "PreToolUse": [],
-            "PostToolUse": [],
-            "Stop": [],
+            event.value: [] for event in HookEvent
         }
+        self._active_agents: dict[str, SubagentInfo] = {}
+        self._agent_history: list[SubagentInfo] = []
+        self._cost_tracking: CostTracking = CostTracking()
 
     def add_hook(
         self,
-        event: str,
+        event: str | HookEvent,
         hook: HookFunction,
         matcher: str | None = None,
+        hook_type: HookType = HookType.COMMAND,
+        run_in_background: bool = False,
+        timeout: int = 5000,
     ) -> None:
         """Add a custom hook."""
-        if event not in self._custom_hooks:
-            self._custom_hooks[event] = []
+        event_str = event.value if isinstance(event, HookEvent) else event
+        if event_str not in self._custom_hooks:
+            self._custom_hooks[event_str] = []
 
-        self._custom_hooks[event].append(HookMatcher(matcher=matcher, hooks=[hook]))
+        self._custom_hooks[event_str].append(
+            HookMatcher(
+                matcher=matcher,
+                hooks=[hook],
+                hook_type=hook_type,
+                run_in_background=run_in_background,
+                timeout=timeout,
+            )
+        )
 
     def get_hooks(self) -> dict[str, list[HookMatcher]]:
         """Get all registered hooks."""
         return self._custom_hooks
 
-    # Built-in hooks for session tracking
+    def get_active_agents(self) -> dict[str, SubagentInfo]:
+        """Get currently active subagents."""
+        return self._active_agents
+
+    def get_agent_history(self) -> list[SubagentInfo]:
+        """Get completed subagent history."""
+        return self._agent_history
+
+    def get_cost_tracking(self) -> CostTracking:
+        """Get cost tracking data."""
+        return self._cost_tracking
+
+    # --- Session lifecycle hooks ---
+
+    async def on_session_start(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle SessionStart event - initialize session context."""
+        session_id = f"session-{int(datetime.now().timestamp())}"
+
+        # Get profile and git info from context if available
+        profile = input_data.get("profile", "auto-detect")
+        git_branch = input_data.get("git_branch", "unknown")
+        cwd = input_data.get("cwd", ".")
+
+        # Initialize session state
+        state = self.session_manager.load()
+        if state is None:
+            from .session import SessionState
+            state = SessionState(
+                session_id=session_id,
+                cwd=cwd,
+                profile=profile,
+            )
+        state.name = input_data.get("session_name")
+        self.session_manager.save(state)
+
+        return HookResult(
+            success=True,
+            context={
+                "session_id": session_id,
+                "profile": profile,
+                "git_branch": git_branch,
+            },
+            system_message=f"Session started: {session_id}",
+        )
+
+    async def on_session_end(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle SessionEnd event - archive session and cleanup."""
+        state = self.session_manager.load()
+
+        if state:
+            # Calculate session duration
+            start_time = datetime.fromisoformat(state.started_at)
+            duration_min = (datetime.now() - start_time).total_seconds() / 60
+
+            # Archive session
+            archive_data = {
+                "session_id": state.session_id,
+                "duration_minutes": round(duration_min, 1),
+                "files_changed": len(state.files_changed),
+                "commits": len(state.commits),
+                "tasks_completed": state.tasks_completed,
+                "cost": self._cost_tracking.total_usd,
+            }
+
+            state.phase = "archived"
+            self.session_manager.save(state)
+
+            return HookResult(
+                success=True,
+                context=archive_data,
+                system_message=f"Session archived after {duration_min:.1f} minutes",
+            )
+
+        return HookResult(success=True)
+
+    async def on_pre_tool_use(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle PreToolUse event - validate tool execution."""
+        tool_name = input_data.get("tool_name", "")
+        tool_input = input_data.get("tool_input", {})
+
+        # Bash command validation
+        if tool_name == "Bash":
+            return await self._validate_bash_command(tool_input.get("command", ""))
+
+        # File operation validation
+        if tool_name in ("Write", "Edit"):
+            return await self._validate_file_operation(tool_input.get("file_path", ""))
+
+        return HookResult(success=True, decision=HookDecision.ALLOW)
+
+    async def on_post_tool_use(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle PostToolUse event - track changes and suggest actions."""
+        tool_name = input_data.get("tool_name", "")
+        tool_input = input_data.get("tool_input", {})
+        result = input_data.get("result", {})
+
+        suggestions = []
+
+        # Track file changes
+        if tool_name in ("Write", "Edit"):
+            file_path = tool_input.get("file_path", "")
+            if file_path:
+                self.session_manager.add_file_change(file_path)
+
+                # Suggest lint for code files
+                ext_lint_map = {
+                    ".py": "ruff check",
+                    ".ts": "eslint",
+                    ".tsx": "eslint",
+                    ".js": "eslint",
+                    ".go": "golangci-lint run",
+                }
+                ext = file_path.rsplit(".", 1)[-1] if "." in file_path else ""
+                if f".{ext}" in ext_lint_map:
+                    suggestions.append(f"Consider running: {ext_lint_map[f'.{ext}']}")
+
+        # Track git commits
+        if tool_name == "Bash" and "git commit" in tool_input.get("command", ""):
+            result_str = str(result)
+            match = re.search(r"\b([0-9a-f]{7,40})\b", result_str)
+            if match:
+                self.session_manager.add_commit(match.group(1))
+
+        return HookResult(
+            success=True,
+            warnings=suggestions if suggestions else [],
+        )
+
+    async def on_subagent_start(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle SubagentStart event - track agent spawning."""
+        agent_id = input_data.get("agent_id", f"agent-{int(datetime.now().timestamp())}")
+        agent_info = SubagentInfo(
+            id=agent_id,
+            type=input_data.get("subagent_type", "general-purpose"),
+            description=input_data.get("description", ""),
+            model=input_data.get("model", "sonnet"),
+            run_in_background=input_data.get("run_in_background", False),
+        )
+
+        self._active_agents[agent_id] = agent_info
+
+        return HookResult(
+            success=True,
+            context={
+                "agent_id": agent_id,
+                "agent_type": agent_info.type,
+                "active_count": len(self._active_agents),
+            },
+        )
+
+    async def on_subagent_stop(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle SubagentStop event - synthesize agent results."""
+        agent_id = input_data.get("agent_id", "")
+        success = input_data.get("success", True)
+        result_summary = input_data.get("result_summary", "")
+
+        agent_info = self._active_agents.pop(agent_id, None)
+
+        if agent_info:
+            # Update agent info
+            agent_info.end_time = datetime.now().isoformat()
+            agent_info.status = "completed" if success else "failed"
+            agent_info.result_summary = result_summary[:500]  # Truncate
+
+            # Calculate duration
+            start = datetime.fromisoformat(agent_info.start_time)
+            duration_sec = (datetime.now() - start).total_seconds()
+
+            # Add to history
+            self._agent_history.append(agent_info)
+            # Keep only last 50
+            if len(self._agent_history) > 50:
+                self._agent_history = self._agent_history[-50:]
+
+            return HookResult(
+                success=True,
+                context={
+                    "agent_id": agent_id,
+                    "type": agent_info.type,
+                    "success": success,
+                    "duration_seconds": round(duration_sec, 1),
+                    "remaining_agents": len(self._active_agents),
+                },
+            )
+
+        return HookResult(success=True)
+
+    async def on_pre_compact(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle PreCompact event - backup state before compaction."""
+        state = self.session_manager.load()
+
+        if state:
+            # Create backup
+            backup = {
+                "timestamp": datetime.now().isoformat(),
+                "session_id": state.session_id,
+                "phase": state.phase,
+                "iteration": state.iteration,
+                "files_changed": state.files_changed,
+                "active_agents": [a.id for a in self._active_agents.values()],
+                "cost": self._cost_tracking.total_usd,
+            }
+
+            # Store backup in session state
+            if not hasattr(state, "backups"):
+                state.backups = []
+            state.backups = (state.backups or [])[-9:]  # Keep last 10
+            state.backups.append(backup)
+            self.session_manager.save(state)
+
+            return HookResult(
+                success=True,
+                context={"backup_created": True},
+                system_message="State backed up before compaction",
+            )
+
+        return HookResult(success=True)
+
+    async def on_stop(
+        self,
+        input_data: dict[str, Any],
+        tool_use_id: str,
+        context: Any,
+    ) -> HookResult:
+        """Handle Stop event - verify DoD and save state."""
+        state = self.session_manager.load()
+
+        if state:
+            state.phase = "complete"
+            self.session_manager.save(state)
+
+            # Build verification summary
+            verification = {
+                "files_modified": len(state.files_changed),
+                "commits": len(state.commits),
+                "tasks_completed": state.tasks_completed,
+                "cost_usd": self._cost_tracking.total_usd,
+            }
+
+            recommendations = []
+            if state.files_changed and not state.commits:
+                recommendations.append("Consider committing changes")
+
+            return HookResult(
+                success=True,
+                context=verification,
+                warnings=recommendations,
+            )
+
+        return HookResult(success=True)
+
+    # --- Private validation methods ---
+
+    async def _validate_bash_command(self, command: str) -> HookResult:
+        """Validate a bash command for dangerous patterns."""
+        dangerous_patterns = [
+            (r"rm\s+-rf\s+[\/~]", "Recursive delete from root or home"),
+            (r"rm\s+-rf\s+\*", "Recursive delete all files"),
+            (r">\s*\/dev\/sd", "Direct write to disk device"),
+            (r"mkfs", "Filesystem creation"),
+            (r"dd\s+if=.*of=\/dev", "Direct disk write with dd"),
+            (r"chmod\s+-R\s+777\s+\/", "Recursive chmod 777 from root"),
+            (r":(){ :|:& };:", "Fork bomb"),
+        ]
+
+        for pattern, reason in dangerous_patterns:
+            if re.search(pattern, command):
+                return HookResult(
+                    success=True,
+                    decision=HookDecision.BLOCK,
+                    reason=f"BLOCKED: {reason}",
+                )
+
+        # Check for warnings
+        warning_patterns = [
+            (r"sudo\s+", "Using sudo"),
+            (r"curl.*\|\s*sh", "Piping curl to shell"),
+            (r"npm\s+install\s+-g", "Global npm install"),
+        ]
+
+        warnings = []
+        for pattern, reason in warning_patterns:
+            if re.search(pattern, command):
+                warnings.append(reason)
+
+        return HookResult(
+            success=True,
+            decision=HookDecision.ALLOW,
+            warnings=warnings,
+        )
+
+    async def _validate_file_operation(self, file_path: str) -> HookResult:
+        """Validate a file operation for protected paths."""
+        protected_patterns = [
+            r"^\/etc\/",
+            r"^\/usr\/",
+            r"^C:\\Windows\\",
+            r"\.ssh\/",
+            r"\.gnupg\/",
+            r"\.env\.production$",
+            r"\.git\/objects\/",
+        ]
+
+        for pattern in protected_patterns:
+            if re.search(pattern, file_path, re.IGNORECASE):
+                return HookResult(
+                    success=True,
+                    decision=HookDecision.BLOCK,
+                    reason=f"BLOCKED: Cannot modify protected path: {file_path}",
+                )
+
+        # Check for sensitive files (warn but allow)
+        sensitive_patterns = [
+            r"\.env$",
+            r"secrets?\.",
+            r"credentials?\.",
+            r"\.pem$",
+            r"\.key$",
+        ]
+
+        warnings = []
+        for pattern in sensitive_patterns:
+            if re.search(pattern, file_path, re.IGNORECASE):
+                warnings.append("Modifying sensitive file")
+                break
+
+        return HookResult(
+            success=True,
+            decision=HookDecision.ALLOW,
+            warnings=warnings,
+        )
+
+    # --- Cost tracking methods ---
+
+    def add_cost(
+        self,
+        amount_usd: float,
+        phase: str | None = None,
+        model: str | None = None,
+    ) -> None:
+        """Add cost to tracking."""
+        self._cost_tracking.total_usd += amount_usd
+
+        if phase:
+            self._cost_tracking.by_phase[phase] = (
+                self._cost_tracking.by_phase.get(phase, 0.0) + amount_usd
+            )
+
+        if model:
+            self._cost_tracking.by_model[model] = (
+                self._cost_tracking.by_model.get(model, 0.0) + amount_usd
+            )
+
+    def set_budget(self, budget_usd: float) -> None:
+        """Set the cost budget."""
+        self._cost_tracking.budget_usd = budget_usd
+
+    # --- Built-in hooks for backward compatibility ---
 
     async def track_file_changes(
         self,
         input_data: dict[str, Any],
         tool_use_id: str,
         context: Any,
-    ) -> dict[str, Any]:
-        """Track file changes for session state."""
+    ) -> HookResult:
+        """Track file changes for session state (backward compatible)."""
         if input_data.get("hook_event_name") != "PostToolUse":
-            return {}
+            return HookResult()
 
         tool_name = input_data.get("tool_name")
         if tool_name not in ["Write", "Edit"]:
-            return {}
+            return HookResult()
 
         file_path = input_data.get("tool_input", {}).get("file_path")
         if file_path:
             self.session_manager.add_file_change(file_path)
 
-        return {}
+        return HookResult()
 
     async def track_commands(
         self,
         input_data: dict[str, Any],
         tool_use_id: str,
         context: Any,
-    ) -> dict[str, Any]:
-        """Track bash commands for session state."""
+    ) -> HookResult:
+        """Track bash commands for session state (backward compatible)."""
         if input_data.get("hook_event_name") != "PostToolUse":
-            return {}
+            return HookResult()
 
         if input_data.get("tool_name") != "Bash":
-            return {}
+            return HookResult()
 
         command = input_data.get("tool_input", {}).get("command", "")
 
         # Track git commits
         if "git commit" in command:
-            # Extract commit hash from result if available
             result = input_data.get("result", "")
             if isinstance(result, str) and "commit" in result.lower():
-                # Try to extract short hash from output
-                import re
                 match = re.search(r"\b([0-9a-f]{7,40})\b", result)
                 if match:
                     self.session_manager.add_commit(match.group(1))
 
-        return {}
+        return HookResult()
 
     async def save_final_state(
         self,
         input_data: dict[str, Any],
         tool_use_id: str,
         context: Any,
-    ) -> dict[str, Any]:
-        """Save final session state on Stop."""
-        if input_data.get("hook_event_name") != "Stop":
-            return {}
-
-        state = self.session_manager.load()
-        if state:
-            state.phase = "complete"
-            self.session_manager.save(state)
-
-        return {}
+    ) -> HookResult:
+        """Save final session state on Stop (backward compatible)."""
+        return await self.on_stop(input_data, tool_use_id, context)
 
     async def update_phase(
         self,
@@ -122,28 +539,52 @@ class HookManager:
         input_data: dict[str, Any],
         tool_use_id: str,
         context: Any,
-    ) -> dict[str, Any]:
+    ) -> HookResult:
         """Update session phase."""
         self.session_manager.update_phase(phase.value)
-        return {}
+        return HookResult()
 
     def create_default_hooks(self) -> dict[str, list[HookMatcher]]:
         """Create the default set of hooks for session tracking."""
         return {
-            "PostToolUse": [
+            HookEvent.SESSION_START.value: [
+                HookMatcher(hooks=[self.on_session_start]),
+            ],
+            HookEvent.SESSION_END.value: [
+                HookMatcher(hooks=[self.on_session_end]),
+            ],
+            HookEvent.USER_PROMPT_SUBMIT.value: [],
+            HookEvent.PRE_TOOL_USE.value: [
+                HookMatcher(
+                    matcher="Bash",
+                    hooks=[self.on_pre_tool_use],
+                ),
+                HookMatcher(
+                    matcher="Write|Edit",
+                    hooks=[self.on_pre_tool_use],
+                ),
+            ],
+            HookEvent.POST_TOOL_USE.value: [
                 HookMatcher(
                     matcher="Edit|Write",
-                    hooks=[self.track_file_changes],
+                    hooks=[self.on_post_tool_use],
                 ),
                 HookMatcher(
                     matcher="Bash",
-                    hooks=[self.track_commands],
+                    hooks=[self.on_post_tool_use],
                 ),
             ],
-            "Stop": [
-                HookMatcher(
-                    hooks=[self.save_final_state],
-                ),
+            HookEvent.SUBAGENT_START.value: [
+                HookMatcher(hooks=[self.on_subagent_start]),
+            ],
+            HookEvent.SUBAGENT_STOP.value: [
+                HookMatcher(hooks=[self.on_subagent_stop]),
+            ],
+            HookEvent.PRE_COMPACT.value: [
+                HookMatcher(hooks=[self.on_pre_compact]),
+            ],
+            HookEvent.STOP.value: [
+                HookMatcher(hooks=[self.on_stop]),
             ],
         }
 
@@ -161,3 +602,14 @@ class HookManager:
                 merged[event].extend(matchers)
 
         return merged
+
+
+class BudgetExceededError(Exception):
+    """Raised when the cost budget is exceeded."""
+
+    def __init__(self, budget: float, actual: float):
+        self.budget = budget
+        self.actual = actual
+        super().__init__(
+            f"Budget exceeded: ${actual:.2f} spent, budget was ${budget:.2f}"
+        )

@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 0.3.0
+> **Version:** 0.4.0
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -41,6 +41,66 @@ Claude Sentient leverages these **built-in Claude Code capabilities**:
 | **Notebooks** | `NotebookEdit` | Jupyter notebook cell editing |
 | **Questions** | `AskUserQuestion` (structured) | Decision points with predefined options |
 | **MCP Servers** | `mcp__*` tools | Library docs, GitHub API, browser automation |
+| **Hooks** | `.claude/hooks/*.js` | Session lifecycle, tool validation, state tracking |
+| **Vision** | Screenshot analysis | UI/UX audits, error debugging |
+
+---
+
+## New in v0.4.0
+
+### 🎣 Hook System (11 Hooks)
+
+All Claude Code hook events are now integrated:
+
+| Hook | Purpose |
+|------|---------|
+| `SessionStart` | Initialize session, detect profile |
+| `SessionEnd` | Archive session, cleanup |
+| `UserPromptSubmit` | Detect topics, inject context |
+| `PreToolUse` (Bash) | Block dangerous commands |
+| `PreToolUse` (Write/Edit) | Validate protected paths |
+| `PostToolUse` (Write/Edit) | Track changes, suggest lint |
+| `SubagentStart` | Track agent spawning |
+| `SubagentStop` | Synthesize agent results |
+| `PreCompact` | Backup state before compaction |
+| `Stop` | Verify DoD, save final state |
+
+Hook scripts live in `.claude/hooks/` and are configured in `.claude/settings.json`.
+
+### 🎯 Model Routing
+
+Models are automatically selected by phase for cost optimization:
+
+| Phase | Model | Rationale |
+|-------|-------|-----------|
+| INIT | haiku | Fast context loading |
+| UNDERSTAND | sonnet | Standard analysis |
+| PLAN | sonnet/opus | opus for "architecture"/"security" keywords |
+| EXECUTE | sonnet | Code generation |
+| VERIFY | sonnet | Quality checks |
+| COMMIT | haiku | Simple git operations |
+| EVALUATE | haiku | Quick assessment |
+
+### 📛 Session Naming
+
+Sessions are automatically named for easy identification:
+- `/cs-loop "add auth"` → `loop-20260202-add-auth`
+- `/cs-plan "refactor api"` → `plan-refactor-api`
+- `/cs-review 42` → `review-pr-42`
+
+### 💰 Cost Tracking
+
+Each phase tracks cost for budget management:
+- Total session cost displayed at end
+- Per-phase breakdown in `/cs-status`
+- Budget limit: `ClaudeSentient(max_budget_usd=5.0)`
+
+### 👁️ Vision Integration
+
+Screenshot analysis for UI/UX and debugging:
+- `analyze_screenshot()` - UI analysis, accessibility
+- `capture_error_screenshot()` - Debug error states
+- `visual_diff()` - Compare before/after screenshots
 
 ---
 
@@ -297,25 +357,61 @@ These files bridge session gaps — when Claude starts fresh, it reads these to 
 
 ## Hooks
 
-Claude Sentient uses Claude Code's hook system for session logging:
+Claude Sentient now implements **all 11 Claude Code hook events** with dedicated scripts:
+
+### Hook Scripts (`.claude/hooks/`)
+
+| Script | Event | Purpose |
+|--------|-------|---------|
+| `session-start.js` | SessionStart | Initialize session, detect profile |
+| `session-end.js` | SessionEnd | Archive session, cleanup state |
+| `context-injector.js` | UserPromptSubmit | Detect topics, inject context |
+| `bash-validator.js` | PreToolUse (Bash) | Block dangerous commands |
+| `file-validator.js` | PreToolUse (Write/Edit) | Validate protected paths |
+| `post-edit.js` | PostToolUse (Write/Edit) | Track changes, suggest lint |
+| `agent-tracker.js` | SubagentStart | Track agent spawning |
+| `agent-synthesizer.js` | SubagentStop | Synthesize agent results |
+| `pre-compact.js` | PreCompact | Backup state before compaction |
+| `dod-verifier.js` | Stop | Verify DoD, save final state |
+
+### Configuration
+
+Hooks are configured in `.claude/settings.json`:
 
 ```json
-// .claude/settings.json
 {
   "hooks": {
-    "UserPromptSubmit": [{ "command": "echo '[cs] Prompt received' >> .claude/session.log" }],
-    "Stop": [{ "command": "echo '[cs] Session ended' >> .claude/session.log" }]
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-start.js", "timeout": 5000 }] }],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node .claude/hooks/bash-validator.js" }] },
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/file-validator.js" }] }
+    ],
+    "PostToolUse": [{ "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/post-edit.js" }] }],
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/agent-tracker.js" }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/agent-synthesizer.js" }] }],
+    "PreCompact": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/pre-compact.js" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/dod-verifier.js" }] }],
+    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-end.js" }] }]
   }
 }
 ```
 
-Available hook points:
-- `SessionStart` / `SessionEnd` — Session lifecycle
-- `UserPromptSubmit` — When user sends message (inject context)
-- `PreToolUse` / `PostToolUse` — Before/after tools (safety checks)
-- `Stop` — When Claude finishes (session summary)
+### Security
 
-See `reference/HOOKS.md` for advanced examples.
+The hooks include security features:
+
+**Bash Validator** blocks dangerous patterns:
+- `rm -rf /` or `rm -rf ~` — Recursive delete
+- `> /dev/sd*` — Direct disk writes
+- `mkfs` — Filesystem creation
+- `chmod -R 777 /` — Dangerous permissions
+
+**File Validator** protects sensitive paths:
+- System directories (`/etc`, `/usr`, `C:\Windows`)
+- SSH keys (`.ssh/`)
+- Credentials (`.env.production`, `secrets.*`)
+
+See `.claude/hooks/README.md` for full documentation.
 
 ---
 

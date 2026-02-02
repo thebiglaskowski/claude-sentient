@@ -7,6 +7,8 @@ from typing import Any
 
 import yaml
 
+from .datatypes import ModelTier, Phase
+
 
 @dataclass
 class GateConfig:
@@ -15,6 +17,76 @@ class GateConfig:
     command: str
     blocking: bool = True
     timeout: int = 300  # seconds
+
+
+@dataclass
+class ModelConfig:
+    """Model routing configuration."""
+
+    default: ModelTier = ModelTier.SONNET
+    planning: ModelTier = ModelTier.OPUS
+    exploration: ModelTier = ModelTier.HAIKU
+    security: ModelTier = ModelTier.OPUS
+    # Phase-specific overrides
+    by_phase: dict[str, ModelTier] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ModelConfig":
+        """Create from dictionary."""
+        by_phase = {}
+        for phase_name, model_name in data.get("by_phase", {}).items():
+            try:
+                by_phase[phase_name] = ModelTier(model_name)
+            except ValueError:
+                pass  # Skip invalid model names
+
+        return cls(
+            default=ModelTier(data.get("default", "sonnet")),
+            planning=ModelTier(data.get("planning", "opus")),
+            exploration=ModelTier(data.get("exploration", "haiku")),
+            security=ModelTier(data.get("security", "opus")),
+            by_phase=by_phase,
+        )
+
+    def get_model_for_phase(self, phase: Phase) -> ModelTier:
+        """Get the model to use for a specific phase."""
+        # Check phase-specific override first
+        if phase.value in self.by_phase:
+            return self.by_phase[phase.value]
+
+        # Default phase routing
+        phase_defaults = {
+            Phase.INIT: ModelTier.HAIKU,
+            Phase.UNDERSTAND: ModelTier.SONNET,
+            Phase.PLAN: self.planning,
+            Phase.EXECUTE: ModelTier.SONNET,
+            Phase.VERIFY: ModelTier.SONNET,
+            Phase.COMMIT: ModelTier.HAIKU,
+            Phase.EVALUATE: ModelTier.HAIKU,
+        }
+
+        return phase_defaults.get(phase, self.default)
+
+
+@dataclass
+class ThinkingConfig:
+    """Extended thinking configuration."""
+
+    max_tokens: int = 16000
+    extended_for: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ThinkingConfig":
+        """Create from dictionary."""
+        return cls(
+            max_tokens=data.get("max_tokens", data.get("maxTokens", 16000)),
+            extended_for=data.get("extended_for", data.get("extendedFor", [])),
+        )
+
+    def should_extend(self, task_description: str) -> bool:
+        """Check if extended thinking should be used for this task."""
+        task_lower = task_description.lower()
+        return any(keyword.lower() in task_lower for keyword in self.extended_for)
 
 
 @dataclass
@@ -27,6 +99,8 @@ class Profile:
     gates: dict[str, GateConfig] = field(default_factory=dict)
     conventions: dict[str, Any] = field(default_factory=dict)
     tools: list[str] = field(default_factory=list)
+    models: ModelConfig = field(default_factory=ModelConfig)
+    thinking: ThinkingConfig = field(default_factory=ThinkingConfig)
 
 
 class ProfileLoader:
@@ -42,6 +116,16 @@ class ProfileLoader:
                 "test": {"command": "pytest", "blocking": True},
                 "type": {"command": "pyright", "blocking": False},
             },
+            "models": {
+                "default": "sonnet",
+                "planning": "opus",
+                "exploration": "haiku",
+                "security": "opus",
+            },
+            "thinking": {
+                "max_tokens": 16000,
+                "extended_for": ["architecture", "security", "complex-refactoring"],
+            },
         },
         "typescript": {
             "detect_files": ["tsconfig.json", "package.json"],
@@ -51,6 +135,16 @@ class ProfileLoader:
                 "test": {"command": "npm test", "blocking": True},
                 "type": {"command": "npx tsc --noEmit", "blocking": True},
             },
+            "models": {
+                "default": "sonnet",
+                "planning": "opus",
+                "exploration": "haiku",
+                "security": "opus",
+            },
+            "thinking": {
+                "max_tokens": 16000,
+                "extended_for": ["architecture", "security", "complex-refactoring"],
+            },
         },
         "go": {
             "detect_files": ["go.mod"],
@@ -58,6 +152,16 @@ class ProfileLoader:
             "gates": {
                 "lint": {"command": "golangci-lint run", "blocking": True},
                 "test": {"command": "go test ./...", "blocking": True},
+            },
+            "models": {
+                "default": "sonnet",
+                "planning": "opus",
+                "exploration": "haiku",
+                "security": "opus",
+            },
+            "thinking": {
+                "max_tokens": 16000,
+                "extended_for": ["architecture", "security", "concurrency"],
             },
         },
         "rust": {
@@ -67,11 +171,31 @@ class ProfileLoader:
                 "lint": {"command": "cargo clippy", "blocking": True},
                 "test": {"command": "cargo test", "blocking": True},
             },
+            "models": {
+                "default": "sonnet",
+                "planning": "opus",
+                "exploration": "haiku",
+                "security": "opus",
+            },
+            "thinking": {
+                "max_tokens": 16000,
+                "extended_for": ["architecture", "security", "lifetime-issues", "unsafe"],
+            },
         },
         "general": {
             "detect_files": [],
             "detect_extensions": [],
             "gates": {},
+            "models": {
+                "default": "sonnet",
+                "planning": "opus",
+                "exploration": "haiku",
+                "security": "opus",
+            },
+            "thinking": {
+                "max_tokens": 16000,
+                "extended_for": ["architecture", "security"],
+            },
         },
     }
 
@@ -134,13 +258,29 @@ class ProfileLoader:
             elif isinstance(gate_config, str):
                 gates[gate_name] = GateConfig(command=gate_config)
 
+        # Parse models config
+        models_data = profile_data.get("models", {})
+        if models_data:
+            models = ModelConfig.from_dict(models_data)
+        else:
+            models = ModelConfig()
+
+        # Parse thinking config
+        thinking_data = profile_data.get("thinking", {})
+        if thinking_data:
+            thinking = ThinkingConfig.from_dict(thinking_data)
+        else:
+            thinking = ThinkingConfig()
+
         profile = Profile(
             name=profile_name,
-            detect_files=profile_data.get("detect_files", []),
+            detect_files=profile_data.get("detect_files", profile_data.get("detection", {}).get("files", [])),
             detect_extensions=profile_data.get("detect_extensions", []),
             gates=gates,
             conventions=profile_data.get("conventions", {}),
             tools=profile_data.get("tools", []),
+            models=models,
+            thinking=thinking,
         )
 
         self._profiles_cache[profile_name] = profile
@@ -159,3 +299,42 @@ class ProfileLoader:
         if profile and gate_name in profile.gates:
             return profile.gates[gate_name].blocking
         return True  # Default to blocking
+
+    def get_model_for_phase(
+        self,
+        profile_name: str,
+        phase: Phase,
+        task_keywords: list[str] | None = None,
+    ) -> ModelTier:
+        """Get the model to use for a specific phase and task."""
+        profile = self.load(profile_name)
+        if not profile:
+            return ModelTier.SONNET
+
+        # Check for security-related keywords
+        if task_keywords:
+            security_keywords = ["security", "vulnerability", "auth", "permission", "encrypt"]
+            if any(kw in security_keywords for kw in task_keywords):
+                return profile.models.security
+
+        return profile.models.get_model_for_phase(phase)
+
+    def should_use_extended_thinking(
+        self,
+        profile_name: str,
+        task_description: str,
+    ) -> bool:
+        """Check if extended thinking should be used for this task."""
+        profile = self.load(profile_name)
+        if not profile:
+            return False
+
+        return profile.thinking.should_extend(task_description)
+
+    def get_thinking_tokens(self, profile_name: str) -> int:
+        """Get the max thinking tokens for a profile."""
+        profile = self.load(profile_name)
+        if not profile:
+            return 16000
+
+        return profile.thinking.max_tokens

@@ -35,7 +35,7 @@ git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR"
 
 echo "Installing commands..."
 mkdir -p .claude/commands
-cp "$TEMP_DIR"/commands/cs-*.md .claude/commands/
+cp "$TEMP_DIR"/.claude/commands/cs-*.md .claude/commands/
 
 echo "Installing profiles..."
 mkdir -p profiles
@@ -48,6 +48,21 @@ cp "$TEMP_DIR"/rules/*.md rules/
 echo "Installing templates..."
 mkdir -p templates
 cp "$TEMP_DIR"/templates/*.md templates/
+cp "$TEMP_DIR"/templates/settings.json templates/ 2>/dev/null || true
+
+echo "Installing hooks..."
+mkdir -p .claude/hooks
+cp "$TEMP_DIR"/.claude/hooks/*.js .claude/hooks/
+cp "$TEMP_DIR"/.claude/hooks/README.md .claude/hooks/
+echo "  Installed hook scripts"
+
+echo "Installing settings..."
+if [ ! -f ".claude/settings.json" ]; then
+    cp "$TEMP_DIR"/.claude/settings.json .claude/settings.json
+    echo "  Created .claude/settings.json with hooks"
+else
+    echo "  Preserved existing .claude/settings.json (review .claude/hooks/README.md to add hooks)"
+fi
 
 echo "Initializing memory..."
 mkdir -p .claude/rules
@@ -66,6 +81,8 @@ echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
 echo "  .claude/commands/cs-*.md  (9 commands)"
+echo "  .claude/hooks/*.js        (10 hook scripts)"
+echo "  .claude/settings.json     (hook configuration)"
 echo "  profiles/*.yaml           (9 profiles)"
 echo "  rules/*.md                (14 topic rules)"
 echo "  templates/*.md            (4 templates)"

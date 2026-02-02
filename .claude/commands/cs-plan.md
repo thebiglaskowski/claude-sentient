@@ -17,6 +17,17 @@ Plan a complex task before executing. Gather context, explore the codebase, crea
 ## Arguments
 
 - `task`: Description of what to plan (required)
+- `--fork`: Create a fork of the current session for experimental planning (optional)
+- `--model opus`: Force opus model for planning (default for this command)
+
+## Model Selection
+
+This command defaults to **opus** model for planning complex tasks. This ensures:
+- Better architectural reasoning
+- More thorough trade-off analysis
+- Higher quality implementation plans
+
+The model can be overridden with `--model sonnet` for simpler plans.
 
 <steps>
 ## Behavior

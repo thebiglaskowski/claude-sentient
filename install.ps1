@@ -42,7 +42,7 @@ git clone --depth 1 --quiet $RepoUrl $TempDir
 
 Write-Host "Installing commands..."
 New-Item -ItemType Directory -Force -Path ".claude/commands" | Out-Null
-Copy-Item "$TempDir/commands/cs-*.md" -Destination ".claude/commands/" -Force
+Copy-Item "$TempDir/.claude/commands/cs-*.md" -Destination ".claude/commands/" -Force
 
 Write-Host "Installing profiles..."
 New-Item -ItemType Directory -Force -Path "profiles" | Out-Null
@@ -55,6 +55,21 @@ Copy-Item "$TempDir/rules/*.md" -Destination "rules/" -Force
 Write-Host "Installing templates..."
 New-Item -ItemType Directory -Force -Path "templates" | Out-Null
 Copy-Item "$TempDir/templates/*.md" -Destination "templates/" -Force
+Copy-Item "$TempDir/templates/settings.json" -Destination "templates/" -Force -ErrorAction SilentlyContinue
+
+Write-Host "Installing hooks..."
+New-Item -ItemType Directory -Force -Path ".claude/hooks" | Out-Null
+Copy-Item "$TempDir/.claude/hooks/*.js" -Destination ".claude/hooks/" -Force
+Copy-Item "$TempDir/.claude/hooks/README.md" -Destination ".claude/hooks/" -Force
+Write-Host "  Installed hook scripts"
+
+Write-Host "Installing settings..."
+if (-not (Test-Path ".claude/settings.json")) {
+    Copy-Item "$TempDir/.claude/settings.json" -Destination ".claude/settings.json"
+    Write-Host "  Created .claude/settings.json with hooks"
+} else {
+    Write-Host "  Preserved existing .claude/settings.json (review .claude/hooks/README.md to add hooks)"
+}
 
 Write-Host "Initializing memory..."
 New-Item -ItemType Directory -Force -Path ".claude/rules" | Out-Null
@@ -73,6 +88,8 @@ Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "Installed:"
 Write-Host "  .claude/commands/cs-*.md  (9 commands)"
+Write-Host "  .claude/hooks/*.js        (10 hook scripts)"
+Write-Host "  .claude/settings.json     (hook configuration)"
 Write-Host "  profiles/*.yaml           (9 profiles)"
 Write-Host "  rules/*.md                (14 topic rules)"
 Write-Host "  templates/*.md            (4 templates)"

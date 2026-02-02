@@ -28,6 +28,49 @@ This command leverages available MCP servers for enhanced capabilities:
 | **puppeteer** | VERIFY | Screenshot web apps after changes (web projects) |
 </mcp_servers>
 
+<model_routing>
+## Model Routing
+
+Models are automatically selected by phase for cost optimization:
+
+| Phase | Model | Rationale |
+|-------|-------|-----------|
+| INIT | haiku | Fast context loading |
+| UNDERSTAND | sonnet | Standard analysis |
+| PLAN | sonnet/opus | opus for "architecture"/"security" keywords |
+| EXECUTE | sonnet | Code generation |
+| VERIFY | sonnet | Quality checks |
+| COMMIT | haiku | Simple git operations |
+| EVALUATE | haiku | Quick assessment |
+
+**Override triggers:**
+- Task contains "security", "auth", "vulnerability" → opus for PLAN and VERIFY
+- Task contains "architecture", "refactor" → opus for PLAN
+- Use `--model opus` flag to force opus for entire loop
+</model_routing>
+
+<session_features>
+## Session Features
+
+**Auto-naming:** Sessions are automatically named for easy identification:
+- `/cs-loop "add auth"` → `loop-20260202-add-auth`
+- `/cs-plan "refactor api"` → `plan-refactor-api`
+- `/cs-review 42` → `review-pr-42`
+
+**Cost tracking:** Each phase tracks cost for budget management:
+- Total session cost displayed at end
+- Per-phase breakdown available in `/cs-status`
+- Budget limit can be set: `ClaudeSentient(max_budget_usd=5.0)`
+
+**Background task timeouts:**
+| Task Type | Timeout | Action on Timeout |
+|-----------|---------|-------------------|
+| Tests | 10 min | Stop, report partial results |
+| Build | 5 min | Stop, check for issues |
+| Exploration | 3 min | Stop, use partial findings |
+</session_features>
+</context>
+
 <profiles>
 | Files | Profile | Tools |
 |-------|---------|-------|
@@ -181,6 +224,11 @@ Run quality gates from profile:
 **MCP: Puppeteer** — For web projects:
 - If significant UI changes: navigate → screenshot
 - Report: `[VERIFY] Screenshot saved: {name}`
+
+**Vision error analysis** — If tests fail with UI errors:
+- Capture screenshot of error state
+- Analyze screenshot for visual issues
+- Report: `[VERIFY] Error screenshot analyzed: {findings}`
 
 **MCP: GitHub** — PR status check:
 - Check CI status: passing/failing/pending

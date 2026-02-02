@@ -93,6 +93,20 @@ Skill(skill="cs-loop")
 ```
 === Claude Sentient Status ===
 
+SESSION:
+  Name: {session-name}
+  Started: {timestamp}
+  Phase: {current-phase}
+  Iteration: {n}
+
+COST:
+  Session total: ${amount}
+  By phase:
+    - INIT: ${amount}
+    - EXECUTE: ${amount}
+    - VERIFY: ${amount}
+  Budget: ${budget} ({percent}% used)
+
 PROFILE: {language}
   Lint: {lint tool}
   Test: {test tool}
@@ -129,6 +143,9 @@ MEMORY:
   Decisions: {n}
   Patterns: {n}
   Learnings: {n}
+
+FORKS: (if any)
+  {fork-name} - {phase} - forked at {timestamp}
 
 === Ready for /cs-loop ===
 ```

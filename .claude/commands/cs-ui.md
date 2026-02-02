@@ -266,14 +266,21 @@ When `--full` is specified:
      - Desktop: 1280px
    ```
 
-2. **Deep component scan**:
+2. **Vision-powered analysis**:
+   - Analyze screenshots using Claude's vision capabilities
+   - Detect visual issues: alignment, spacing, color contrast
+   - Identify accessibility problems visible in screenshots
+   - Report: `[ANALYZE] Vision found {n} issues`
+
+3. **Deep component scan**:
    - Use Task agent to analyze ALL components
    - Check every CSS file for issues
    - Audit all color values for contrast
 
-3. **Generate visual report**:
+4. **Generate visual report**:
    - Before/after mockups (text-based)
-   - Annotated issues
+   - Annotated issues with screenshot references
+   - Accessibility score from vision analysis
 
 ## Framework-Specific Guidance
 
