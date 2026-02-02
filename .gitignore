@@ -245,3 +245,6 @@ docker-compose.*.yml
 
 # Reference V1 git folder (we just want the files, not git history)
 reference/v1/.git/
+
+# SDK test state directories
+sdk/**/.claude/
