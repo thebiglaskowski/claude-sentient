@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, AsyncMock, patch
 
 from claude_sentient.hooks import HookManager, HookMatcher, HookFunction
 from claude_sentient.session import SessionManager
-from claude_sentient.datatypes import Phase
+from claude_sentient.datatypes import Phase, HookResult, HookDecision
+
+
+def is_allow_result(result) -> bool:
+    """Check if result is an allow HookResult (equivalent to empty dict in old API)."""
+    if isinstance(result, HookResult):
+        return result.success and result.decision == HookDecision.ALLOW
+    return result == {}
 
 
 class TestHookMatcher:
@@ -143,7 +150,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_file_changes(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_track_file_changes_ignores_non_file_tools(self, temp_dir: Path):
@@ -158,7 +165,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_file_changes(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_track_file_changes_tracks_write(self, temp_dir: Path):
@@ -174,7 +181,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_file_changes(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         # Verify file was tracked
         state = session_mgr.load()
@@ -194,7 +201,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_file_changes(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         state = session_mgr.load()
         assert "/test/edited.py" in state.file_changes
@@ -212,7 +219,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_commands(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_track_commands_ignores_non_bash(self, temp_dir: Path):
@@ -227,7 +234,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_commands(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_track_commands_tracks_git_commit(self, temp_dir: Path):
@@ -244,7 +251,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_commands(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         state = session_mgr.load()
         assert "abc1234" in state.commits
@@ -264,7 +271,7 @@ class TestHookManagerBuiltInHooks:
         }
 
         result = await manager.track_commands(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         state = session_mgr.load()
         assert len(state.commits) == 0
@@ -278,7 +285,7 @@ class TestHookManagerBuiltInHooks:
         input_data = {"hook_event_name": "PostToolUse"}
 
         result = await manager.save_final_state(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_save_final_state_updates_phase(self, temp_dir: Path):
@@ -290,7 +297,7 @@ class TestHookManagerBuiltInHooks:
         input_data = {"hook_event_name": "Stop"}
 
         result = await manager.save_final_state(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         state = session_mgr.load()
         assert state.phase == "complete"
@@ -305,7 +312,7 @@ class TestHookManagerBuiltInHooks:
 
         # Should not raise even with no session
         result = await manager.save_final_state(input_data, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
     @pytest.mark.asyncio
     async def test_update_phase(self, temp_dir: Path):
@@ -315,7 +322,7 @@ class TestHookManagerBuiltInHooks:
         manager = HookManager(session_manager=session_mgr)
 
         result = await manager.update_phase(Phase.EXECUTE, {}, "tool-123", None)
-        assert result == {}
+        assert is_allow_result(result)
 
         state = session_mgr.load()
         assert state.phase == "execute"

@@ -153,7 +153,7 @@ class HookManager:
             archive_data = {
                 "session_id": state.session_id,
                 "duration_minutes": round(duration_min, 1),
-                "files_changed": len(state.files_changed),
+                "files_changed": len(state.file_changes),
                 "commits": len(state.commits),
                 "tasks_completed": state.tasks_completed,
                 "cost": self._cost_tracking.total_usd,
@@ -318,7 +318,7 @@ class HookManager:
                 "session_id": state.session_id,
                 "phase": state.phase,
                 "iteration": state.iteration,
-                "files_changed": state.files_changed,
+                "files_changed": state.file_changes,
                 "active_agents": [a.id for a in self._active_agents.values()],
                 "cost": self._cost_tracking.total_usd,
             }
@@ -353,14 +353,14 @@ class HookManager:
 
             # Build verification summary
             verification = {
-                "files_modified": len(state.files_changed),
+                "files_modified": len(state.file_changes),
                 "commits": len(state.commits),
                 "tasks_completed": state.tasks_completed,
                 "cost_usd": self._cost_tracking.total_usd,
             }
 
             recommendations = []
-            if state.files_changed and not state.commits:
+            if state.file_changes and not state.commits:
                 recommendations.append("Consider committing changes")
 
             return HookResult(
