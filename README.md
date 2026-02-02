@@ -80,32 +80,32 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 ## 🎯 Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit |
-| `/cs-plan` | Plan complex tasks before executing |
-| `/cs-status` | Show tasks, git state, detected profile |
-| `/cs-validate` | Validate profiles, commands, rules, governance |
-| `/cs-learn` | Save learnings to persistent memory |
-| `/cs-mcp` | Check, register, and validate MCP servers |
+| Command | Purpose | Docs |
+|---------|---------|------|
+| `/cs-loop` | Autonomous loop: understand → plan → execute → verify → commit | [Details](CLAUDE.md#the-loop) |
+| `/cs-plan` | Plan complex tasks before executing | [Command](.claude/commands/cs-plan.md) |
+| `/cs-status` | Show tasks, git state, detected profile | [Command](.claude/commands/cs-status.md) |
+| `/cs-validate` | Validate profiles, commands, rules, governance | [Command](.claude/commands/cs-validate.md) |
+| `/cs-learn` | Save learnings to persistent memory | [Memory System](CLAUDE.md#memory-system) |
+| `/cs-mcp` | Check, register, and validate MCP servers | [MCP Integration](CLAUDE.md#mcp-server-integration) |
 
 ---
 
 ## 📋 Profile Detection
 
-Sentient auto-detects your project type and loads appropriate tooling:
+Sentient auto-detects your project type and loads appropriate tooling. See [`profiles/`](profiles/) for full configurations.
 
-| Profile | Detected By | Tools |
-|---------|-------------|-------|
-| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright |
-| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc |
-| Go | `go.mod`, `*.go` | golangci-lint, go test |
-| Rust | `Cargo.toml` | clippy, cargo test |
-| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit |
-| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest |
-| Ruby | `Gemfile` | rubocop, rspec |
-| Shell | `*.sh`, `*.ps1` | shellcheck |
-| General | (fallback) | auto-detect |
+| Profile | Detected By | Tools | Config |
+|---------|-------------|-------|--------|
+| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright | [python.yaml](profiles/python.yaml) |
+| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc | [typescript.yaml](profiles/typescript.yaml) |
+| Go | `go.mod`, `*.go` | golangci-lint, go test | [go.yaml](profiles/go.yaml) |
+| Rust | `Cargo.toml` | clippy, cargo test | [rust.yaml](profiles/rust.yaml) |
+| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit | [java.yaml](profiles/java.yaml) |
+| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest | [c-cpp.yaml](profiles/c-cpp.yaml) |
+| Ruby | `Gemfile` | rubocop, rspec | [ruby.yaml](profiles/ruby.yaml) |
+| Shell | `*.sh`, `*.ps1` | shellcheck | [shell.yaml](profiles/shell.yaml) |
+| General | (fallback) | auto-detect | [general.yaml](profiles/general.yaml) |
 
 ### Python Environment Detection
 
@@ -164,7 +164,7 @@ Claude Sentient leverages built-in Claude Code features:
 
 ## 🔗 MCP Server Integration
 
-Claude Sentient can leverage MCP (Model Context Protocol) servers for extended capabilities:
+Claude Sentient can leverage MCP (Model Context Protocol) servers for extended capabilities. See [full MCP documentation](CLAUDE.md#mcp-server-integration) for details.
 
 | Server | Purpose | Auto-Used By |
 |--------|---------|--------------|
@@ -223,6 +223,8 @@ pip install -e sdk/python/
 # TypeScript
 cd sdk/typescript && npm install && npm run build
 ```
+
+> **Note:** Python CLI commands require adding Scripts to PATH. TypeScript requires `npm link` for use in other projects. See full installation docs: [Python SDK](sdk/python/README.md#installation) | [TypeScript SDK](sdk/typescript/README.md#installation)
 
 Then use the SDK to orchestrate work in any project:
 
@@ -286,22 +288,37 @@ Created automatically on first `/cs-loop` run:
 
 ## 🧠 Self-Improvement
 
-Claude Sentient includes a self-improvement mechanism:
+Claude Sentient includes a self-improvement mechanism. See [Self-Improvement](CLAUDE.md#self-improvement) for details.
 
 > *"After every correction, Claude proposes a rule update so it doesn't make that mistake again."*
 
-Learnings are stored in `.claude/rules/learnings.md` and persist across sessions.
+Learnings are stored in [`.claude/rules/learnings.md`](.claude/rules/learnings.md) and persist across sessions.
 
 ---
 
 ## 📚 Documentation
 
+### Core Docs
 | File | Purpose |
 |------|---------|
-| [CLAUDE.md](CLAUDE.md) | Main instructions |
+| [CLAUDE.md](CLAUDE.md) | Main instructions (comprehensive reference) |
 | [STATUS.md](STATUS.md) | Current progress |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [DECISIONS.md](DECISIONS.md) | Architecture decisions |
+
+### SDK Documentation
+| File | Purpose |
+|------|---------|
+| [Python SDK](sdk/python/README.md) | Python installation, API reference, CLI usage |
+| [TypeScript SDK](sdk/typescript/README.md) | TypeScript installation, API reference |
+
+### Reference
+| Directory | Contents |
+|-----------|----------|
+| [profiles/](profiles/) | Language-specific quality gate configurations |
+| [rules/](rules/) | Topic-specific coding standards (API design, security, etc.) |
+| [templates/](templates/) | Governance file templates |
+| [phases/](phases/) | Detailed phase documentation |
 
 ---
 

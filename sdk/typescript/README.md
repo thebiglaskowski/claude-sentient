@@ -25,9 +25,50 @@ curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/mai
 cd sdk/typescript
 npm install
 npm run build
+```
 
-# Then import in your project
-import { ClaudeSentient } from "./path/to/sdk/typescript/src";
+### Option 1: npm link (Recommended for Development)
+
+Link the package globally, then use in any project:
+
+```bash
+# In sdk/typescript directory
+npm link
+
+# In your consuming project
+npm link @claude-sentient/sdk
+```
+
+Then import:
+```typescript
+import { ClaudeSentient } from "@claude-sentient/sdk";
+```
+
+### Option 2: Direct Path Reference
+
+Add to your project's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@claude-sentient/sdk": "file:/path/to/claude-sentient/sdk/typescript"
+  }
+}
+```
+
+### Option 3: Relative Import
+
+Import directly from the built files:
+
+```typescript
+import { ClaudeSentient } from "./path/to/sdk/typescript/dist";
+```
+
+### Verify Installation
+
+```bash
+# From sdk/typescript directory
+node -e "const { ClaudeSentient } = require('./dist'); console.log('SDK OK')"
 ```
 
 ## Quick Start

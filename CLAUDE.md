@@ -640,9 +640,34 @@ Both share:
 pip install -e sdk/python/
 ```
 
+For library usage (`from claude_sentient import ClaudeSentient`), no PATH change is needed.
+
+For CLI commands (`claude-sentient`, `cs`), add the Scripts directory to PATH:
+```bash
+# Windows PowerShell (use path from pip warning)
+$env:PATH += ";C:\Users\<you>\AppData\Local\...\Python313\Scripts"
+
+# Linux/Mac
+export PATH="$HOME/.local/bin:$PATH"
+```
+
 **TypeScript (from repo):**
 ```bash
 cd sdk/typescript && npm install && npm run build
+```
+
+To use in other projects, link the package:
+```bash
+# In sdk/typescript directory
+npm link
+
+# In your consuming project
+npm link @claude-sentient/sdk
+```
+
+Or add to your project's `package.json`:
+```json
+{ "dependencies": { "@claude-sentient/sdk": "file:/path/to/sdk/typescript" } }
 ```
 
 **Direct import (no install):**

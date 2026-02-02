@@ -23,10 +23,37 @@ curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/mai
 ```bash
 # From local repo (editable install)
 pip install -e sdk/python/
+```
 
-# Or add to Python path directly (no install)
+### Library Usage (No PATH Change Needed)
+
+After installation, you can import directly in Python scripts:
+
+```python
+from claude_sentient import ClaudeSentient
+```
+
+### CLI Usage (Requires PATH)
+
+The install creates CLI commands (`claude-sentient`, `cs`). If you see a warning about scripts not being on PATH:
+
+```bash
+# Windows PowerShell - add to current session
+$env:PATH += ";C:\Users\<you>\AppData\Local\...\Python313\Scripts"
+
+# Windows - permanent (System Properties → Environment Variables)
+# Add the Scripts directory shown in the pip warning
+
+# Linux/Mac - add to ~/.bashrc or ~/.zshrc
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Direct Import (No Install)
+
+```python
 import sys
 sys.path.insert(0, "path/to/claude-sentient/sdk/python")
+from claude_sentient import ClaudeSentient
 ```
 
 ## Quick Start
