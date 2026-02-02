@@ -1,4 +1,8 @@
-# 🧠 Claude Sentient
+<p align="center">
+  <img src="assets/claude-sentient.png" alt="Claude Sentient" width="400">
+</p>
+
+# Claude Sentient
 
 > **Autonomous development orchestration for Claude Code**
 
