@@ -7,10 +7,10 @@ These tests validate that command files have correct structure:
 """
 
 import re
-import yaml
-import pytest
 from pathlib import Path
 
+import pytest
+import yaml
 
 # Path to commands directory (sdk/python/tests -> claude-sentient/.claude/commands)
 COMMANDS_DIR = Path(__file__).resolve().parent.parent.parent.parent / ".claude" / "commands"

@@ -3,24 +3,19 @@
 These tests verify cross-module interactions and end-to-end workflows.
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import MagicMock
+
+import pytest
 
 from claude_sentient import (
     ClaudeSentient,
+    GateStatus,
+    Phase,
     SessionManager,
-    SessionState,
-    ProfileLoader,
-    Profile,
-    QualityGates,
-    HookManager,
     Task,
     TaskStatus,
-    Phase,
-    GateStatus,
 )
-from claude_sentient.datatypes import GateResult
 
 
 class TestEndToEndLoop:
@@ -159,7 +154,7 @@ class TestSessionPersistence:
         manager = SessionManager(temp_dir / ".claude" / "state")
 
         # Create session
-        state = manager.create(
+        manager.create(
             session_id="archive-test",
             profile="python",
             task="Test task",
@@ -310,7 +305,7 @@ class TestBatchedWrites:
         """With auto_flush=False, writes should be batched."""
         manager = SessionManager(temp_dir / ".claude" / "state", auto_flush=False)
 
-        state = manager.create(
+        manager.create(
             session_id="batch-test",
             profile="python",
             task="Test",

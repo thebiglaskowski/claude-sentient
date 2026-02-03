@@ -1,12 +1,12 @@
 """Tests for Claude Sentient SDK hooks module."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock, patch
 
-from claude_sentient.hooks import HookManager, HookMatcher, HookFunction
+import pytest
+
+from claude_sentient.datatypes import HookDecision, HookResult, Phase
+from claude_sentient.hooks import HookManager, HookMatcher
 from claude_sentient.session import SessionManager
-from claude_sentient.datatypes import Phase, HookResult, HookDecision
 
 
 def is_allow_result(result) -> bool:

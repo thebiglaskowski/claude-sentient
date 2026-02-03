@@ -1,14 +1,13 @@
 """Tests for Claude Sentient SDK types."""
 
-import pytest
 from claude_sentient.datatypes import (
-    Phase,
-    TaskStatus,
-    GateStatus,
-    Task,
     GateResult,
-    ToolUseEvent,
+    GateStatus,
     HookContext,
+    Phase,
+    Task,
+    TaskStatus,
+    ToolUseEvent,
 )
 
 

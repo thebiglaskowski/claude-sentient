@@ -1,10 +1,8 @@
 """Tests for Claude Sentient SDK session management."""
 
-import json
-import pytest
 from pathlib import Path
 
-from claude_sentient.session import SessionState, SessionManager
+from claude_sentient.session import SessionManager, SessionState
 
 
 class TestSessionState:
@@ -64,7 +62,7 @@ class TestSessionManager:
     def test_session_manager_creates_directory(self, temp_dir: Path):
         """SessionManager should create state directory if missing."""
         state_dir = temp_dir / "new_state_dir"
-        manager = SessionManager(state_dir)
+        SessionManager(state_dir)
         assert state_dir.exists()
 
     def test_create_session(self, temp_dir: Path):
@@ -85,7 +83,7 @@ class TestSessionManager:
     def test_save_and_load_state(self, temp_dir: Path):
         """SessionManager should save and load state."""
         manager = SessionManager(temp_dir / ".claude/state")
-        original = manager.create(
+        manager.create(
             session_id="save-load",
             profile="go",
             task="Go task",

@@ -135,6 +135,11 @@
   ```
 - **Rule**: On Windows, always use `cmd /c npx` instead of direct `npx` for MCP servers. Updated `/cs-mcp` command to document this.
 
+### 2026-02-02: Never dismiss lint warnings as "pre-existing"
+- **Context**: During /cs-loop, encountered a ruff lint warning (import sorting) and said "The only lint issue is an import sorting warning which is pre-existing"
+- **Correction**: User said "pre-existing or not its an issue, why would we not want to fix it?"
+- **Rule**: Fix ALL lint issues during VERIFY phase - never dismiss warnings as "pre-existing" or non-blocking. If ruff reports it, fix it. This is an Integrity Rule violation.
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

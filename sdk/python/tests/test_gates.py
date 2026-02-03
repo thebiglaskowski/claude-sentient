@@ -1,12 +1,13 @@
 """Tests for Claude Sentient SDK quality gates."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 import subprocess
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from claude_sentient.datatypes import GateStatus
 from claude_sentient.gates import QualityGates, create_gate_hooks
-from claude_sentient.profiles import Profile, GateConfig
-from claude_sentient.datatypes import GateStatus, GateResult
+from claude_sentient.profiles import GateConfig, Profile
 
 
 @pytest.fixture
@@ -48,9 +49,10 @@ class TestQualityGates:
     @patch("subprocess.run")
     def test_run_gate_passed(self, mock_run: MagicMock, python_profile: Profile):
         """run_gate should return PASSED when command succeeds."""
+        # For lint gates, empty output is required for pass (no warnings)
         mock_run.return_value = MagicMock(
             returncode=0,
-            stdout="All checks passed!",
+            stdout="",
             stderr="",
         )
 
@@ -59,7 +61,7 @@ class TestQualityGates:
 
         assert result.status == GateStatus.PASSED
         assert result.command == "ruff check ."
-        assert result.output == "All checks passed!"
+        assert result.output == ""
         assert result.name == "lint"
         assert result.duration_ms >= 0
 
@@ -77,6 +79,45 @@ class TestQualityGates:
 
         assert result.status == GateStatus.FAILED
         assert result.error == "Found 3 errors"
+
+    @patch("subprocess.run")
+    def test_lint_fails_with_warnings(self, mock_run: MagicMock, python_profile: Profile):
+        """Lint gate should fail if there's any output, even with return code 0.
+
+        This ensures warnings are treated as failures, not ignored.
+        Prevents dismissing lint warnings as 'pre-existing' or 'non-blocking'.
+        """
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="src/file.py:1: I001 Import block is unsorted",
+            stderr="",
+        )
+
+        gates = QualityGates(profile=python_profile)
+        result = gates.run_gate("lint")
+
+        # Should FAIL because there's output (a warning), even though return code is 0
+        assert result.status == GateStatus.FAILED
+        assert "unsorted" in result.output
+
+    @patch("subprocess.run")
+    def test_non_lint_gate_passes_with_output(self, mock_run: MagicMock, python_profile: Profile):
+        """Non-lint gates should pass if return code is 0, regardless of output.
+
+        Only the lint gate has the strict 'no output' requirement.
+        """
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="123 tests passed in 5.2s",
+            stderr="",
+        )
+
+        gates = QualityGates(profile=python_profile)
+        result = gates.run_gate("test")
+
+        # Should PASS because return code is 0 (test output is informational)
+        assert result.status == GateStatus.PASSED
+        assert "tests passed" in result.output
 
     @patch("subprocess.run")
     def test_run_gate_timeout(self, mock_run: MagicMock, python_profile: Profile):
@@ -103,7 +144,11 @@ class TestQualityGates:
     @patch("subprocess.run")
     def test_results_are_stored(self, mock_run: MagicMock, python_profile: Profile):
         """run_gate should store results."""
-        mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+        # Empty stdout for lint (strict), non-empty OK for test
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint
+            MagicMock(returncode=0, stdout="OK", stderr=""),  # test
+        ]
 
         gates = QualityGates(profile=python_profile)
         gates.run_gate("lint")
@@ -115,7 +160,11 @@ class TestQualityGates:
     @patch("subprocess.run")
     def test_run_all_blocking(self, mock_run: MagicMock, python_profile: Profile):
         """run_all_blocking should run only blocking gates."""
-        mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+        # Empty stdout for lint (strict), non-empty OK for test
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint
+            MagicMock(returncode=0, stdout="OK", stderr=""),  # test
+        ]
 
         gates = QualityGates(profile=python_profile)
         results = gates.run_all_blocking()
@@ -128,7 +177,11 @@ class TestQualityGates:
     @patch("subprocess.run")
     def test_all_blocking_passed_true(self, mock_run: MagicMock, python_profile: Profile):
         """all_blocking_passed should return True when all pass."""
-        mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+        # Empty stdout for lint (strict), non-empty OK for test
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint
+            MagicMock(returncode=0, stdout="OK", stderr=""),  # test
+        ]
 
         gates = QualityGates(profile=python_profile)
         gates.run_all_blocking()
@@ -138,10 +191,10 @@ class TestQualityGates:
     @patch("subprocess.run")
     def test_all_blocking_passed_false(self, mock_run: MagicMock, python_profile: Profile):
         """all_blocking_passed should return False when any fail."""
-        # Lint passes, test fails
+        # Lint passes (empty output), test fails
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="OK", stderr=""),
-            MagicMock(returncode=1, stdout="", stderr="Test failed"),
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint passes
+            MagicMock(returncode=1, stdout="", stderr="Test failed"),  # test fails
         ]
 
         gates = QualityGates(profile=python_profile)
@@ -153,8 +206,8 @@ class TestQualityGates:
     def test_get_failed_gates(self, mock_run: MagicMock, python_profile: Profile):
         """get_failed_gates should return list of failures."""
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="OK", stderr=""),
-            MagicMock(returncode=1, stdout="", stderr="Failed"),
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint passes (empty output)
+            MagicMock(returncode=1, stdout="", stderr="Failed"),  # test fails
         ]
 
         gates = QualityGates(profile=python_profile)
@@ -169,8 +222,8 @@ class TestQualityGates:
     def test_get_summary(self, mock_run: MagicMock, python_profile: Profile):
         """get_summary should return gate statistics."""
         mock_run.side_effect = [
-            MagicMock(returncode=0, stdout="OK", stderr=""),
-            MagicMock(returncode=1, stdout="", stderr="Failed"),
+            MagicMock(returncode=0, stdout="", stderr=""),  # lint passes (empty output)
+            MagicMock(returncode=1, stdout="", stderr="Failed"),  # test fails
         ]
 
         gates = QualityGates(profile=python_profile)
@@ -220,7 +273,8 @@ class TestAsyncGates:
     @patch("subprocess.run")
     async def test_run_gate_async(self, mock_run: MagicMock, python_profile: Profile):
         """run_gate_async should work asynchronously."""
-        mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+        # Lint requires empty output to pass
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         gates = QualityGates(profile=python_profile)
         result = await gates.run_gate_async("lint")
@@ -230,7 +284,8 @@ class TestAsyncGates:
     @patch("subprocess.run")
     async def test_run_all_blocking_async(self, mock_run: MagicMock, python_profile: Profile):
         """run_all_blocking_async should run gates in parallel."""
-        mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+        # Empty output for all gates (lint needs it, doesn't hurt test)
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         gates = QualityGates(profile=python_profile)
         results = await gates.run_all_blocking_async()

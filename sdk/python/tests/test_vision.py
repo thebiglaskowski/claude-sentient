@@ -9,8 +9,8 @@ import pytest
 from claude_sentient.datatypes import ModelTier
 from claude_sentient.vision import (
     ScreenshotResult,
-    VisualDiff,
     VisionAnalyzer,
+    VisualDiff,
     analyze_responsive_layout,
     analyze_screenshot,
     capture_error_screenshot,

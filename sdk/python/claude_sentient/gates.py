@@ -70,7 +70,17 @@ class QualityGates:
             )
 
             duration_ms = (time.time() - start_time) * 1000
-            status = GateStatus.PASSED if result.returncode == 0 else GateStatus.FAILED
+
+            # Determine pass/fail status
+            # For lint gates: treat ANY output as failure (warnings count as issues)
+            # For other gates: only non-zero return code is failure
+            if gate_name == "lint":
+                # Lint passes only if return code is 0 AND no output
+                # This ensures warnings are treated as failures
+                has_output = bool(result.stdout.strip() or result.stderr.strip())
+                status = GateStatus.PASSED if (result.returncode == 0 and not has_output) else GateStatus.FAILED
+            else:
+                status = GateStatus.PASSED if result.returncode == 0 else GateStatus.FAILED
 
             gate_result = GateResult(
                 name=gate_name,

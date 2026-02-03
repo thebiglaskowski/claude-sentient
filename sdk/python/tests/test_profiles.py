@@ -1,9 +1,8 @@
 """Tests for Claude Sentient SDK profile detection and loading."""
 
-import pytest
 from pathlib import Path
 
-from claude_sentient.profiles import Profile, ProfileLoader, GateConfig
+from claude_sentient.profiles import GateConfig, Profile, ProfileLoader
 
 
 class TestGateConfig:

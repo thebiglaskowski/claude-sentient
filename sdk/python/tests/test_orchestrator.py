@@ -1,12 +1,16 @@
 """Tests for Claude Sentient SDK orchestrator."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import MagicMock, patch
 
-from claude_sentient.orchestrator import ClaudeSentient, LoopResult, AgentDefinition, SandboxConfig
-from claude_sentient.session import SessionState
-from claude_sentient.datatypes import GateStatus
+import pytest
+
+from claude_sentient.orchestrator import (
+    AgentDefinition,
+    ClaudeSentient,
+    LoopResult,
+    SandboxConfig,
+)
 
 
 class TestLoopResult:
@@ -61,7 +65,7 @@ class TestClaudeSentient:
 
     def test_init_creates_state_dir(self, temp_dir: Path):
         """ClaudeSentient should create .claude/state directory."""
-        sentient = ClaudeSentient(cwd=str(temp_dir))
+        ClaudeSentient(cwd=str(temp_dir))
         state_dir = temp_dir / ".claude" / "state"
         assert state_dir.exists()
 
