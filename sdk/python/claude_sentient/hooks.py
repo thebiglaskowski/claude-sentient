@@ -376,13 +376,25 @@ class HookManager:
     async def _validate_bash_command(self, command: str) -> HookResult:
         """Validate a bash command for dangerous patterns."""
         dangerous_patterns = [
+            # Destructive file operations
             (r"rm\s+-rf\s+[\/~]", "Recursive delete from root or home"),
             (r"rm\s+-rf\s+\*", "Recursive delete all files"),
+            (r"rm\s+-rf\s+\.", "Recursive delete current directory"),
+            # Disk operations
             (r">\s*\/dev\/sd", "Direct write to disk device"),
             (r"mkfs", "Filesystem creation"),
             (r"dd\s+if=.*of=\/dev", "Direct disk write with dd"),
+            # Permission changes
             (r"chmod\s+-R\s+777\s+\/", "Recursive chmod 777 from root"),
-            (r":(){ :|:& };:", "Fork bomb"),
+            (r"chown\s+-R\s+.*\s+\/", "Recursive chown from root"),
+            # System modification
+            (r":\(\)\{\s*:\|:&\s*\};:", "Fork bomb"),
+            (r">\s*\/dev\/null\s*2>&1\s*&\s*disown", "Background process hiding"),
+            # Network attacks
+            (r"nc\s+-l.*-e\s+\/bin", "Netcat reverse shell"),
+            # History manipulation
+            (r"history\s+-c", "Clear command history"),
+            (r"shred.*\.bash_history", "Shred bash history"),
         ]
 
         for pattern, reason in dangerous_patterns:
@@ -397,7 +409,9 @@ class HookManager:
         warning_patterns = [
             (r"sudo\s+", "Using sudo"),
             (r"curl.*\|\s*sh", "Piping curl to shell"),
+            (r"wget.*\|\s*sh", "Piping wget to shell"),
             (r"npm\s+install\s+-g", "Global npm install"),
+            (r"pip\s+install\s+--user", "User pip install"),
         ]
 
         warnings = []
@@ -413,18 +427,30 @@ class HookManager:
 
     async def _validate_file_operation(self, file_path: str) -> HookResult:
         """Validate a file operation for protected paths."""
+        # Normalize path for comparison (handle Windows backslashes)
+        normalized = file_path.replace("\\", "/")
+
         protected_patterns = [
-            r"^\/etc\/",
-            r"^\/usr\/",
-            r"^C:\\Windows\\",
-            r"\.ssh\/",
-            r"\.gnupg\/",
-            r"\.env\.production$",
-            r"\.git\/objects\/",
+            # System files (anchored)
+            r"^/etc/",
+            r"^/usr/",
+            r"^/bin/",
+            r"^/sbin/",
+            r"^C:/Windows/",
+            r"^C:/Program Files",
+            # User sensitive files (can appear anywhere in path)
+            r"(^|/)\.ssh/",
+            r"(^|/)\.gnupg/",
+            r"(^|/)\.aws/credentials$",
+            r"(^|/)\.env\.production$",
+            # Git internals
+            r"(^|/)\.git/objects/",
+            r"(^|/)\.git/refs/",
+            r"(^|/)\.git/HEAD$",
         ]
 
         for pattern in protected_patterns:
-            if re.search(pattern, file_path, re.IGNORECASE):
+            if re.search(pattern, normalized, re.IGNORECASE):
                 return HookResult(
                     success=True,
                     decision=HookDecision.BLOCK,
@@ -433,11 +459,16 @@ class HookManager:
 
         # Check for sensitive files (warn but allow)
         sensitive_patterns = [
-            r"\.env$",
+            r"(^|/)\.env$",
+            r"(^|/)\.env\.local$",
             r"secrets?\.",
             r"credentials?\.",
+            r"password",
+            r"api[_-]?key",
             r"\.pem$",
             r"\.key$",
+            r"id_rsa",
+            r"id_ed25519",
         ]
 
         warnings = []

@@ -6,58 +6,18 @@
  * Tracks agent metadata for synthesis and cost allocation.
  */
 
-const fs = require('fs');
-const path = require('path');
-
-const stateDir = path.join(process.cwd(), '.claude', 'state');
-const agentsFile = path.join(stateDir, 'active_agents.json');
-
-// Ensure state directory exists
-if (!fs.existsSync(stateDir)) {
-    fs.mkdirSync(stateDir, { recursive: true });
-}
+const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
 
 // Parse input from hook
-let agentId = '';
-let agentType = '';
-let description = '';
-let model = '';
-let runInBackground = false;
-
-try {
-    const input = process.env.HOOK_INPUT;
-    if (input) {
-        const parsed = JSON.parse(input);
-        agentId = parsed.agent_id || parsed.task_id || `agent-${Date.now()}`;
-        agentType = parsed.tool_input?.subagent_type || 'general-purpose';
-        description = parsed.tool_input?.description || '';
-        model = parsed.tool_input?.model || 'sonnet';
-        runInBackground = parsed.tool_input?.run_in_background || false;
-    }
-} catch (e) {
-    // Try reading from stdin
-    try {
-        const stdin = fs.readFileSync(0, 'utf8');
-        const parsed = JSON.parse(stdin);
-        agentId = parsed.agent_id || parsed.task_id || `agent-${Date.now()}`;
-        agentType = parsed.tool_input?.subagent_type || 'general-purpose';
-        description = parsed.tool_input?.description || '';
-        model = parsed.tool_input?.model || 'sonnet';
-        runInBackground = parsed.tool_input?.run_in_background || false;
-    } catch (e2) {
-        agentId = `agent-${Date.now()}`;
-    }
-}
+const parsed = parseHookInput();
+const agentId = parsed.agent_id || parsed.task_id || `agent-${Date.now()}`;
+const agentType = parsed.tool_input?.subagent_type || 'general-purpose';
+const description = parsed.tool_input?.description || '';
+const model = parsed.tool_input?.model || 'sonnet';
+const runInBackground = parsed.tool_input?.run_in_background || false;
 
 // Load active agents
-let activeAgents = {};
-if (fs.existsSync(agentsFile)) {
-    try {
-        activeAgents = JSON.parse(fs.readFileSync(agentsFile, 'utf8'));
-    } catch (e) {
-        activeAgents = {};
-    }
-}
+const activeAgents = loadState('active_agents.json', {});
 
 // Track this agent
 activeAgents[agentId] = {
@@ -70,16 +30,10 @@ activeAgents[agentId] = {
     status: 'running'
 };
 
-fs.writeFileSync(agentsFile, JSON.stringify(activeAgents, null, 2));
+saveState('active_agents.json', activeAgents);
 
 // Log the agent start
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} SubagentStart id=${agentId} type=${agentType} model=${model}\n`;
-try {
-    fs.appendFileSync(logFile, logEntry);
-} catch (e) {
-    // Ignore
-}
+logMessage(`SubagentStart id=${agentId} type=${agentType} model=${model}`);
 
 // Output
 const output = {

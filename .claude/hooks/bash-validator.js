@@ -6,8 +6,7 @@
  * Blocks dangerous commands that could harm the system.
  */
 
-const fs = require('fs');
-const path = require('path');
+const { parseHookInput, logMessage } = require('./utils');
 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
@@ -47,23 +46,8 @@ const WARNING_PATTERNS = [
 ];
 
 // Parse input from hook
-let command = '';
-try {
-    const input = process.env.HOOK_INPUT;
-    if (input) {
-        const parsed = JSON.parse(input);
-        command = parsed.tool_input?.command || parsed.command || '';
-    }
-} catch (e) {
-    // Try reading from stdin as fallback
-    try {
-        const stdin = fs.readFileSync(0, 'utf8');
-        const parsed = JSON.parse(stdin);
-        command = parsed.tool_input?.command || parsed.command || '';
-    } catch (e2) {
-        // No input
-    }
-}
+const parsed = parseHookInput();
+const command = parsed.tool_input?.command || parsed.command || '';
 
 // Check for dangerous patterns
 for (const { pattern, reason } of DANGEROUS_PATTERNS) {
@@ -77,13 +61,7 @@ for (const { pattern, reason } of DANGEROUS_PATTERNS) {
         console.log(JSON.stringify(output));
 
         // Log the blocked command
-        const logFile = path.join(process.cwd(), '.claude', 'session.log');
-        const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} BLOCKED dangerous command: ${reason}\n`;
-        try {
-            fs.appendFileSync(logFile, logEntry);
-        } catch (e) {
-            // Ignore log errors
-        }
+        logMessage(`BLOCKED dangerous command: ${reason}`, 'BLOCKED');
 
         process.exit(0);
     }
@@ -99,13 +77,7 @@ for (const { pattern, reason } of WARNING_PATTERNS) {
 
 // Log warnings if any
 if (warnings.length > 0) {
-    const logFile = path.join(process.cwd(), '.claude', 'session.log');
-    const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} WARNING: ${warnings.join(', ')}\n`;
-    try {
-        fs.appendFileSync(logFile, logEntry);
-    } catch (e) {
-        // Ignore log errors
-    }
+    logMessage(warnings.join(', '), 'WARNING');
 }
 
 // Allow the command

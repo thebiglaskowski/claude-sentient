@@ -6,41 +6,14 @@
  * Tracks file changes and suggests running lint for code files.
  */
 
-const fs = require('fs');
 const path = require('path');
-
-const stateDir = path.join(process.cwd(), '.claude', 'state');
-const changesFile = path.join(stateDir, 'file_changes.json');
-
-// Ensure state directory exists
-if (!fs.existsSync(stateDir)) {
-    fs.mkdirSync(stateDir, { recursive: true });
-}
+const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
 
 // Parse input from hook
-let filePath = '';
-let toolName = '';
-let success = true;
-try {
-    const input = process.env.HOOK_INPUT;
-    if (input) {
-        const parsed = JSON.parse(input);
-        filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
-        toolName = parsed.tool_name || 'unknown';
-        success = parsed.tool_result?.success !== false;
-    }
-} catch (e) {
-    // Try reading from stdin
-    try {
-        const stdin = fs.readFileSync(0, 'utf8');
-        const parsed = JSON.parse(stdin);
-        filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
-        toolName = parsed.tool_name || 'unknown';
-        success = parsed.tool_result?.success !== false;
-    } catch (e2) {
-        // No input
-    }
-}
+const parsed = parseHookInput();
+const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
+const toolName = parsed.tool_name || 'unknown';
+const success = parsed.tool_result?.success !== false;
 
 // Only track successful operations
 if (!success || !filePath) {
@@ -49,14 +22,7 @@ if (!success || !filePath) {
 }
 
 // Track file change
-let changes = [];
-if (fs.existsSync(changesFile)) {
-    try {
-        changes = JSON.parse(fs.readFileSync(changesFile, 'utf8'));
-    } catch (e) {
-        changes = [];
-    }
-}
+let changes = loadState('file_changes.json', []);
 
 // Add to changes if not already tracked
 const changeEntry = {
@@ -78,7 +44,7 @@ if (changes.length > 100) {
     changes = changes.slice(-100);
 }
 
-fs.writeFileSync(changesFile, JSON.stringify(changes, null, 2));
+saveState('file_changes.json', changes);
 
 // Determine file type for lint suggestion
 const ext = path.extname(filePath).toLowerCase();
@@ -101,13 +67,7 @@ if (codeExtensions[ext]) {
 }
 
 // Log the change
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} ${toolName} completed: ${filePath}\n`;
-try {
-    fs.appendFileSync(logFile, logEntry);
-} catch (e) {
-    // Ignore
-}
+logMessage(`${toolName} completed: ${filePath}`);
 
 // Output
 const output = {

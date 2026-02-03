@@ -9,14 +9,10 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-
-const stateDir = path.join(process.cwd(), '.claude', 'state');
-const sessionFile = path.join(stateDir, 'session_start.json');
+const { ensureStateDir, saveState, logMessage } = require('./utils');
 
 // Ensure state directory exists
-if (!fs.existsSync(stateDir)) {
-    fs.mkdirSync(stateDir, { recursive: true });
-}
+ensureStateDir();
 
 // Get git branch if available
 let gitBranch = 'unknown';
@@ -122,12 +118,10 @@ const sessionInfo = {
     nodeVersion: process.version
 };
 
-fs.writeFileSync(sessionFile, JSON.stringify(sessionInfo, null, 2));
+saveState('session_start.json', sessionInfo);
 
-// Also append to session log
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-const logEntry = `[cs] ${sessionInfo.timestamp.slice(0, 19)} SessionStart id=${sessionId} branch=${gitBranch} profile=${sessionInfo.profile}\n`;
-fs.appendFileSync(logFile, logEntry);
+// Log session start
+logMessage(`SessionStart id=${sessionId} branch=${gitBranch} profile=${sessionInfo.profile}`);
 
 // Output for hook system (optional context injection)
 const output = {

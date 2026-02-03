@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { parseHookInput, logMessage } = require('./utils');
 
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
@@ -46,26 +47,9 @@ const SENSITIVE_FILES = [
 ];
 
 // Parse input from hook
-let filePath = '';
-let toolName = '';
-try {
-    const input = process.env.HOOK_INPUT;
-    if (input) {
-        const parsed = JSON.parse(input);
-        filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
-        toolName = parsed.tool_name || 'unknown';
-    }
-} catch (e) {
-    // Try reading from stdin
-    try {
-        const stdin = fs.readFileSync(0, 'utf8');
-        const parsed = JSON.parse(stdin);
-        filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
-        toolName = parsed.tool_name || 'unknown';
-    } catch (e2) {
-        // No input
-    }
-}
+const parsed = parseHookInput();
+const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
+const toolName = parsed.tool_name || 'unknown';
 
 // Normalize path for comparison
 const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
@@ -81,13 +65,7 @@ for (const pattern of PROTECTED_PATHS) {
         console.log(JSON.stringify(output));
 
         // Log the blocked operation
-        const logFile = path.join(process.cwd(), '.claude', 'session.log');
-        const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} BLOCKED ${toolName} on protected path: ${filePath}\n`;
-        try {
-            fs.appendFileSync(logFile, logEntry);
-        } catch (e) {
-            // Ignore
-        }
+        logMessage(`BLOCKED ${toolName} on protected path: ${filePath}`, 'BLOCKED');
 
         process.exit(0);
     }
@@ -112,13 +90,7 @@ if (fs.existsSync(filePath)) {
 
 // Log warnings if any
 if (warnings.length > 0) {
-    const logFile = path.join(process.cwd(), '.claude', 'session.log');
-    const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} WARNING ${toolName}: ${warnings.join(', ')} - ${filePath}\n`;
-    try {
-        fs.appendFileSync(logFile, logEntry);
-    } catch (e) {
-        // Ignore
-    }
+    logMessage(`${toolName}: ${warnings.join(', ')} - ${filePath}`, 'WARNING');
 }
 
 // Allow the operation
