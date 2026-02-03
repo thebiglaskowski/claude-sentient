@@ -81,7 +81,20 @@ if (-not (Test-Path ".claude/rules/learnings.md")) {
 }
 
 Write-Host "Cleaning up..."
-Remove-Item -Recurse -Force $TempDir
+# Windows may hold file locks briefly after git clone - retry cleanup
+$retries = 3
+for ($i = 1; $i -le $retries; $i++) {
+    try {
+        Remove-Item -Recurse -Force $TempDir -ErrorAction Stop
+        break
+    } catch {
+        if ($i -eq $retries) {
+            Write-Host "  Warning: Could not remove temp directory. You can manually delete: $TempDir" -ForegroundColor Yellow
+        } else {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+}
 
 Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
