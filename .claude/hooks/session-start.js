@@ -21,9 +21,20 @@ if (!fs.existsSync(stateDir)) {
 // Get git branch if available
 let gitBranch = 'unknown';
 try {
-    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    // First check if we're in a git repo
+    execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+
+    // Check if HEAD exists (repo has at least one commit)
+    try {
+        execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    } catch (e) {
+        // Git repo exists but no commits yet
+        gitBranch = 'no-commits';
+    }
 } catch (e) {
     // Not a git repo or git not available
+    gitBranch = 'not-a-repo';
 }
 
 // Get git status summary

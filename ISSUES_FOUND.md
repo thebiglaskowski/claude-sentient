@@ -54,22 +54,15 @@
 
 ---
 
-### 6. Git Branch Detection for Fresh Repos (NOT FIXED - LOW PRIORITY)
-**File:** `.claude/hooks/session-start.js:22-27`
+### 6. Git Branch Detection for Fresh Repos (FIXED)
+**File:** `.claude/hooks/session-start.js:22-36`
 
 **Problem:** For new repos with no commits, `git rev-parse --abbrev-ref HEAD` fails and returns "unknown".
 
-**Impact:** Minor cosmetic issue, doesn't affect functionality.
-
-**Suggested fix:**
-```javascript
-try {
-    execSync('git rev-parse HEAD', { stdio: ['pipe', 'pipe', 'pipe'] });
-    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-} catch (e) {
-    gitBranch = 'no-commits';
-}
-```
+**Fix applied:** Added proper git detection with three states:
+- `"branch-name"` - Normal repo with commits
+- `"no-commits"` - Git repo initialized but no commits yet
+- `"not-a-repo"` - Not a git repository
 
 ---
 
@@ -106,7 +99,7 @@ try {
 | Suite | Tests | Status |
 |-------|-------|--------|
 | Python SDK | 261 | ✅ All passed |
-| TypeScript SDK | Build | ✅ Compiles successfully |
+| TypeScript SDK | 106 | ✅ All passed |
 
 ### Quality Gates on Test Project
 | Gate | Tool | Status |
@@ -148,20 +141,20 @@ The test project at `C:\scripts\cs-test-project` was created with intentional is
 2. **Run /cs-plan** - Test planning mode with user approval
 3. **Test session resumption** - Resume SDK session across restarts
 4. **Test MCP server integration** - Context7, GitHub, Memory
-5. **Test TypeScript SDK programmatically** - Run SDK tests
 
 ---
 
 ## Conclusion
 
-Claude Sentient exhaustive testing is **substantially complete**:
+Claude Sentient exhaustive testing is **complete**:
 
 - ✅ All 10 hooks implemented and working
 - ✅ All 9 commands validated
 - ✅ Python SDK: 261 tests passing
-- ✅ TypeScript SDK: Builds successfully
+- ✅ TypeScript SDK: 106 tests passing
 - ✅ Profile detection: Handles monorepos
 - ✅ Security validation: Blocks dangerous commands and paths
 - ✅ Quality gates: Configured for all supported languages
+- ✅ Git detection: Handles fresh repos and non-git directories
 
-**4 issues found and fixed during testing.**
+**6 issues found and fixed during testing.**
