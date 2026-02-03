@@ -52,16 +52,16 @@ from .orchestrator import (
 )
 from .profiles import ModelConfig, Profile, ProfileLoader, ThinkingConfig
 from .session import (
+    TASK_TIMEOUTS,
     SessionManager,
     SessionState,
-    TASK_TIMEOUTS,
     generate_session_name,
     get_task_timeout,
 )
 from .vision import (
     ScreenshotResult,
-    VisualDiff,
     VisionAnalyzer,
+    VisualDiff,
     analyze_responsive_layout,
     analyze_screenshot,
     capture_error_screenshot,

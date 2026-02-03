@@ -35,10 +35,8 @@ class ModelConfig:
         """Create from dictionary."""
         by_phase = {}
         for phase_name, model_name in data.get("by_phase", {}).items():
-            try:
+            with contextlib.suppress(ValueError):
                 by_phase[phase_name] = ModelTier(model_name)
-            except ValueError:
-                pass  # Skip invalid model names
 
         return cls(
             default=ModelTier(data.get("default", "sonnet")),
@@ -260,17 +258,11 @@ class ProfileLoader:
 
         # Parse models config
         models_data = profile_data.get("models", {})
-        if models_data:
-            models = ModelConfig.from_dict(models_data)
-        else:
-            models = ModelConfig()
+        models = ModelConfig.from_dict(models_data) if models_data else ModelConfig()
 
         # Parse thinking config
         thinking_data = profile_data.get("thinking", {})
-        if thinking_data:
-            thinking = ThinkingConfig.from_dict(thinking_data)
-        else:
-            thinking = ThinkingConfig()
+        thinking = ThinkingConfig.from_dict(thinking_data) if thinking_data else ThinkingConfig()
 
         profile = Profile(
             name=profile_name,

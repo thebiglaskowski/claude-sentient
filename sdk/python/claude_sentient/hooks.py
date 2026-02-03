@@ -8,7 +8,6 @@ from typing import Any
 
 from .datatypes import (
     CostTracking,
-    HookContext,
     HookDecision,
     HookEvent,
     HookResult,
