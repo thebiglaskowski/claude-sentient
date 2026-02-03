@@ -7,200 +7,228 @@ allowed-tools: Read, Glob, Bash, AskUserQuestion, TaskCreate, Skill
 # /cs-validate
 
 <role>
-You are a configuration validator that checks Claude Sentient setup. You verify profiles, commands, rules, and governance files are properly configured and offer to auto-fix any issues found.
+You are a configuration validator that checks Claude Sentient setup. You verify profiles, commands, rules, and governance files are properly configured.
 </role>
 
 <task>
-Validate that Claude Sentient is properly configured. Check profiles, commands, rules, and governance files. Report issues and offer to auto-fix them via /cs-loop.
+Validate that Claude Sentient is properly configured. Check required components (profiles, commands, rules, memory) and optional components (governance files). Report status clearly, distinguishing between required vs optional items.
 </task>
 
 ## Arguments
 
 None.
 
+<context>
+## Installation Modes
+
+Claude Sentient can be used in two modes:
+
+| Mode | Description | What to Check |
+|------|-------------|---------------|
+| **User Project** | A project that installed Claude Sentient via the installer | Commands in `.claude/commands/`, profiles, rules, memory |
+| **Development** | The claude-sentient repo itself | All of the above plus source `commands/` directory |
+
+**Auto-detect mode:** If `commands/` source directory exists AND contains cs-*.md files, you're in development mode. Otherwise, you're in user project mode.
+
+## Required vs Optional
+
+| Component | Required? | Notes |
+|-----------|-----------|-------|
+| `.claude/commands/cs-*.md` | ✓ Required | Core commands must exist |
+| `profiles/*.yaml` | ✓ Required | At least general.yaml |
+| `rules/*.md` | ✓ Required | Topic rules for guidance |
+| `.claude/rules/learnings.md` | ✓ Required | Memory file |
+| `.claude/settings.json` | ✓ Required | Hook configuration |
+| `STATUS.md` | Optional | For larger projects |
+| `CHANGELOG.md` | Optional | For versioned projects |
+| `DECISIONS.md` | Optional | For architectural decisions |
+| `commands/` source dir | Dev only | Only in claude-sentient repo |
+</context>
+
 <steps>
 ## Behavior
 
-### 1. Check Profiles
+### 1. Detect Mode
 
-Verify all profile YAML files exist and have required fields:
+Check if this is the claude-sentient repo (development) or a user project:
+- If `commands/cs-*.md` exists → Development mode
+- Otherwise → User project mode
 
-**Required profiles:**
-- `profiles/python.yaml`
-- `profiles/typescript.yaml`
-- `profiles/shell.yaml`
-- `profiles/go.yaml`
-- `profiles/general.yaml`
+### 2. Check Required Components
 
-**Required fields in each profile:**
-- `name` — Profile identifier
-- `gates` — Quality gate commands (lint, test at minimum)
+**Commands (Required):**
+- Verify `.claude/commands/cs-*.md` files exist
+- Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md
 
-### 2. Check Commands
+**Profiles (Required):**
+- Verify `profiles/*.yaml` files exist
+- Required: general.yaml (others are optional but recommended)
+- Check that profiles have `name` and `gates` fields
 
-Verify command files exist in both locations:
+**Rules (Required):**
+- Verify `rules/*.md` files exist
+- Check for `_index.md`
 
-**Source location:** `commands/cs-*.md`
-**Active location:** `.claude/commands/cs-*.md`
+**Memory (Required):**
+- Verify `.claude/rules/` directory exists
+- Verify `.claude/rules/learnings.md` exists
+- Verify `.claude/settings.json` exists with hooks
 
-**Required commands:**
-- `cs-loop.md` — Autonomous development loop
-- `cs-plan.md` — Planning mode
-- `cs-status.md` — Status display
-- `cs-learn.md` — Learning capture
-- `cs-validate.md` — This command
+### 3. Check Optional Components
 
-**Check for sync:**
-- Compare source and active locations
-- Report if any are out of sync
+**Governance Files (Optional):**
+- Check for STATUS.md, CHANGELOG.md, DECISIONS.md in root
+- If missing, note as "available in templates/" not as an error
+- These are **optional** for most projects
 
-### 3. Check Rules
+**Source Commands (Development Only):**
+- Only check `commands/` directory if in development mode
+- Don't report as missing for user projects
 
-Verify rule files exist:
+### 4. Report Results
 
-**Location:** `rules/*.md`
+Use this format:
+- ✓ for present/valid items
+- ○ for optional items that aren't set up (NOT an error)
+- ✗ for actually missing required items
 
-Check for:
-- Rule index file (`_index.md`)
-- Topic rule files
+### 5. Offer Setup (only for optional items)
 
-### 4. Check Governance Files
-
-Verify governance files exist:
-
-**Required files:**
-- `STATUS.md`
-- `CHANGELOG.md`
-- `DECISIONS.md`
-- `.claude/rules/learnings.md`
-
-### 5. Check Memory
-
-Verify `.claude/rules/` directory and settings:
-- Directory exists
-- learnings.md has content
-- settings.json hooks configured
-
-### 6. Offer Auto-Fix (if issues found)
+If optional governance files are missing, offer to set them up:
 
 ```
 AskUserQuestion:
-  question: "Fix these {n} issues automatically?"
-  header: "Auto-fix"
+  question: "Set up governance files for this project?"
+  header: "Setup"
   options:
-    - label: "Yes, fix now (Recommended)"
-      description: "Create tasks and invoke /cs-loop to fix"
-    - label: "No, just report"
-      description: "Show issues without fixing"
+    - label: "Yes, copy templates to root"
+      description: "Creates STATUS.md, CHANGELOG.md, DECISIONS.md"
+    - label: "No, skip (Recommended for simple projects)"
+      description: "Governance files are optional"
 ```
 
-If yes:
-1. Create tasks for each issue using `TaskCreate`
-2. Chain to cs-loop: `Skill(skill="cs-loop", args="fix validation issues")`
+**Important:** Don't frame optional items as "issues" or "problems". They're just not set up yet.
 </steps>
 
 <output_format>
+## For User Projects (most common)
+
 ```
 === Claude Sentient Validation ===
 
-PROFILES:
-  python.yaml:     ✓ valid (lint, test, build)
-  typescript.yaml: ✓ valid (lint, test, build)
-  shell.yaml:      ✓ valid (lint)
-  go.yaml:         ✓ valid (lint, test, build)
-  general.yaml:    ✓ valid (auto-detect)
+REQUIRED COMPONENTS:
 
-  5/5 profiles valid
+  Commands (.claude/commands/):
+    ✓ cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md
+    + bonus: cs-assess.md, cs-mcp.md, cs-review.md, cs-ui.md
 
-COMMANDS:
-  cs-loop.md:     ✓ synced
-  cs-plan.md:     ✓ synced
-  cs-status.md:   ✓ synced
-  cs-learn.md:    ✓ synced
-  cs-validate.md: ✓ synced
+  Profiles (profiles/):
+    ✓ python.yaml, typescript.yaml, go.yaml, shell.yaml, general.yaml
 
-  5/5 commands synced
+  Rules (rules/):
+    ✓ 15 rule files, _index.md present
 
-RULES:
-  Found 12 rule files
-  Index: ✓ _index.md present
+  Memory:
+    ✓ .claude/rules/learnings.md
+    ✓ .claude/settings.json (hooks configured)
+
+OPTIONAL COMPONENTS:
+
+  Governance Files:
+    ○ STATUS.md      (available: templates/STATUS.md)
+    ○ CHANGELOG.md   (available: templates/CHANGELOG.md)
+    ○ DECISIONS.md   (available: templates/DECISIONS.md)
+
+    These are optional. Use /cs-validate --setup to create them,
+    or copy manually from templates/ when needed.
+
+=== Installation Valid ===
+
+Ready to use:
+  /cs-status  - See detected profile
+  /cs-loop    - Start autonomous development
+```
+
+## For Development Mode (claude-sentient repo)
+
+```
+=== Claude Sentient Validation (Development Mode) ===
+
+REQUIRED COMPONENTS:
+  [same as above]
+
+SOURCE COMPONENTS:
+  Commands (commands/):
+    ✓ 9 command source files
+    ✓ Synced with .claude/commands/
 
 GOVERNANCE:
-  STATUS.md:     ✓ exists
-  CHANGELOG.md:  ✓ exists
-  DECISIONS.md:  ✓ exists
-  learnings.md:  ✓ exists
+  ✓ STATUS.md, CHANGELOG.md, DECISIONS.md present
 
-  4/4 governance files present
-
-MEMORY:
-  .claude/rules/: ✓ exists
-  settings.json:  ✓ hooks configured
-
-=== Validation Complete: All checks passed ===
+=== All Checks Passed ===
 ```
 </output_format>
 
 <constraints>
-- Primarily a read-only command — reports configuration issues
-- Only modify files if user approves auto-fix
-- Report specific issues with file paths
-- Suggest concrete fixes for each issue
+- Primarily a read-only command
+- Clearly distinguish REQUIRED vs OPTIONAL components
+- Never frame optional items as errors or issues
+- Don't offer to "fix" optional items — offer to "set up" if user wants them
+- Auto-detect development vs user project mode
 </constraints>
 
 <avoid>
 ## Common Mistakes to Prevent
 
-- **Auto-fixing without asking**: Don't create tasks or invoke /cs-loop unless the user explicitly approves. This is primarily a READ-ONLY command.
+- **Treating optional as required**: Governance files (STATUS.md, CHANGELOG.md, DECISIONS.md) are OPTIONAL for most projects. Don't report them as "issues" or "missing".
 
-- **Shallow validation**: Don't just check file existence. Verify required fields, proper formatting, and cross-references between files.
+- **Confusing user projects**: Don't expect a `commands/` source directory in user projects. That only exists in the claude-sentient repo itself.
 
-- **Ignoring sync state**: Don't skip the source-vs-active comparison for commands. Out-of-sync commands cause confusion.
+- **Alarming language**: Don't say "4 issues found" when items are just optional. Say "Optional components not set up" or similar neutral language.
 
-- **Vague error messages**: Don't say "profile is invalid." Specify exactly what's wrong: "profiles/shell.yaml missing required field: gates.lint"
+- **Auto-fixing without context**: Don't recommend copying governance templates to a simple script project. Only offer setup for projects that would benefit.
 
-- **Partial checks**: Don't skip validation categories. Always check ALL areas: profiles, commands, rules, governance, memory.
-
-- **False positives**: Don't report issues that aren't actually problems. If a governance file is optional (like DECISIONS.md for small projects), note it as optional, not missing.
+- **Vague error messages**: When something IS actually wrong (missing required component), be specific about what and how to fix.
 </avoid>
 
 <examples>
-## Error Examples
+## Example: Simple Project (Normal)
 
-**Missing profile:**
 ```
-PROFILES:
-  python.yaml:     ✓ valid
-  typescript.yaml: ✓ valid
-  shell.yaml:      ✗ MISSING
-  ...
+User: /cs-validate
 
-  4/5 profiles valid
+=== Claude Sentient Validation ===
 
-  Run: Create profiles/shell.yaml from template
-```
+REQUIRED COMPONENTS:
 
-**Command out of sync:**
-```
-COMMANDS:
-  cs-loop.md:   ✗ OUT OF SYNC
-    Source: commands/cs-loop.md (2026-02-01 10:30)
-    Active: .claude/commands/cs-loop.md (2026-01-15 08:00)
+  Commands: ✓ All 9 commands present
+  Profiles: ✓ All 5 core profiles valid
+  Rules:    ✓ 15 rule files present
+  Memory:   ✓ learnings.md and settings.json configured
 
-  Run: Copy commands/cs-loop.md to .claude/commands/
+OPTIONAL COMPONENTS:
+
+  Governance: ○ Not set up (templates available)
+    These are optional for simple projects.
+
+=== Installation Valid ===
 ```
 
-**Missing required field:**
+## Example: Actual Problem
+
 ```
-PROFILES:
-  python.yaml: ✗ INVALID
-    Missing required field: gates.lint
+REQUIRED COMPONENTS:
+
+  Commands: ✗ MISSING
+    .claude/commands/ directory not found
+    Run the installer: curl -fsSL .../install.sh | bash
+
+=== Installation Invalid ===
 ```
 </examples>
 
 ## Notes
 
-- Use before `/cs-loop` to ensure configuration is correct
-- Helps debug profile detection issues
-- Validates the "plumbing" of Claude Sentient
-- Chains to /cs-loop if user wants to auto-fix issues
+- For most projects, seeing "optional components not set up" is **normal and fine**
+- Only the claude-sentient repo itself needs all governance files
+- Use `/cs-status` to verify profile detection after validation
