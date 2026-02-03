@@ -87,12 +87,12 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
-Write-Host '  .claude/commands/cs-*.md  - 9 commands'
-Write-Host '  .claude/hooks/*.js        - 10 hook scripts'
-Write-Host '  .claude/settings.json     - hook configuration'
-Write-Host '  profiles/*.yaml           - 10 profiles'
-Write-Host '  rules/*.md                - 15 topic rules'
-Write-Host '  templates/*.md            - 4 templates'
+Write-Host '  .claude/commands/cs-*.md  (9 commands)'
+Write-Host '  .claude/hooks/*.js        (11 hook scripts)'
+Write-Host '  .claude/settings.json     (hook configuration)'
+Write-Host '  profiles/*.yaml           (10 profiles)'
+Write-Host '  rules/*.md                (15 topic rules)'
+Write-Host '  templates/*.md            (4 templates)'
 Write-Host '  .claude/rules/learnings.md'
 Write-Host ""
 Write-Host "Next steps:"
