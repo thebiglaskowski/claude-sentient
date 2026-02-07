@@ -7,7 +7,7 @@
  */
 
 const path = require('path');
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILE_CHANGES } = require('./utils');
 
 // Parse input from hook
 const parsed = parseHookInput();
@@ -39,9 +39,9 @@ if (existingIndex >= 0) {
     changes.push(changeEntry);
 }
 
-// Keep only last 100 changes
-if (changes.length > 100) {
-    changes = changes.slice(-100);
+// Keep only last N changes
+if (changes.length > MAX_FILE_CHANGES) {
+    changes = changes.slice(-MAX_FILE_CHANGES);
 }
 
 saveState('file_changes.json', changes);

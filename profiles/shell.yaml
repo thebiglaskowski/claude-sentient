@@ -3,6 +3,30 @@
 
 name: shell
 version: "1.0"
+description: "Shell and PowerShell projects using shellcheck and PSScriptAnalyzer for linting"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus
+  exploration: haiku
+  security: opus
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - security
+    - pipeline-design
+    - error-handling
 
 # How to detect this profile
 detection:
@@ -19,7 +43,7 @@ detection:
 gates:
   lint:
     command: shellcheck **/*.sh
-    powershell_command: Invoke-ScriptAnalyzer -Path . -Recurse
+    alternative: Invoke-ScriptAnalyzer -Path . -Recurse
     description: Check shell script quality
 
   test:

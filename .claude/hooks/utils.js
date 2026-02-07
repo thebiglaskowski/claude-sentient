@@ -12,6 +12,13 @@
 const fs = require('fs');
 const path = require('path');
 
+// Named constants for state management limits
+const MAX_PROMPT_HISTORY = 50;
+const MAX_FILE_CHANGES = 100;
+const MAX_RESULT_LENGTH = 500;
+const MAX_BACKUPS = 10;
+const MAX_AGENT_HISTORY = 50;
+
 /**
  * Ensure the .claude/state directory exists
  * @returns {string} Path to the state directory
@@ -133,4 +140,9 @@ module.exports = {
     getStateFilePath,
     loadState,
     saveState,
+    MAX_PROMPT_HISTORY,
+    MAX_FILE_CHANGES,
+    MAX_RESULT_LENGTH,
+    MAX_BACKUPS,
+    MAX_AGENT_HISTORY,
 };

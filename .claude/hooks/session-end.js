@@ -8,9 +8,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath } = require('./utils');
 
 const stateDir = path.join(process.cwd(), '.claude', 'state');
-const sessionFile = path.join(stateDir, 'session_start.json');
 const archiveDir = path.join(stateDir, 'archive');
 
 // Ensure archive directory exists
@@ -19,14 +19,10 @@ if (!fs.existsSync(archiveDir)) {
 }
 
 // Read session start info
-let sessionInfo = {};
-if (fs.existsSync(sessionFile)) {
-    try {
-        sessionInfo = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
-    } catch (e) {
-        sessionInfo = { id: 'unknown', timestamp: new Date().toISOString() };
-    }
-}
+const sessionInfo = loadJsonFile(
+    getStateFilePath('session_start.json'),
+    { id: 'unknown', timestamp: new Date().toISOString() }
+);
 
 // Calculate session duration
 const startTime = sessionInfo.timestamp ? new Date(sessionInfo.timestamp) : new Date();
@@ -35,15 +31,7 @@ const durationMs = endTime - startTime;
 const durationMin = Math.round(durationMs / 60000);
 
 // Read file changes if tracked
-const changesFile = path.join(stateDir, 'file_changes.json');
-let fileChanges = [];
-if (fs.existsSync(changesFile)) {
-    try {
-        fileChanges = JSON.parse(fs.readFileSync(changesFile, 'utf8'));
-    } catch (e) {
-        // Ignore
-    }
-}
+const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
 
 // Create session archive
 const sessionEnd = {
@@ -56,9 +44,11 @@ const sessionEnd = {
 
 // Archive the session
 const archiveFile = path.join(archiveDir, `${sessionInfo.id || 'session'}.json`);
-fs.writeFileSync(archiveFile, JSON.stringify(sessionEnd, null, 2));
+saveJsonFile(archiveFile, sessionEnd);
 
 // Clean up current session files
+const sessionFile = getStateFilePath('session_start.json');
+const changesFile = getStateFilePath('file_changes.json');
 if (fs.existsSync(sessionFile)) {
     fs.unlinkSync(sessionFile);
 }
@@ -66,10 +56,8 @@ if (fs.existsSync(changesFile)) {
     fs.unlinkSync(changesFile);
 }
 
-// Append to session log
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-const logEntry = `[cs] ${endTime.toISOString().slice(0, 19)} SessionEnd id=${sessionInfo.id || 'unknown'} duration=${durationMin}min files=${fileChanges.length}\n`;
-fs.appendFileSync(logFile, logEntry);
+// Log the session end
+logMessage(`SessionEnd id=${sessionInfo.id || 'unknown'} duration=${durationMin}min files=${fileChanges.length}`);
 
 // Output summary
 const output = {

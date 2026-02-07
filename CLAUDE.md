@@ -128,6 +128,9 @@ Screenshot analysis for UI/UX and debugging:
 # Review a pull request
 /cs-review 42
 
+# Create nested CLAUDE.md architecture
+/cs-init
+
 # UI/UX audit (web projects)
 /cs-ui
 ```
@@ -203,6 +206,7 @@ Before committing, these must pass:
 | `/cs-mcp [--test] [--fix]` | Check, register, and validate MCP servers |
 | `/cs-review [PR]` | Review a pull request |
 | `/cs-assess [dir] [--ultrathink]` | Full codebase health audit (6+ dimensions) |
+| `/cs-init [dir]` | Create/optimize nested CLAUDE.md architecture |
 | `/cs-ui [dir] [--full]` | UI/UX audit for web projects |
 
 ### Skill Chaining
@@ -214,6 +218,8 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-plan` | `/cs-loop` | After plan approval, user chooses to execute |
 | `/cs-status` | `/cs-loop` | When pending tasks exist, user chooses to continue |
 | `/cs-validate` | `/cs-loop` | When issues found, user chooses to auto-fix |
+| `/cs-loop` | `/cs-init` | When no CLAUDE.md detected during INIT |
+| `/cs-init` | `/cs-loop` | After creating CLAUDE.md, user chooses to start working |
 
 ---
 

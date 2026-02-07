@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, MAX_BACKUPS } = require('./utils');
 
 const stateDir = path.join(process.cwd(), '.claude', 'state');
 const backupDir = path.join(stateDir, 'backups');
@@ -24,8 +25,7 @@ const filesToBackup = [
     'session_start.json',
     'file_changes.json',
     'active_agents.json',
-    'prompts.json',
-    'cost_tracking.json'
+    'prompts.json'
 ];
 
 const backedUp = [];
@@ -47,18 +47,18 @@ for (const file of filesToBackup) {
 // Write backup bundle
 if (backedUp.length > 0) {
     const backupFile = path.join(backupDir, `pre-compact-${timestamp}.json`);
-    fs.writeFileSync(backupFile, JSON.stringify({
+    saveJsonFile(backupFile, {
         timestamp: new Date().toISOString(),
         files: backupBundle
-    }, null, 2));
+    });
 
-    // Clean up old backups (keep last 10)
+    // Clean up old backups (keep last N)
     const backups = fs.readdirSync(backupDir)
         .filter(f => f.startsWith('pre-compact-'))
         .sort()
         .reverse();
 
-    for (let i = 10; i < backups.length; i++) {
+    for (let i = MAX_BACKUPS; i < backups.length; i++) {
         try {
             fs.unlinkSync(path.join(backupDir, backups[i]));
         } catch (e) {
@@ -68,13 +68,7 @@ if (backedUp.length > 0) {
 }
 
 // Log the backup
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-const logEntry = `[cs] ${new Date().toISOString().slice(0, 19)} PreCompact backup created: ${backedUp.length} files\n`;
-try {
-    fs.appendFileSync(logFile, logEntry);
-} catch (e) {
-    // Ignore
-}
+logMessage(`PreCompact backup created: ${backedUp.length} files`);
 
 // Output
 const output = {

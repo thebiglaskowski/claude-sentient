@@ -45,8 +45,9 @@ New-Item -ItemType Directory -Force -Path ".claude/commands" | Out-Null
 Copy-Item "$TempDir/.claude/commands/cs-*.md" -Destination ".claude/commands/" -Force
 
 Write-Host "Installing profiles..."
-New-Item -ItemType Directory -Force -Path "profiles" | Out-Null
+New-Item -ItemType Directory -Force -Path "profiles/__tests__" | Out-Null
 Copy-Item "$TempDir/profiles/*.yaml" -Destination "profiles/" -Force
+Copy-Item "$TempDir/profiles/__tests__/*.js" -Destination "profiles/__tests__/" -Force
 
 Write-Host "Installing rules..."
 New-Item -ItemType Directory -Force -Path "rules" | Out-Null
@@ -58,10 +59,11 @@ Copy-Item "$TempDir/templates/*.md" -Destination "templates/" -Force
 Copy-Item "$TempDir/templates/settings.json" -Destination "templates/" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Installing hooks..."
-New-Item -ItemType Directory -Force -Path ".claude/hooks" | Out-Null
+New-Item -ItemType Directory -Force -Path ".claude/hooks/__tests__" | Out-Null
 Copy-Item "$TempDir/.claude/hooks/*.js" -Destination ".claude/hooks/" -Force
 Copy-Item "$TempDir/.claude/hooks/README.md" -Destination ".claude/hooks/" -Force
-Write-Host "  Installed hook scripts"
+Copy-Item "$TempDir/.claude/hooks/__tests__/*.js" -Destination ".claude/hooks/__tests__/" -Force
+Write-Host "  Installed hook scripts + tests"
 
 Write-Host "Installing settings..."
 if (-not (Test-Path ".claude/settings.json")) {
@@ -100,12 +102,14 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
-Write-Host '  .claude/commands/cs-*.md  (9 commands)'
-Write-Host '  .claude/hooks/*.js        (11 hook scripts)'
-Write-Host '  .claude/settings.json     (hook configuration)'
-Write-Host '  profiles/*.yaml           (10 profiles)'
-Write-Host '  rules/*.md                (15 topic rules)'
-Write-Host '  templates/*.md            (4 templates)'
+Write-Host '  .claude/commands/cs-*.md       (10 commands)'
+Write-Host '  .claude/hooks/*.js             (11 hook scripts)'
+Write-Host '  .claude/hooks/__tests__/       (68 hook tests)'
+Write-Host '  .claude/settings.json          (hook configuration)'
+Write-Host '  profiles/*.yaml                (9 profiles + schema)'
+Write-Host '  profiles/__tests__/            (203 profile tests)'
+Write-Host '  rules/*.md                     (15 topic rules)'
+Write-Host '  templates/*.md                 (4 templates)'
 Write-Host '  .claude/rules/learnings.md'
 Write-Host ""
 Write-Host "Next steps:"

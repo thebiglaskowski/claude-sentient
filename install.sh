@@ -38,8 +38,9 @@ mkdir -p .claude/commands
 cp "$TEMP_DIR"/.claude/commands/cs-*.md .claude/commands/
 
 echo "Installing profiles..."
-mkdir -p profiles
+mkdir -p profiles/__tests__
 cp "$TEMP_DIR"/profiles/*.yaml profiles/
+cp "$TEMP_DIR"/profiles/__tests__/*.js profiles/__tests__/
 
 echo "Installing rules..."
 mkdir -p rules
@@ -51,10 +52,11 @@ cp "$TEMP_DIR"/templates/*.md templates/
 cp "$TEMP_DIR"/templates/settings.json templates/ 2>/dev/null || true
 
 echo "Installing hooks..."
-mkdir -p .claude/hooks
+mkdir -p .claude/hooks/__tests__
 cp "$TEMP_DIR"/.claude/hooks/*.js .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/README.md .claude/hooks/
-echo "  Installed hook scripts"
+cp "$TEMP_DIR"/.claude/hooks/__tests__/*.js .claude/hooks/__tests__/
+echo "  Installed hook scripts + tests"
 
 echo "Installing settings..."
 if [ ! -f ".claude/settings.json" ]; then
@@ -80,12 +82,14 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
-echo "  .claude/commands/cs-*.md  (9 commands)"
-echo "  .claude/hooks/*.js        (11 hook scripts)"
-echo "  .claude/settings.json     (hook configuration)"
-echo "  profiles/*.yaml           (10 profiles)"
-echo "  rules/*.md                (15 topic rules)"
-echo "  templates/*.md            (4 templates)"
+echo "  .claude/commands/cs-*.md       (10 commands)"
+echo "  .claude/hooks/*.js             (11 hook scripts)"
+echo "  .claude/hooks/__tests__/       (68 hook tests)"
+echo "  .claude/settings.json          (hook configuration)"
+echo "  profiles/*.yaml                (9 profiles + schema)"
+echo "  profiles/__tests__/            (203 profile tests)"
+echo "  rules/*.md                     (15 topic rules)"
+echo "  templates/*.md                 (4 templates)"
 echo "  .claude/rules/learnings.md"
 echo ""
 echo "Next steps:"

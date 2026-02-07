@@ -3,6 +3,7 @@
 
 name: python
 version: "1.2"
+description: "Python projects using ruff for linting, pytest for testing, and pyright for type checking"
 
 # Model routing configuration
 models:

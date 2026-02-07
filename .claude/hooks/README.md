@@ -28,7 +28,7 @@ Hooks read/write to `.claude/state/`:
 | `active_agents.json` | Currently running subagents |
 | `agent_history.json` | Completed subagent history |
 | `prompts.json` | Recent prompt metadata |
-| `cost_tracking.json` | Cost per phase/agent |
+| `cost_tracking.json` | Cost per phase/agent (planned, not yet implemented) |
 | `last_verification.json` | Last DoD verification |
 
 ## Security

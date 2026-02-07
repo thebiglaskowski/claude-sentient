@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -69,12 +69,14 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 9 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 10 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
-| 📏 Rules | 14 | Topic-specific standards |
+| 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
+| 🎣 Hooks | 11 | Session lifecycle, security, tracking |
+| 🧪 Tests | 271 | Hook tests (68) + Profile tests (203) |
 
 ---
 
@@ -90,6 +92,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | `/cs-mcp` | Check, register, and validate MCP servers | [MCP Integration](CLAUDE.md#mcp-server-integration) |
 | `/cs-review` | Review pull requests with automated analysis | [Command](.claude/commands/cs-review.md) |
 | `/cs-assess` | Full codebase health audit (6+ dimensions) | [Command](.claude/commands/cs-assess.md) |
+| `/cs-init` | Create/optimize nested CLAUDE.md architecture | [Command](.claude/commands/cs-init.md) |
 | `/cs-ui` | UI/UX audit for web projects | [Command](.claude/commands/cs-ui.md) |
 
 ---
@@ -105,7 +108,7 @@ Sentient auto-detects your project type and loads appropriate tooling. See [`pro
 | Go | `go.mod`, `*.go` | golangci-lint, go test | [go.yaml](profiles/go.yaml) |
 | Rust | `Cargo.toml` | clippy, cargo test | [rust.yaml](profiles/rust.yaml) |
 | Java | `pom.xml`, `build.gradle` | checkstyle, JUnit | [java.yaml](profiles/java.yaml) |
-| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest | [c-cpp.yaml](profiles/c-cpp.yaml) |
+| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest | [cpp.yaml](profiles/cpp.yaml) |
 | Ruby | `Gemfile` | rubocop, rspec | [ruby.yaml](profiles/ruby.yaml) |
 | Shell | `*.sh`, `*.ps1` | shellcheck | [shell.yaml](profiles/shell.yaml) |
 | General | (fallback) | auto-detect | [general.yaml](profiles/general.yaml) |
@@ -273,11 +276,13 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 9 slash commands
+│   ├── commands/cs-*.md    # 10 slash commands
+│   ├── hooks/*.js          # 11 hook scripts (security, tracking)
+│   ├── settings.json       # Hook configuration
 │   └── rules/learnings.md  # Persistent memory
-├── profiles/*.yaml          # 9 language profiles
+├── profiles/*.yaml          # 9 language profiles + schema
 ├── templates/*.md           # Governance templates
-└── rules/*.md               # 14 topic rules
+└── rules/*.md               # 15 topic rules
 ```
 
 ---
@@ -381,7 +386,22 @@ your-project/
 # - Provides before/after code examples
 ```
 
-### Workflow 8: MCP Server Setup
+### Workflow 8: Context Architecture
+
+```bash
+# Create CLAUDE.md for a new project
+/cs-init
+
+# Claude analyzes project, detects tech stack, creates:
+# - Root CLAUDE.md (overview, quality philosophy, tech stack)
+# - Nested CLAUDE.md files for significant directories
+# - Zero-tolerance quality philosophy injected by default
+
+# Or optimize an existing monolithic CLAUDE.md
+/cs-init  # Detects existing CLAUDE.md, offers to split into nested files
+```
+
+### Workflow 9: MCP Server Setup
 
 ```bash
 # First time setup
@@ -393,6 +413,43 @@ your-project/
 # - Link commits to GitHub issues
 # - Search prior decisions from Memory
 ```
+
+---
+
+## 🎣 Hooks
+
+Claude Sentient includes 11 hook scripts that integrate with Claude Code's hook system:
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `session-start.js` | SessionStart | Initialize session, detect profile, create state |
+| `session-end.js` | SessionEnd | Archive session, cleanup state files |
+| `context-injector.js` | UserPromptSubmit | Detect topics (auth, test, API), inject context |
+| `bash-validator.js` | PreToolUse (Bash) | Block dangerous commands (`rm -rf /`, fork bombs) |
+| `file-validator.js` | PreToolUse (Write/Edit) | Protect system paths, SSH keys, credentials |
+| `post-edit.js` | PostToolUse (Write/Edit) | Track file changes, suggest lint |
+| `agent-tracker.js` | SubagentStart | Track subagent spawning |
+| `agent-synthesizer.js` | SubagentStop | Synthesize agent results, record history |
+| `pre-compact.js` | PreCompact | Backup state before context compaction |
+| `dod-verifier.js` | Stop | Verify Definition of Done, save final state |
+
+Hooks are configured in `.claude/settings.json` and installed automatically.
+
+---
+
+## 🧪 Tests
+
+Two test suites validate the hook and profile systems:
+
+```bash
+# Hook tests (68 tests) — security patterns, I/O contracts, error handling
+node .claude/hooks/__tests__/test-hooks.js
+
+# Profile validation (203 tests) — schema compliance, cross-profile consistency
+node profiles/__tests__/test-profiles.js
+```
+
+Both test suites use Node.js built-in `assert` — no dependencies required.
 
 ---
 

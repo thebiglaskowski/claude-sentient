@@ -3,6 +3,7 @@
 
 name: general
 version: "1.1"
+description: "General fallback profile with auto-detection of common linters, test runners, and build tools"
 
 # Model routing configuration
 models:

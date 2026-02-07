@@ -6,51 +6,65 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [0.4.0] — 2026-02-07
 
 ### Added
+- `/cs-init` command — Create or optimize nested CLAUDE.md context architecture
+  - Auto-detects project tech stack, monorepo structure, significant directories
+  - Create mode (no CLAUDE.md) and optimize mode (split monolithic CLAUDE.md)
+  - Injects zero-tolerance quality philosophy into every project
+  - Nested CLAUDE.md files for components, API, tests, packages
+- `/cs-loop` INIT phase now checks for CLAUDE.md and suggests `/cs-init` if missing
+- **Hook system** — 11 JavaScript hooks for Claude Code lifecycle events
+  - `bash-validator.js` — blocks dangerous commands (rm -rf /, fork bombs, etc.)
+  - `file-validator.js` — protects system paths, SSH keys, credentials
+  - `context-injector.js` — detects topics and injects relevant context
+  - `session-start.js` / `session-end.js` — session lifecycle management
+  - `post-edit.js` — tracks file changes, suggests lint
+  - `agent-tracker.js` / `agent-synthesizer.js` — subagent tracking
+  - `pre-compact.js` — state backup before context compaction
+  - `dod-verifier.js` — Definition of Done verification
+  - Shared `utils.js` with named constants and common I/O functions
+- **Hook test suite** — 68 tests covering all hooks (`.claude/hooks/__tests__/test-hooks.js`)
+  - Security: 12 bash-validator tests (blocking dangerous commands)
+  - Protection: 8 file-validator tests (protected paths, sensitive files)
+  - Lifecycle: session-start, session-end, pre-compact tests
+  - Tracking: post-edit, agent-tracker, agent-synthesizer tests
+- **Profile validation test suite** — 203 tests (`profiles/__tests__/test-profiles.js`)
+  - Schema compliance for all 9 profiles
+  - Required fields, gate structure, models/thinking config
+  - Cross-profile consistency checks
+  - Non-standard gate key detection
 - **Claude Agent SDK Integration** (`sdk/`)
-  - Python SDK (`sdk/python/`) - `pip install claude-sentient`
-  - TypeScript SDK (`sdk/typescript/`) - `npm install @claude-sentient/sdk`
+  - Python SDK (`sdk/python/`) — `pip install claude-sentient`
+  - TypeScript SDK (`sdk/typescript/`) — `npm install @claude-sentient/sdk`
   - Session persistence across terminal closures
   - Programmatic orchestration via `ClaudeSentient` class
-  - Quality gate hooks for automated lint/test enforcement
-  - Profile detection and loading
-  - Subagent definitions for specialized tasks
-- Rust profile (`profiles/rust.yaml`) - clippy, cargo test
-- Java profile (`profiles/java.yaml`) - checkstyle, JUnit, maven/gradle
-- C/C++ profile (`profiles/cpp.yaml`) - clang-tidy, ctest, cmake
-- Ruby profile (`profiles/ruby.yaml`) - rubocop, rspec
+  - Quality gate hooks, profile detection, subagent definitions
+  - `ClaudeSentientClient` for continuous multi-turn conversations
+  - Sandbox configuration, file checkpointing, budget control
+- Model routing configuration in all profiles (haiku/sonnet/opus by phase)
+- Extended thinking configuration in all profiles
+- Web project detection (`web_indicators`) in all applicable profiles
+- Rust, Java, C/C++, Ruby profiles
 - `install.sh` and `install.ps1` installer scripts
-- `/cs-mcp` command to check, register, and validate MCP servers
-  - `--test` flag to test each connected server with real API calls
-  - `--fix` flag to auto-register servers from settings.json that aren't in `claude mcp`
-  - Uses `claude mcp add-json` for servers with env vars (more reliable than `-e` flag)
+- `/cs-mcp` command for MCP server management
 
 ### Changed
-- Simplified `/cs-loop` command from 320 to 106 lines (67% reduction)
-- Profiles: 5 → 9
-- One-line install commands in README
-- `/cs-validate` command to check profiles, commands, rules, and governance
-- Self-improvement instruction in CLAUDE.md (Boris Cherny pattern)
-- Claude now proposes rule updates when corrected by user
-- Updated learnings.md template with self-improvement guidance
-- Go profile (`profiles/go.profile.yaml`) for Go projects
-- Shell profile (`profiles/shell.yaml`) for bash/PowerShell scripts
-- 12 topic rules in `rules/` (security, testing, api-design, etc.)
-- Auto-rule loading based on task keywords in `/cs-loop`
-- Auto-STATUS.md updates in `/cs-loop` COMMIT phase
-- Auto-CHANGELOG prompts for `feat:` and `fix:` commits
-- Documentation policy with automation levels in CLAUDE.md
-- Commands now in `.claude/commands/` for Claude Code recognition
-- DEC-011: Self-Improvement via CLAUDE.md Updates
-- DEC-012: Claude Agent SDK Integration
-
-### Changed
-- `/cs-loop` INIT phase now loads rules based on task keywords
-- `/cs-loop` COMMIT phase now auto-updates governance files
-- README.md updated with all 5 profiles
-- Profiles count: 3 → 5
+- Standardized gate command keys across all profiles (`command`/`alternative` pattern)
+  - Java: `maven_command`/`gradle_command` → `command`/`alternative`
+  - C++: `cmake_command`/`make_command` → `command`/`alternative`
+  - Shell: `powershell_command` → `alternative`
+- Extracted `_make_error_result()` in orchestrator.py to reduce duplication
+- Simplified TypeScript SDK profile loading architecture
+- Fixed state.schema.json phase enum (v1 → v2 phase names)
+- Fixed Python SDK PermissionResult type (conditional union type)
+- Hooks now use shared `utils.js` for all JSON I/O and logging
+- All profiles now have `description`, `models`, `thinking` sections
+- Removed phantom `cost_tracking.json` reference from pre-compact hook
+- Deleted duplicate tools from archive (migrate.py, render-state.py, validate.py)
+- Profiles: 5 → 9, Commands: 4 → 10, Rules: 12 → 15
+- README.md comprehensively updated with hooks, tests, workflows
 
 ---
 
@@ -119,6 +133,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.4.0 | 2026-02-07 | Hooks, tests, /cs-init, SDK integration, 10 commands, 9 profiles |
 | 0.2.0 | 2026-02-01 | Native-first pivot, 4 commands, 3 profiles |
 | 0.1.0 | 2026-02-01 | Foundation, memory pattern, simplified scope |
 | 0.0.1 | 2026-02-01 | Initial setup |

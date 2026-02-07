@@ -3,6 +3,32 @@
 
 name: java
 version: "1.0"
+description: "Java projects using checkstyle for linting and JUnit for testing, with Maven or Gradle build support"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - dependency-injection
+    - orm-design
+    - api-design
 
 # How to detect this profile
 detection:
@@ -17,18 +43,18 @@ detection:
 # Quality gate commands
 gates:
   lint:
-    maven_command: mvn checkstyle:check
-    gradle_command: ./gradlew checkstyleMain
+    command: mvn checkstyle:check
+    alternative: ./gradlew checkstyleMain
     description: Check code style
 
   test:
-    maven_command: mvn test
-    gradle_command: ./gradlew test
+    command: mvn test
+    alternative: ./gradlew test
     description: Run test suite
 
   build:
-    maven_command: mvn compile
-    gradle_command: ./gradlew build
+    command: mvn compile
+    alternative: ./gradlew build
     description: Build project
 
   format:
@@ -62,6 +88,19 @@ patterns:
 
   - name: micronaut
     indicator: micronaut
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  files:
+    - src/main/resources/templates/
+    - src/main/resources/static/
+  patterns:
+    - "@SpringBootApplication"
+    - "@Controller"
+    - "@RestController"
+    - "javax.servlet"
+    - "jakarta.servlet"
+  auto_rules: [ui-ux-design]
 
 # Conventions
 conventions:

@@ -3,6 +3,7 @@
 
 name: go
 version: "1.1"
+description: "Go projects using golangci-lint for linting and go test for testing"
 
 # Model routing configuration
 models:
@@ -83,6 +84,16 @@ patterns:
 
   - name: echo
     indicator: "github.com/labstack/echo"
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  patterns:
+    - "github.com/gin-gonic/gin"
+    - "github.com/labstack/echo"
+    - "github.com/gofiber/fiber"
+    - "net/http"
+    - "html/template"
+  auto_rules: [ui-ux-design]
 
 # Conventions
 conventions:

@@ -45,7 +45,9 @@ from .profiles import ProfileLoader
 from .session import SessionManager, SessionState
 
 # Type aliases for permission callbacks
-PermissionResult = Any  # Union[PermissionResultAllow, PermissionResultDeny]
+# When Agent SDK is available, this is Union[PermissionResultAllow, PermissionResultDeny]
+# When unavailable, falls back to Any for forward-compatible type hints
+PermissionResult = PermissionResultAllow | PermissionResultDeny if AGENT_SDK_AVAILABLE else Any
 CanUseTool = Callable[[str, dict[str, Any], Any], Awaitable[PermissionResult]]
 HookCallback = Callable[[dict[str, Any], str | None, Any], Awaitable[dict[str, Any]]]
 
@@ -245,19 +247,7 @@ class ClaudeSentient:
                 yield await self._run_simulation(task, max_iterations)
 
         except Exception as e:
-            yield LoopResult(
-                success=False,
-                session_id=self.session_id,
-                phase="error",
-                iteration=0,
-                tasks_completed=0,
-                tasks_remaining=0,
-                gates_passed={},
-                commit_hash=None,
-                duration_ms=0,
-                cost_usd=0,
-                message=str(e),
-            )
+            yield self._make_error_result(str(e))
 
     def _build_sdk_agents(self) -> dict[str, dict[str, Any]]:
         """Build SDK-compatible agent definitions.
@@ -417,6 +407,29 @@ class ClaudeSentient:
             )
         return current_phase, tasks_completed, total_cost_usd
 
+    def _make_error_result(
+        self,
+        error: str,
+        iteration: int = 0,
+        tasks_completed: int = 0,
+        cost_usd: float = 0.0,
+        duration_ms: float = 0.0,
+    ) -> LoopResult:
+        """Create a LoopResult for error conditions."""
+        return LoopResult(
+            success=False,
+            session_id=self.session_id or "",
+            phase="error",
+            iteration=iteration,
+            tasks_completed=tasks_completed,
+            tasks_remaining=0,
+            gates_passed={},
+            commit_hash=None,
+            duration_ms=duration_ms,
+            cost_usd=cost_usd,
+            message=error,
+        )
+
     async def _run_with_agent_sdk(
         self,
         task: str,
@@ -478,18 +491,12 @@ class ClaudeSentient:
             self._total_cost_usd = total_cost_usd
 
         except Exception as e:
-            yield LoopResult(
-                success=False,
-                session_id=self.session_id or "",
-                phase="error",
+            yield self._make_error_result(
+                error=f"Error: {e}",
                 iteration=iteration,
                 tasks_completed=tasks_completed,
-                tasks_remaining=0,
-                gates_passed={},
-                commit_hash=None,
-                duration_ms=(time.time() - start_time) * 1000,
                 cost_usd=total_cost_usd,
-                message=f"Error: {str(e)}",
+                duration_ms=(time.time() - start_time) * 1000,
             )
 
     # Valid phase transitions for the autonomous loop

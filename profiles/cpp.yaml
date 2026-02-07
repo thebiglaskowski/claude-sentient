@@ -3,6 +3,32 @@
 
 name: cpp
 version: "1.0"
+description: "C/C++ projects using clang-tidy for linting, ctest for testing, and cmake/make for building"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - memory-management
+    - concurrency
+    - template-metaprogramming
 
 # How to detect this profile
 detection:
@@ -30,8 +56,8 @@ gates:
     description: Run test suite
 
   build:
-    cmake_command: cmake --build build
-    make_command: make
+    command: cmake --build build
+    alternative: make
     description: Build project
 
   format:

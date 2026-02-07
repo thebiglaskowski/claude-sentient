@@ -6,32 +6,16 @@
  * Injects relevant context based on prompt content.
  */
 
-const fs = require('fs');
-const path = require('path');
-
-const stateDir = path.join(process.cwd(), '.claude', 'state');
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
-
-// Ensure state directory exists
-if (!fs.existsSync(stateDir)) {
-    fs.mkdirSync(stateDir, { recursive: true });
-}
-
-// Get current timestamp
-const timestamp = new Date().toISOString();
+const { parseHookInput, loadState, saveState, logMessage, MAX_PROMPT_HISTORY } = require('./utils');
 
 // Log the prompt submission
-const logEntry = `[cs] ${timestamp.slice(0, 19)} Prompt received\n`;
-fs.appendFileSync(logFile, logEntry);
+logMessage('Prompt received');
 
-// Read prompt from stdin if available (hook receives tool input)
+// Read prompt from hook input
 let promptText = '';
 try {
-    const input = process.env.HOOK_INPUT;
-    if (input) {
-        const parsed = JSON.parse(input);
-        promptText = parsed.prompt || parsed.content || '';
-    }
+    const parsed = parseHookInput();
+    promptText = parsed.prompt || parsed.content || '';
 } catch (e) {
     // No input available
 }
@@ -61,27 +45,19 @@ for (const [topic, words] of Object.entries(keywords)) {
 
 // Track prompt metadata
 const promptMeta = {
-    timestamp,
+    timestamp: new Date().toISOString(),
     topics: detectedTopics,
     length: promptText.length
 };
 
 // Save to state for later analysis
-const promptsFile = path.join(stateDir, 'prompts.json');
-let prompts = [];
-if (fs.existsSync(promptsFile)) {
-    try {
-        prompts = JSON.parse(fs.readFileSync(promptsFile, 'utf8'));
-    } catch (e) {
-        prompts = [];
-    }
-}
+let prompts = loadState('prompts.json', []);
 prompts.push(promptMeta);
-// Keep only last 50 prompts
-if (prompts.length > 50) {
-    prompts = prompts.slice(-50);
+// Keep only last N prompts
+if (prompts.length > MAX_PROMPT_HISTORY) {
+    prompts = prompts.slice(-MAX_PROMPT_HISTORY);
 }
-fs.writeFileSync(promptsFile, JSON.stringify(prompts, null, 2));
+saveState('prompts.json', prompts);
 
 // Output (continue execution)
 const output = {

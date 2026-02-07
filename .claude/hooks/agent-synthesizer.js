@@ -6,13 +6,13 @@
  * Synthesizes results and updates cost tracking.
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_RESULT_LENGTH, MAX_AGENT_HISTORY } = require('./utils');
 
 // Parse input from hook
 const parsed = parseHookInput();
 const agentId = parsed.agent_id || parsed.task_id || '';
 const success = parsed.success !== false;
-const resultSummary = parsed.result_summary || parsed.output?.substring(0, 500) || '';
+const resultSummary = parsed.result_summary || parsed.output?.substring(0, MAX_RESULT_LENGTH) || '';
 
 // Load active agents
 const activeAgents = loadState('active_agents.json', {});
@@ -36,16 +36,16 @@ const historyEntry = {
     endTime: endTime.toISOString(),
     durationSeconds: durationSec,
     success,
-    resultSummary: resultSummary.substring(0, 500)
+    resultSummary: resultSummary.substring(0, MAX_RESULT_LENGTH)
 };
 
 // Load and update history
 let history = loadState('agent_history.json', []);
 history.push(historyEntry);
 
-// Keep only last 50 entries
-if (history.length > 50) {
-    history = history.slice(-50);
+// Keep only last N entries
+if (history.length > MAX_AGENT_HISTORY) {
+    history = history.slice(-MAX_AGENT_HISTORY);
 }
 saveState('agent_history.json', history);
 

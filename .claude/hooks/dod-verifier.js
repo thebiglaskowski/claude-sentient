@@ -6,32 +6,15 @@
  * Verifies that quality gates passed and DoD is met.
  */
 
-const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-
-const stateDir = path.join(process.cwd(), '.claude', 'state');
-const logFile = path.join(process.cwd(), '.claude', 'session.log');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath } = require('./utils');
 
 // Log session end
-const timestamp = new Date().toISOString();
-const logEntry = `[cs] ${timestamp.slice(0, 19)} Session ended\n`;
-try {
-    fs.appendFileSync(logFile, logEntry);
-} catch (e) {
-    // Ignore
-}
+logMessage('Session ended');
 
 // Read file changes to determine what was worked on
-const changesFile = path.join(stateDir, 'file_changes.json');
-let fileChanges = [];
-if (fs.existsSync(changesFile)) {
-    try {
-        fileChanges = JSON.parse(fs.readFileSync(changesFile, 'utf8'));
-    } catch (e) {
-        // Ignore
-    }
-}
+const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
 
 // Categorize changes by type
 const changesByType = {
@@ -64,7 +47,7 @@ try {
 
 // Build verification summary
 const verification = {
-    timestamp,
+    timestamp: new Date().toISOString(),
     filesModified: fileChanges.length,
     changesByType: {
         python: changesByType.python.length,
@@ -94,8 +77,7 @@ if (changesByType.typescript.length > 0 || changesByType.javascript.length > 0) 
 }
 
 // Save verification to state
-const verificationFile = path.join(stateDir, 'last_verification.json');
-fs.writeFileSync(verificationFile, JSON.stringify(verification, null, 2));
+saveJsonFile(getStateFilePath('last_verification.json'), verification);
 
 // Output
 console.log(JSON.stringify(verification));

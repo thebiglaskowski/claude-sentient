@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://claude-conductor.dev/schemas/state.schema.json",
+  "$id": "https://claude-sentient.dev/schemas/state.schema.json",
   "title": "Loop State",
   "description": "Schema for the structured loop state",
   "type": "object",
@@ -28,7 +28,7 @@
     },
     "phase": {
       "type": "string",
-      "enum": ["classify", "contextualize", "assess", "plan", "execute", "verify", "quality", "checkpoint", "evaluate", "recover"],
+      "enum": ["init", "understand", "plan", "execute", "verify", "commit", "evaluate"],
       "description": "Current phase"
     },
     "status": {

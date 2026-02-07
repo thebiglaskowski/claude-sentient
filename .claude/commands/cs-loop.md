@@ -132,27 +132,30 @@ Gather all context needed for the task: profile, environment, rules, external da
 5. **Check governance files** — create from `templates/` if missing:
    - `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`
 
-6. **MCP: Context7** — Fetch library documentation:
+6. **Check for CLAUDE.md** — if no `CLAUDE.md` exists in the project root:
+   - Report: `[INIT] No CLAUDE.md found. Run /cs-init to create context architecture.`
+
+7. **MCP: Context7** — Fetch library documentation:
    - Scan task-related files for imports/dependencies
    - For each unfamiliar library: resolve-library-id → query-docs
    - Inject relevant docs into context
 
-7. **MCP: GitHub** — Load issue and PR context:
+8. **MCP: GitHub** — Load issue and PR context:
    - For issues (patterns: "fix #123", "closes #456"): Load requirements
    - For PRs (patterns: "review PR #42"): Load files, comments, reviews
    - For recent changes: List commits, summarize
 
-8. **MCP: Memory** — Search for relevant prior decisions:
+9. **MCP: Memory** — Search for relevant prior decisions:
    - Extract keywords from task description
    - Search nodes for matching decisions/patterns
    - Load and apply relevant context
 
-9. **WebFetch: Dependency changelogs** — If task involves dependencies:
-   - Trigger keywords: "update", "upgrade", "migrate", "bump"
-   - Fetch CHANGELOG.md or release notes
-   - Prevent breaking changes from surprising you
+10. **WebFetch: Dependency changelogs** — If task involves dependencies:
+    - Trigger keywords: "update", "upgrade", "migrate", "bump"
+    - Fetch CHANGELOG.md or release notes
+    - Prevent breaking changes from surprising you
 
-10. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
+11. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
 
 ### 2. UNDERSTAND
 

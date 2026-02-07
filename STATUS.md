@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-02
-> **Current Phase:** Phase 2 — Native Tools Integration
-> **Version:** 0.3.0
+> **Last Updated:** 2026-02-07
+> **Current Phase:** Phase 3 — Quality & Testing
+> **Version:** 0.4.0
 
 ---
 
@@ -16,7 +16,8 @@ Commands            [███████████████████�
 Profiles            [████████████████████] 100% ✓
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
-Testing             [████████████████████] 100% ✓ (SDK: 208 tests)
+Hooks               [████████████████████] 100% ✓ (11 hooks)
+Testing             [████████████████████] 100% ✓ (271 hook/profile + 208 SDK)
 ```
 
 ---
@@ -37,6 +38,7 @@ Testing             [███████████████████�
 - [x] `/cs-mcp` - Check/register/validate MCP servers
 - [x] `/cs-review` - Review pull requests with automated analysis
 - [x] `/cs-assess` - Full codebase health audit (6+ dimensions, ultrathink mode)
+- [x] `/cs-init` - Create/optimize nested CLAUDE.md context architecture
 - [x] `/cs-ui` - UI/UX audit for web projects (modern design, accessibility)
 
 ### Profiles
@@ -108,8 +110,11 @@ Testing             [███████████████████�
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 9 created |
+| Commands | `commands/cs-*.md` | ✓ 10 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created |
+| Hooks | `.claude/hooks/*.js` | ✓ 11 created |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 68 tests |
+| Profile Tests | `profiles/__tests__/` | ✓ 203 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
 
 ---
@@ -118,8 +123,11 @@ Testing             [███████████████████�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 9 | 9 ✓ |
+| Commands | 10 | 10 ✓ |
 | Profiles | 9 | 9 ✓ |
+| Hooks | 11 | 11 ✓ |
+| Hook Tests | 68 | 68 ✓ |
+| Profile Tests | 203 | 203 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 | GitHub tools integrated | 13 | 13 ✓ |
@@ -128,6 +136,44 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-07 (Session 10)
+- **Assessment Remediation (remaining items):**
+  - Standardized build command patterns across all profiles
+    - Java: `maven_command`/`gradle_command` → `command`/`alternative`
+    - C++: `cmake_command`/`make_command` → `command`/`alternative`
+    - Shell: `powershell_command` → `alternative`
+  - Created hook test harness (`.claude/hooks/__tests__/test-hooks.js`)
+    - 68 tests covering all 10 hook scripts + utils.js
+    - Security tests: 12 bash-validator, 8 file-validator
+    - Lifecycle tests: session-start, session-end, context-injector
+    - Tracking tests: post-edit, agent-tracker, agent-synthesizer
+  - Created profile schema validation test (`profiles/__tests__/test-profiles.js`)
+    - 203 tests validating all 9 profiles
+    - Required fields, gates, models, thinking, conventions
+    - Cross-profile consistency, non-standard key detection
+  - Extracted `_make_error_result()` in orchestrator.py
+- **Documentation Updates:**
+  - README.md: v0.4.0, added hooks section, tests section, cs-init workflow
+  - CHANGELOG.md: comprehensive v0.4.0 release notes
+  - STATUS.md: updated metrics, added session 10 activity
+  - Fixed C/C++ profile link in README (c-cpp.yaml → cpp.yaml)
+
+### 2026-02-07 (Session 10 - earlier)
+- **Implemented `/cs-init` command:**
+  - Nested CLAUDE.md architecture creation/optimization
+  - 6-phase flow: DETECT → ANALYZE → PLAN → APPROVE → GENERATE → VERIFY
+  - Monorepo-aware, auto-detects tech stack, zero-tolerance quality philosophy
+  - Updated all docs (CLAUDE.md, install scripts, cs-validate, cs-loop)
+- **Ran `/cs-assess`:** Scored 7.4/10 overall
+- **Fixed 10 immediate/short-term assessment issues:**
+  - Fixed state.schema.json phase enum (v1 → v2)
+  - Added description field to all 9 profiles
+  - Deleted duplicate archive tools
+  - Standardized hook utils.js usage + named constants
+  - Added models/thinking/web_indicators to 5 profiles
+  - Fixed SDK type issues (orchestrator.py, profiles.ts)
+  - Removed cost_tracking.json phantom reference
 
 ### 2026-02-02 (Session 9)
 - **Codebase Health Fixes (from /cs-assess):**

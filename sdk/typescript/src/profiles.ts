@@ -102,21 +102,10 @@ export class ProfileLoader {
       return this.profilesCache.get(profileName)!;
     }
 
-    let profileData: Partial<Profile> | undefined;
-
-    // Try to load from YAML file (simplified - would need yaml parser)
-    if (this.profilesDir) {
-      const yamlFile = path.join(this.profilesDir, `${profileName}.yaml`);
-      if (fs.existsSync(yamlFile)) {
-        // Note: In production, use a proper YAML parser
-        // For now, fall back to defaults
-      }
-    }
-
-    // Fall back to defaults
-    if (!profileData) {
-      profileData = DEFAULT_PROFILES[profileName];
-    }
+    // YAML profiles are loaded by the CLI layer (commands read profiles/*.yaml directly).
+    // The SDK uses built-in defaults for programmatic usage without a YAML parser dependency.
+    // To use custom profiles, pass them via the ClaudeSentient constructor options.
+    const profileData = DEFAULT_PROFILES[profileName];
 
     if (!profileData) {
       return null;
