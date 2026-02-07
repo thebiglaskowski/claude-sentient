@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -69,13 +69,13 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 10 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 11 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
-| 🎣 Hooks | 11 | Session lifecycle, security, tracking |
+| 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
 | 🧪 Tests | 271 | Hook tests (68) + Profile tests (203) |
 
 ---
@@ -94,6 +94,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | `/cs-assess` | Full codebase health audit (6+ dimensions) | [Command](.claude/commands/cs-assess.md) |
 | `/cs-init` | Create/optimize nested CLAUDE.md architecture | [Command](.claude/commands/cs-init.md) |
 | `/cs-ui` | UI/UX audit for web projects | [Command](.claude/commands/cs-ui.md) |
+| `/cs-team` | Create/manage Agent Teams for parallel work | [Command](.claude/commands/cs-team.md) |
 
 ---
 
@@ -166,6 +167,7 @@ Claude Sentient leverages built-in Claude Code features:
 | Memory (File) | `.claude/rules/*.md` | Persistent learnings |
 | Memory (MCP) | `search_nodes`, `open_nodes` | Searchable prior decisions |
 | Skill Chaining | `Skill` tool | Commands invoke each other |
+| Agent Teams | Team lead + teammates | Parallel multi-instance work |
 | Web Tools | `WebSearch`, `WebFetch` | Find fixes, fetch changelogs |
 | GitHub PR | `get_pull_request*`, `create_review` | Full PR workflow |
 | GitHub Search | `search_code` | Find reference implementations |
@@ -276,9 +278,9 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 10 slash commands
-│   ├── hooks/*.js          # 11 hook scripts (security, tracking)
-│   ├── settings.json       # Hook configuration
+│   ├── commands/cs-*.md    # 11 slash commands
+│   ├── hooks/*.js          # 13 hook scripts (security, teams, tracking)
+│   ├── settings.json       # Hook + team configuration
 │   └── rules/learnings.md  # Persistent memory
 ├── profiles/*.yaml          # 9 language profiles + schema
 ├── templates/*.md           # Governance templates
@@ -401,7 +403,29 @@ your-project/
 /cs-init  # Detects existing CLAUDE.md, offers to split into nested files
 ```
 
-### Workflow 9: MCP Server Setup
+### Workflow 9: Parallel Work with Agent Teams
+
+```bash
+# For large tasks across multiple packages/modules
+/cs-loop "refactor auth across all packages"
+
+# cs-loop detects 6 independent tasks across 3 packages
+# Offers team mode: "3 parallel teammates. Use Agent Teams?"
+# If yes: spawns teammates, each owns a package
+# Lead coordinates, teammates work in parallel
+# Quality gates enforced via TeammateIdle/TaskCompleted hooks
+
+# Or create a team manually
+/cs-team "investigate performance bottleneck from 3 angles"
+
+# Check team status
+/cs-team --status
+
+# Stop and cleanup
+/cs-team --stop
+```
+
+### Workflow 10: MCP Server Setup
 
 ```bash
 # First time setup
@@ -432,6 +456,8 @@ Claude Sentient includes 11 hook scripts that integrate with Claude Code's hook 
 | `agent-synthesizer.js` | SubagentStop | Synthesize agent results, record history |
 | `pre-compact.js` | PreCompact | Backup state before context compaction |
 | `dod-verifier.js` | Stop | Verify Definition of Done, save final state |
+| `teammate-idle.js` | TeammateIdle | Quality check before teammate goes idle |
+| `task-completed.js` | TaskCompleted | Validate deliverables before task completion |
 
 Hooks are configured in `.claude/settings.json` and installed automatically.
 

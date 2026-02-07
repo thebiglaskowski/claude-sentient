@@ -189,7 +189,42 @@ Classify complexity:
 2. Set dependencies with `TaskUpdate(addBlockedBy: [...])`
 3. Report: `[PLAN] Created {n} tasks`
 
+4. **Team eligibility check** — After creating tasks, evaluate if Agent Teams would help:
+
+   <thinking>
+   Evaluate team eligibility by checking three signals:
+   1. SCOPE: Are there 3+ tasks with no blocking dependencies between them?
+   2. INDEPENDENCE: Do independent tasks touch different directories/packages?
+   3. COMPLEXITY: Is estimated work significant enough to justify team overhead?
+   All three must be true for team mode to be worthwhile.
+   </thinking>
+
+   | Signal | Check | Threshold |
+   |--------|-------|-----------|
+   | Scope | Count tasks with no `blockedBy` dependencies | >= 3 independent tasks |
+   | Independence | Compare directory paths of independent tasks | No overlapping file scopes |
+   | Complexity | Estimate total work across all tasks | > simple feature or bug fix |
+
+   **If all three signals pass AND `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is enabled:**
+
+   ```
+   AskUserQuestion:
+     question: "Team mode available — {n} parallel teammates can work on {streams} independent streams. Use Agent Teams?"
+     header: "Team Mode"
+     options:
+       - label: "Yes, use team mode (Recommended)"
+         description: "{n} teammates work in parallel, ~{estimate} faster"
+       - label: "No, work sequentially"
+         description: "Standard solo execution"
+   ```
+
+   **If team mode approved:** proceed to EXECUTE (Team Mode).
+   **If declined or not eligible:** proceed to EXECUTE (Standard Mode).
+   **If env var not set:** skip silently, use standard mode.
+
 ### 4. EXECUTE
+
+**Standard Mode** (default):
 
 1. `TaskList` → pick first unblocked task
 2. `TaskGet(taskId)` → fetch full description and context
@@ -197,6 +232,37 @@ Classify complexity:
 4. Do the work (using description for guidance)
 5. `TaskUpdate(status: completed)`
 6. Repeat until all complete
+
+**Team Mode** (when approved in PLAN phase):
+
+1. **Spawn teammates** — Create an Agent Team with role-specific prompts:
+   ```
+   Create an agent team for this task with {n} teammates:
+
+   Teammate "{name}":
+   - Scope: {directory/package they own}
+   - Tasks: {specific task IDs and descriptions}
+   - Quality gates: {lint command}, {test command}
+   - Rule: Only modify files in your scope
+
+   [Repeat for each teammate]
+
+   Require plan approval before teammates make changes.
+   ```
+
+2. **Enable delegate mode** — Switch to coordination-only (Shift+Tab)
+   - Report: `[EXECUTE] Team mode: {n} teammates spawned, delegate mode active`
+
+3. **Monitor progress** — Track via shared task list
+   - Redirect teammates that drift from scope
+   - Unblock teammates that report issues
+   - Synthesize results as tasks complete
+
+4. **Collect results** — When all teammate tasks complete:
+   - Ask teammates to shut down
+   - Review combined changes
+   - Report: `[EXECUTE] Team complete: {completed}/{total} tasks`
+   - Proceed to VERIFY with all changes
 
 **Why TaskGet matters:** Task subjects are brief. The description contains:
 - Detailed requirements

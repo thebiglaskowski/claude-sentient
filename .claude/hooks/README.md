@@ -16,6 +16,8 @@ This directory contains hook scripts that integrate with Claude Code's hook syst
 | `agent-synthesizer.js` | SubagentStop | Synthesize agent results |
 | `pre-compact.js` | PreCompact | Backup state before compaction |
 | `dod-verifier.js` | Stop | Verify Definition of Done |
+| `teammate-idle.js` | TeammateIdle | Quality check before teammate goes idle |
+| `task-completed.js` | TaskCompleted | Validate deliverables, file ownership |
 
 ## State Files
 
@@ -30,6 +32,7 @@ Hooks read/write to `.claude/state/`:
 | `prompts.json` | Recent prompt metadata |
 | `cost_tracking.json` | Cost per phase/agent (planned, not yet implemented) |
 | `last_verification.json` | Last DoD verification |
+| `team-state.json` | Agent Teams: teammate tracking, file ownership |
 
 ## Security
 

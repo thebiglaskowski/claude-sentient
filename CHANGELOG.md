@@ -6,6 +6,38 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.5.0] — 2026-02-07
+
+### Added
+- **Agent Teams integration** — Parallel multi-instance work via Claude Code's experimental Agent Teams
+  - `/cs-loop` PLAN phase now detects team eligibility (3+ independent tasks, non-overlapping files)
+  - Auto-suggests team mode via `AskUserQuestion` when conditions are met
+  - Team execution mode: spawns teammates, uses delegate mode, enforces quality gates
+  - Graceful fallback to solo mode when Agent Teams not enabled
+- `/cs-team` command — Manual Agent Teams management
+  - Create teams with role-specific teammates for any task
+  - Monitor team status and teammate progress
+  - Stop and cleanup team resources
+  - Supports 2-4 teammates with distinct file ownership scopes
+- `teammate-idle.js` hook — TeammateIdle event handler
+  - Checks if teammate has completed tasks before going idle
+  - Sends feedback to keep teammates productive
+  - Tracks idle counts per teammate
+- `task-completed.js` hook — TaskCompleted event handler
+  - Validates file count per task (max 20)
+  - Detects file ownership conflicts between teammates
+  - Tracks file ownership map to prevent overwrites
+- Agent Teams env var (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`) auto-configured in settings.json
+- Commands: 10 → 11, Hooks: 11 → 13
+
+### Changed
+- `/cs-loop` PLAN phase now includes team eligibility evaluation
+- `/cs-loop` EXECUTE phase supports dual mode (Standard + Team)
+- `.claude/settings.json` now includes TeammateIdle and TaskCompleted hooks
+- Updated all documentation for v0.5.0
+
+---
+
 ## [0.4.0] — 2026-02-07
 
 ### Added
@@ -133,6 +165,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.5.0 | 2026-02-07 | Agent Teams, /cs-team, team hooks, 11 commands, 13 hooks |
 | 0.4.0 | 2026-02-07 | Hooks, tests, /cs-init, SDK integration, 10 commands, 9 profiles |
 | 0.2.0 | 2026-02-01 | Native-first pivot, 4 commands, 3 profiles |
 | 0.1.0 | 2026-02-01 | Foundation, memory pattern, simplified scope |

@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-02-07
 > **Current Phase:** Phase 3 — Quality & Testing
-> **Version:** 0.4.0
+> **Version:** 0.5.0
 
 ---
 
@@ -16,7 +16,8 @@ Commands            [███████████████████�
 Profiles            [████████████████████] 100% ✓
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
-Hooks               [████████████████████] 100% ✓ (11 hooks)
+Hooks               [████████████████████] 100% ✓ (13 hooks)
+Agent Teams         [████████████████████] 100% ✓ (cs-team + 2 hooks)
 Testing             [████████████████████] 100% ✓ (271 hook/profile + 208 SDK)
 ```
 
@@ -40,6 +41,7 @@ Testing             [███████████████████�
 - [x] `/cs-assess` - Full codebase health audit (6+ dimensions, ultrathink mode)
 - [x] `/cs-init` - Create/optimize nested CLAUDE.md context architecture
 - [x] `/cs-ui` - UI/UX audit for web projects (modern design, accessibility)
+- [x] `/cs-team` - Create/manage Agent Teams for parallel multi-instance work
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -110,9 +112,9 @@ Testing             [███████████████████�
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 10 created |
+| Commands | `commands/cs-*.md` | ✓ 11 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created |
-| Hooks | `.claude/hooks/*.js` | ✓ 11 created |
+| Hooks | `.claude/hooks/*.js` | ✓ 13 created |
 | Hook Tests | `.claude/hooks/__tests__/` | ✓ 68 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 203 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
@@ -123,9 +125,9 @@ Testing             [███████████████████�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 10 | 10 ✓ |
+| Commands | 11 | 11 ✓ |
 | Profiles | 9 | 9 ✓ |
-| Hooks | 11 | 11 ✓ |
+| Hooks | 13 | 13 ✓ |
 | Hook Tests | 68 | 68 ✓ |
 | Profile Tests | 203 | 203 ✓ |
 | Native tools leveraged | All | ✓ |
@@ -136,6 +138,17 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-07 (Session 11)
+- **Agent Teams Integration:**
+  - Created `/cs-team` command for manual Agent Teams management
+  - Added team eligibility detection to `/cs-loop` PLAN phase
+  - Added team execution mode to `/cs-loop` EXECUTE phase (Standard + Team)
+  - Created `teammate-idle.js` hook (TeammateIdle quality enforcement)
+  - Created `task-completed.js` hook (TaskCompleted validation + file ownership)
+  - Updated `.claude/settings.json` with team hooks and env var
+  - Updated all documentation (CLAUDE.md, README.md, CHANGELOG.md, STATUS.md)
+  - Updated installer scripts for new file counts
 
 ### 2026-02-07 (Session 10)
 - **Assessment Remediation (remaining items):**

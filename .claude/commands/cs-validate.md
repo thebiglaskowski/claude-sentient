@@ -58,7 +58,7 @@ Check if this is the claude-sentient repo (development) or a user project:
 
 **Commands (Required):**
 - Verify `.claude/commands/cs-*.md` files exist
-- Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md
+- Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md
 
 **Profiles (Required):**
 - Verify `profiles/*.yaml` files exist
@@ -119,7 +119,7 @@ AskUserQuestion:
 REQUIRED COMPONENTS:
 
   Commands (.claude/commands/):
-    ✓ cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md
+    ✓ cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md
     + bonus: cs-assess.md, cs-mcp.md, cs-review.md, cs-ui.md
 
   Profiles (profiles/):
@@ -159,7 +159,7 @@ REQUIRED COMPONENTS:
 
 SOURCE COMPONENTS:
   Commands (commands/):
-    ✓ 10 command source files
+    ✓ 11 command source files
     ✓ Synced with .claude/commands/
 
 GOVERNANCE:
@@ -201,7 +201,7 @@ User: /cs-validate
 
 REQUIRED COMPONENTS:
 
-  Commands: ✓ All 10 commands present
+  Commands: ✓ All 11 commands present
   Profiles: ✓ All 5 core profiles valid
   Rules:    ✓ 15 rule files present
   Memory:   ✓ learnings.md and settings.json configured
