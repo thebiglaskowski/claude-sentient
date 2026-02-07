@@ -38,6 +38,7 @@ except ImportError:
     PermissionResultAllow = None
     PermissionResultDeny = None
 
+from .client import ClaudeSentientClient
 from .datatypes import GateStatus
 from .gates import QualityGates, create_gate_hooks
 from .hooks import HookManager, HookMatcher
@@ -249,7 +250,7 @@ class ClaudeSentient:
         except Exception as e:
             yield self._make_error_result(str(e))
 
-    def _build_sdk_agents(self) -> dict[str, dict[str, Any]]:
+    def build_sdk_agents(self) -> dict[str, dict[str, Any]]:
         """Build SDK-compatible agent definitions.
 
         Returns:
@@ -269,7 +270,7 @@ class ClaudeSentient:
 
         return sdk_agents
 
-    def _build_sandbox_config(self) -> dict[str, Any] | None:
+    def build_sandbox_config(self) -> dict[str, Any] | None:
         """Build sandbox configuration dictionary.
 
         Returns:
@@ -285,7 +286,7 @@ class ClaudeSentient:
             "allowUnsandboxedCommands": self.sandbox.allow_unsandboxed_commands,
         }
 
-    def _build_merged_hooks(self) -> dict[str, list[Any]] | None:
+    def build_merged_hooks(self) -> dict[str, list[Any]] | None:
         """Merge custom hooks with quality gate hooks.
 
         Returns:
@@ -317,9 +318,9 @@ class ClaudeSentient:
             Configured ClaudeAgentOptions instance
         """
         system_prompt = self._build_system_prompt(task)
-        sdk_agents = self._build_sdk_agents()
-        all_hooks = self._build_merged_hooks()
-        sandbox_config = self._build_sandbox_config()
+        sdk_agents = self.build_sdk_agents()
+        all_hooks = self.build_merged_hooks()
+        sandbox_config = self.build_sandbox_config()
 
         return ClaudeAgentOptions(
             allowed_tools=self.DEFAULT_TOOLS,
@@ -790,105 +791,6 @@ Use AskUserQuestion if you need clarification on the approach.""",
                 model="sonnet",
             ),
         }
-
-
-class ClaudeSentientClient:
-    """Continuous conversation client wrapping ClaudeSDKClient.
-
-    Provides a context manager interface for multi-turn conversations
-    where Claude remembers previous context.
-
-    See: https://platform.claude.com/docs/en/agent-sdk/python#claudesdkclient
-    """
-
-    def __init__(self, sentient: ClaudeSentient):
-        """Initialize the client wrapper.
-
-        Args:
-            sentient: Parent ClaudeSentient instance with configuration
-        """
-        self.sentient = sentient
-        self._client: Any = None
-
-    async def __aenter__(self) -> "ClaudeSentientClient":
-        """Enter the context manager and connect."""
-        # Reuse parent's helper methods to avoid duplication
-        all_hooks = self.sentient._build_merged_hooks()
-        sdk_agents = self.sentient._build_sdk_agents()
-        sandbox_config = self.sentient._build_sandbox_config()
-
-        options = ClaudeAgentOptions(
-            allowed_tools=self.sentient.DEFAULT_TOOLS,
-            agents=sdk_agents if sdk_agents else None,
-            permission_mode=self.sentient.permission_mode,
-            cwd=str(self.sentient.cwd),
-            setting_sources=self.sentient.setting_sources,
-            can_use_tool=self.sentient.can_use_tool,
-            hooks=all_hooks if all_hooks else None,
-            enable_file_checkpointing=self.sentient.enable_file_checkpointing,
-            max_budget_usd=self.sentient.max_budget_usd,
-            model=self.sentient.model,
-            sandbox=sandbox_config,
-        )
-
-        self._client = ClaudeSDKClient(options)
-        await self._client.connect()
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Exit the context manager and disconnect."""
-        if self._client:
-            await self._client.disconnect()
-            self._client = None
-
-    async def query(self, prompt: str) -> None:
-        """Send a query to Claude.
-
-        Args:
-            prompt: The message to send
-        """
-        if not self._client:
-            raise RuntimeError("Client not connected. Use 'async with' context manager.")
-        await self._client.query(prompt)
-
-    async def receive_response(self):
-        """Receive messages until result.
-
-        Yields:
-            Messages from Claude
-        """
-        if not self._client:
-            raise RuntimeError("Client not connected. Use 'async with' context manager.")
-        async for message in self._client.receive_response():
-            yield message
-
-    async def receive_messages(self):
-        """Receive all messages.
-
-        Yields:
-            All messages from Claude
-        """
-        if not self._client:
-            raise RuntimeError("Client not connected. Use 'async with' context manager.")
-        async for message in self._client.receive_messages():
-            yield message
-
-    async def interrupt(self) -> None:
-        """Interrupt the current operation."""
-        if self._client:
-            await self._client.interrupt()
-
-    async def rewind_files(self, user_message_uuid: str) -> None:
-        """Rewind files to state at a specific user message.
-
-        Requires enable_file_checkpointing=True in ClaudeSentient.
-
-        Args:
-            user_message_uuid: UUID of the user message to rewind to
-        """
-        if not self._client:
-            raise RuntimeError("Client not connected. Use 'async with' context manager.")
-        await self._client.rewind_files(user_message_uuid)
 
 
 # CLI entry point

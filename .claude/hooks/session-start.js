@@ -42,65 +42,67 @@ try {
     // Not a git repo
 }
 
-// Detect profile from files (supports monorepos)
-function detectProfile() {
-    const cwd = process.cwd();
-
-    // Check root level first
+// Root-level profile detection by marker files
+function detectRootProfile(cwd) {
     if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py'))) {
         return 'python';
     }
-    if (fs.existsSync(path.join(cwd, 'tsconfig.json'))) {
-        return 'typescript';
-    }
-    if (fs.existsSync(path.join(cwd, 'go.mod'))) {
-        return 'go';
-    }
-    if (fs.existsSync(path.join(cwd, 'Cargo.toml'))) {
-        return 'rust';
-    }
+    if (fs.existsSync(path.join(cwd, 'tsconfig.json'))) return 'typescript';
+    if (fs.existsSync(path.join(cwd, 'go.mod'))) return 'go';
+    if (fs.existsSync(path.join(cwd, 'Cargo.toml'))) return 'rust';
+    return null;
+}
 
-    // Check for monorepo structures (packages/, apps/, src/)
+// Check a single monorepo subdirectory for profile markers
+function detectSubdirProfile(subdirPath) {
+    if (!fs.statSync(subdirPath).isDirectory()) return null;
+    if (fs.existsSync(path.join(subdirPath, 'tsconfig.json'))) return 'typescript';
+    if (fs.existsSync(path.join(subdirPath, 'pyproject.toml'))) return 'python';
+    return null;
+}
+
+// Search monorepo directories for nested profiles
+function detectMonorepoProfile(cwd) {
     const monorepoLocations = ['packages', 'apps', 'src'];
     for (const dir of monorepoLocations) {
         const dirPath = path.join(cwd, dir);
-        if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
-            try {
-                const subdirs = fs.readdirSync(dirPath);
-                for (const subdir of subdirs) {
-                    const subdirPath = path.join(dirPath, subdir);
-                    if (fs.statSync(subdirPath).isDirectory()) {
-                        // Check for TypeScript in subdirs
-                        if (fs.existsSync(path.join(subdirPath, 'tsconfig.json'))) {
-                            return 'typescript';
-                        }
-                        // Check for Python in subdirs
-                        if (fs.existsSync(path.join(subdirPath, 'pyproject.toml'))) {
-                            return 'python';
-                        }
-                    }
-                }
-            } catch (e) {
-                // Ignore read errors
-            }
-        }
-    }
+        if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) continue;
 
-    // Fallback checks
-    if (fs.existsSync(path.join(cwd, 'package.json'))) {
-        // Check if it's a TypeScript project by looking at devDependencies
         try {
-            const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
-            if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) {
-                return 'typescript';
+            for (const subdir of fs.readdirSync(dirPath)) {
+                const result = detectSubdirProfile(path.join(dirPath, subdir));
+                if (result) return result;
             }
         } catch (e) {
-            // Ignore parse errors
+            // Ignore read errors on individual directories
         }
-        return 'javascript';
     }
+    return null;
+}
 
-    return 'general';
+// Fallback: check package.json for TypeScript dependency
+function detectFromPackageJson(cwd) {
+    const pkgPath = path.join(cwd, 'package.json');
+    if (!fs.existsSync(pkgPath)) return null;
+
+    try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.devDependencies?.typescript || pkg.dependencies?.typescript) {
+            return 'typescript';
+        }
+    } catch (e) {
+        // Ignore parse errors
+    }
+    return 'javascript';
+}
+
+// Detect profile from files (supports monorepos)
+function detectProfile() {
+    const cwd = process.cwd();
+    return detectRootProfile(cwd)
+        || detectMonorepoProfile(cwd)
+        || detectFromPackageJson(cwd)
+        || 'general';
 }
 
 // Generate session ID

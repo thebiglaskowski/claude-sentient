@@ -85,6 +85,11 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-init` | `/cs-loop` | After creating CLAUDE.md, user chooses to start working |
 | `/cs-loop` | `/cs-team` | When team eligibility detected, user approves team mode |
 | `/cs-team` | `/cs-loop` | When team completes, fallback to solo for remaining work |
+| `/cs-assess` | `/cs-loop` | When issues found, user chooses to fix them |
+| `/cs-review` | `/cs-loop` | When PR changes needed, user chooses to fix |
+| `/cs-learn` | — | Standalone, appends to learnings.md |
+| `/cs-mcp` | — | Standalone, registers/validates MCP servers |
+| `/cs-ui` | `/cs-loop` | When UI issues found, user chooses to fix |
 
 ---
 

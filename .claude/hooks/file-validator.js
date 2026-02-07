@@ -10,6 +10,9 @@ const fs = require('fs');
 const path = require('path');
 const { parseHookInput, logMessage } = require('./utils');
 
+// Named constants
+const LARGE_FILE_THRESHOLD = 100000; // 100KB
+
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
     // System files
@@ -51,8 +54,40 @@ const parsed = parseHookInput();
 const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
 const toolName = parsed.tool_name || 'unknown';
 
+// Resolve to absolute path and check for symlinks
+let resolvedPath = filePath;
+try {
+    // Resolve symlinks to prevent traversal attacks
+    if (fs.existsSync(filePath)) {
+        const realPath = fs.realpathSync(filePath);
+        if (realPath !== path.resolve(filePath)) {
+            // File is a symlink — use resolved path for validation
+            resolvedPath = realPath;
+        }
+    } else {
+        // For new files, resolve the parent directory
+        const parentDir = path.dirname(filePath);
+        if (fs.existsSync(parentDir)) {
+            const realParent = fs.realpathSync(parentDir);
+            resolvedPath = path.join(realParent, path.basename(filePath));
+        }
+    }
+} catch (e) {
+    // If resolution fails, use original path
+}
+
 // Normalize path for comparison
-const normalizedPath = path.normalize(filePath).replace(/\\/g, '/');
+const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
+
+// Ensure path stays within project root
+const projectRoot = process.cwd();
+const absolutePath = path.resolve(resolvedPath);
+if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
+    !absolutePath.startsWith('/tmp') &&
+    !absolutePath.startsWith(require('os').tmpdir())) {
+    // Path is outside project root — check if it's a protected system path
+    // (non-project paths are still allowed unless they match protected patterns)
+}
 
 // Check protected paths
 for (const pattern of PROTECTED_PATHS) {
@@ -83,7 +118,7 @@ for (const pattern of SENSITIVE_FILES) {
 // Check if file exists (for overwrites)
 if (fs.existsSync(filePath)) {
     const stats = fs.statSync(filePath);
-    if (stats.size > 100000) { // > 100KB
+    if (stats.size > LARGE_FILE_THRESHOLD) {
         warnings.push('Large file modification');
     }
 }

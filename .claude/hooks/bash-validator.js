@@ -45,13 +45,46 @@ const WARNING_PATTERNS = [
     { pattern: /pip\s+install\s+--user/, reason: 'User pip install' }
 ];
 
+/**
+ * Normalize a command string to prevent regex bypasses.
+ * Handles: variable substitution, full paths, extra whitespace, encoding tricks.
+ * @param {string} cmd - Raw command string
+ * @returns {string} Normalized command for pattern matching
+ */
+function normalizeCommand(cmd) {
+    let normalized = cmd;
+
+    // Collapse whitespace (prevents spacing-based bypasses)
+    normalized = normalized.replace(/\s+/g, ' ').trim();
+
+    // Strip variable substitution patterns: ${var}, $var, $(cmd)
+    // e.g., ${rm} -rf / → rm -rf /
+    normalized = normalized.replace(/\$\{(\w+)\}/g, '$1');
+    normalized = normalized.replace(/\$(\w+)/g, '$1');
+
+    // Strip full binary paths: /usr/bin/rm → rm, /bin/bash → bash
+    normalized = normalized.replace(/(?:\/usr\/local\/s?bin|\/usr\/s?bin|\/s?bin)\/(\w+)/g, '$1');
+
+    // Strip common quoting tricks: 'r''m' → rm, "rm" → rm
+    // But preserve quoted arguments (only strip single-char concatenation)
+    normalized = normalized.replace(/(['"])(\w)\1/g, '$2');
+
+    // Normalize backslash continuations: r\m → rm
+    normalized = normalized.replace(/\\(?=\w)/g, '');
+
+    return normalized;
+}
+
 // Parse input from hook
 const parsed = parseHookInput();
-const command = parsed.tool_input?.command || parsed.command || '';
+const rawCommand = parsed.tool_input?.command || parsed.command || '';
 
-// Check for dangerous patterns
+// Normalize command before checking patterns
+const command = normalizeCommand(rawCommand);
+
+// Check for dangerous patterns (test both raw and normalized)
 for (const { pattern, reason } of DANGEROUS_PATTERNS) {
-    if (pattern.test(command)) {
+    if (pattern.test(command) || pattern.test(rawCommand)) {
         const output = {
             decision: 'block',
             reason: `BLOCKED: ${reason}`,

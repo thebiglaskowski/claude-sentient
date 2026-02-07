@@ -88,9 +88,14 @@ export class QualityGates {
       const gateConfig = this.profile.gates[gateName];
       const startTime = Date.now();
 
-      const child = spawn(gateConfig.command, {
+      // Parse command safely to avoid shell injection (matches Python's shlex.split pattern)
+      const parts = gateConfig.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+      const cmd = parts[0] || gateConfig.command;
+      const args = parts.slice(1).map((a: string) => a.replace(/^['"]|['"]$/g, ""));
+
+      const child = spawn(cmd, args, {
         cwd,
-        shell: true,
+        shell: false,
         timeout: gateConfig.timeout * 1000,
       });
 

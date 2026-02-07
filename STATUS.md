@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-02-07
 > **Current Phase:** Phase 3 — Quality & Testing
-> **Version:** 0.5.0
+> **Version:** 0.5.1
 
 ---
 
@@ -18,7 +18,7 @@ Templates           [███████████████████�
 Documentation       [████████████████████] 100% ✓
 Hooks               [████████████████████] 100% ✓ (13 hooks)
 Agent Teams         [████████████████████] 100% ✓ (cs-team + 2 hooks)
-Testing             [████████████████████] 100% ✓ (271 hook/profile + 208 SDK)
+Testing             [████████████████████] 100% ✓ (584 total across 6 suites)
 ```
 
 ---
@@ -114,10 +114,16 @@ Testing             [███████████████████�
 |-----------|-------|--------|
 | Commands | `commands/cs-*.md` | ✓ 11 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created |
-| Hooks | `.claude/hooks/*.js` | ✓ 13 created |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 68 tests |
+| Hooks | `.claude/hooks/*.js` | ✓ 12 created + utils.js |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 83 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 203 tests |
+| Command Tests | `.claude/commands/__tests__/` | ✓ 48 tests |
+| Install Tests | `tests/` | ✓ 14 tests |
+| Tools Tests | `tools/` | ✓ 11 tests |
+| TS SDK Tests | `sdk/typescript/src/` | ✓ 17 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined |
+| Validators | `sdk/python/claude_sentient/validators.py` | ✓ JSON schema validation |
+| Shared Config | `shared/*.json` | ✓ Centralized patterns |
 
 ---
 
@@ -128,8 +134,12 @@ Testing             [███████████████████�
 | Commands | 11 | 11 ✓ |
 | Profiles | 9 | 9 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 68 | 68 ✓ |
+| Hook Tests | 83 | 83 ✓ |
 | Profile Tests | 203 | 203 ✓ |
+| Command Tests | 48 | 48 ✓ |
+| Install Tests | 14 | 14 ✓ |
+| Tools Tests | 11 | 11 ✓ |
+| TS Orchestrator Tests | 17 | 17 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 | GitHub tools integrated | 13 | 13 ✓ |
@@ -138,6 +148,37 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-07 (Session 12)
+- **Full Assessment Remediation (21 issues → 21 fixed):**
+  - **Security (3):**
+    - Fixed shell injection in TypeScript gates (`shell: true` → parsed args)
+    - Added command normalization to bash-validator (strips variable substitution, full paths, quoting tricks)
+    - Added symlink detection and path traversal prevention to file-validator
+  - **Code Quality (5):**
+    - Extracted 8+ magic numbers to named constants across hooks and SDK
+    - Added `sanitizeJson()` to prevent JSON prototype pollution
+    - Added `redactSecrets()` for API key/token redaction in logs
+    - Refactored `detectProfile()` from 58 lines/5 nesting levels to 4 small functions
+    - Fixed silent error suppression — YAML/file errors now warn to stderr
+  - **Architecture (4):**
+    - Extracted `ClaudeSentientClient` from orchestrator.py → client.py
+    - Made `_build_*` methods public to fix tight coupling
+    - Created `shared/dangerous-patterns.json` and `shared/protected-paths.json` (centralized config)
+    - Added `_detection_cache` for profile detection performance
+  - **Tech Debt (3):**
+    - Created `validators.py` with `validate_state()` and `validate_profile_yaml()`, wired into ProfileLoader and SessionManager
+    - Removed `archive/v1-legacy/` (310 files, 3.4MB deprecated code)
+    - Replaced 6 `.gitkeep` files with descriptive README.md files
+  - **Test Coverage (105 new tests across 5 files):**
+    - Extended hook tests: +15 tests (Agent Teams, security utils, normalization) → 83 total
+    - New command validation tests: 48 tests
+    - New TypeScript orchestrator tests: 17 tests
+    - New install script tests: 14 tests
+    - New tools/schema tests: 11 tests
+    - Total test count: 584 (up from 479)
+  - Added `jsonschema>=4.0` dependency to Python SDK
+  - Updated commands CLAUDE.md with missing `/cs-assess`, `/cs-review`, `/cs-learn`, `/cs-mcp`, `/cs-ui` references
 
 ### 2026-02-07 (Session 11)
 - **Agent Teams Integration:**

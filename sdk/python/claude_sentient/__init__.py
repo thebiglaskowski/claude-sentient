@@ -42,15 +42,16 @@ from .datatypes import (
 )
 from .gates import GateResult, QualityGates
 from .hooks import BudgetExceededError, HookConfig, HookManager, HookMatcher
+from .client import ClaudeSentientClient
 from .orchestrator import (
     AGENT_SDK_AVAILABLE,
     AgentDefinition,
     ClaudeSentient,
-    ClaudeSentientClient,
     LoopResult,
     SandboxConfig,
 )
 from .profiles import ModelConfig, Profile, ProfileLoader, ThinkingConfig
+from .validators import validate_profile_yaml, validate_state
 from .session import (
     TASK_TIMEOUTS,
     SessionManager,
@@ -104,6 +105,9 @@ __all__ = [
     "capture_error_screenshot",
     "visual_diff",
     "analyze_responsive_layout",
+    # Validation
+    "validate_profile_yaml",
+    "validate_state",
     # Types / Enums
     "Task",
     "TaskStatus",

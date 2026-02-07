@@ -193,6 +193,17 @@ class SessionManager:
             return None
         try:
             data = json.loads(self.state_file.read_text())
+
+            # Validate against JSON schema if available
+            from .validators import validate_state
+
+            validation_errors = validate_state(data)
+            if validation_errors:
+                print(
+                    f"Warning: Session state validation: {'; '.join(validation_errors[:3])}",
+                    file=sys.stderr,
+                )
+
             self._cached_state = SessionState(**data)
             return self._cached_state
         except (json.JSONDecodeError, TypeError):

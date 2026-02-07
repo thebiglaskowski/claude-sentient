@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -75,8 +75,8 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | 📄 Templates | 4 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
-| 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 271 | Hook tests (68) + Profile tests (203) |
+| 🎣 Hooks | 12 | Session lifecycle, security, teams, tracking |
+| 🧪 Tests | 584 | Hooks (83), profiles (203), SDK (208), commands (48), install (14), tools (11), TS (17) |
 
 ---
 
@@ -442,7 +442,7 @@ your-project/
 
 ## 🎣 Hooks
 
-Claude Sentient includes 11 hook scripts that integrate with Claude Code's hook system:
+Claude Sentient includes 12 hook scripts that integrate with Claude Code's hook system:
 
 | Hook | Event | Purpose |
 |------|-------|---------|
@@ -465,17 +465,29 @@ Hooks are configured in `.claude/settings.json` and installed automatically.
 
 ## 🧪 Tests
 
-Two test suites validate the hook and profile systems:
+Six test suites validate hooks, profiles, commands, SDK, and infrastructure:
 
 ```bash
-# Hook tests (68 tests) — security patterns, I/O contracts, error handling
+# Hook tests (83 tests) — security, I/O contracts, Agent Teams, normalization
 node .claude/hooks/__tests__/test-hooks.js
 
 # Profile validation (203 tests) — schema compliance, cross-profile consistency
 node profiles/__tests__/test-profiles.js
+
+# Command validation (48 tests) — frontmatter, structure, CLAUDE.md references
+node .claude/commands/__tests__/test-commands.js
+
+# Install script tests (14 tests) — syntax, file refs, content checks
+bash tests/test-install.sh
+
+# Tools/schema tests (11 tests) — JSON schemas, shared config, project structure
+python3 tools/test_tools.py
+
+# TypeScript orchestrator tests (17 tests) — constructor, loop, plan, resume
+cd sdk/typescript && npx vitest run
 ```
 
-Both test suites use Node.js built-in `assert` — no dependencies required.
+Hook, command, install, and tools tests use built-in `assert` — no dependencies required.
 
 ---
 

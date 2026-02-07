@@ -17,6 +17,10 @@ from .datatypes import (
 )
 from .session import SessionManager
 
+# Named constants
+MAX_AGENT_HISTORY = 50
+MAX_RESULT_SUMMARY_LENGTH = 500
+
 # Type alias for hook functions
 HookFunction = Callable[
     [dict[str, Any], str, Any],
@@ -276,7 +280,7 @@ class HookManager:
             # Update agent info
             agent_info.end_time = datetime.now().isoformat()
             agent_info.status = "completed" if success else "failed"
-            agent_info.result_summary = result_summary[:500]  # Truncate
+            agent_info.result_summary = result_summary[:MAX_RESULT_SUMMARY_LENGTH]
 
             # Calculate duration
             start = datetime.fromisoformat(agent_info.start_time)
@@ -284,9 +288,8 @@ class HookManager:
 
             # Add to history
             self._agent_history.append(agent_info)
-            # Keep only last 50
-            if len(self._agent_history) > 50:
-                self._agent_history = self._agent_history[-50:]
+            if len(self._agent_history) > MAX_AGENT_HISTORY:
+                self._agent_history = self._agent_history[-MAX_AGENT_HISTORY:]
 
             return HookResult(
                 success=True,

@@ -9,6 +9,10 @@ import yaml
 
 from .datatypes import ModelTier, Phase
 
+# Named constants
+DEFAULT_THINKING_TOKENS = 16000
+DEFAULT_GATE_TIMEOUT = 300  # seconds
+
 
 @dataclass
 class GateConfig:
@@ -16,7 +20,7 @@ class GateConfig:
 
     command: str
     blocking: bool = True
-    timeout: int = 300  # seconds
+    timeout: int = DEFAULT_GATE_TIMEOUT
 
 
 @dataclass
@@ -70,14 +74,14 @@ class ModelConfig:
 class ThinkingConfig:
     """Extended thinking configuration."""
 
-    max_tokens: int = 16000
+    max_tokens: int = DEFAULT_THINKING_TOKENS
     extended_for: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ThinkingConfig":
         """Create from dictionary."""
         return cls(
-            max_tokens=data.get("max_tokens", data.get("maxTokens", 16000)),
+            max_tokens=data.get("max_tokens", data.get("maxTokens", DEFAULT_THINKING_TOKENS)),
             extended_for=data.get("extended_for", data.get("extendedFor", [])),
         )
 
@@ -200,28 +204,45 @@ class ProfileLoader:
     def __init__(self, profiles_dir: str | Path | None = None):
         self.profiles_dir = Path(profiles_dir) if profiles_dir else None
         self._profiles_cache: dict[str, Profile] = {}
+        self._detection_cache: dict[str, str] = {}
+
+    def _matches_profile(self, profile: Profile, cwd: Path) -> bool:
+        """Check if a profile matches the given directory."""
+        for detect_file in profile.detect_files:
+            if (cwd / detect_file).exists():
+                return True
+
+        for ext in profile.detect_extensions:
+            if next(cwd.glob(f"*{ext}"), None):
+                return True
+
+        return False
 
     def detect(self, cwd: str | Path) -> str:
-        """Auto-detect project profile from files in cwd."""
-        cwd = Path(cwd)
+        """Auto-detect project profile from files in cwd.
 
-        # Check for profile-specific files in priority order
+        Results are cached by directory path for performance.
+        """
+        cwd = Path(cwd)
+        cache_key = str(cwd.resolve())
+
+        if cache_key in self._detection_cache:
+            return self._detection_cache[cache_key]
+
         profile_priority = ["python", "typescript", "go", "rust", "java", "ruby", "shell"]
 
         for profile_name in profile_priority:
             profile = self.load(profile_name)
-            if profile:
-                # Check detection files
-                for detect_file in profile.detect_files:
-                    if (cwd / detect_file).exists():
-                        return profile_name
+            if profile and self._matches_profile(profile, cwd):
+                self._detection_cache[cache_key] = profile_name
+                return profile_name
 
-                # Check for files with detection extensions (early exit on first match)
-                for ext in profile.detect_extensions:
-                    if next(cwd.glob(f"*{ext}"), None):
-                        return profile_name
-
+        self._detection_cache[cache_key] = "general"
         return "general"
+
+    def clear_detection_cache(self) -> None:
+        """Clear the detection cache (useful for testing)."""
+        self._detection_cache.clear()
 
     def load(self, profile_name: str) -> Profile | None:
         """Load a profile by name."""
@@ -234,8 +255,12 @@ class ProfileLoader:
         if self.profiles_dir:
             yaml_file = self.profiles_dir / f"{profile_name}.yaml"
             if yaml_file.exists():
-                with contextlib.suppress(yaml.YAMLError):
+                try:
                     profile_data = yaml.safe_load(yaml_file.read_text())
+                except yaml.YAMLError as e:
+                    import sys
+                    print(f"Warning: Failed to parse {yaml_file}: {e}", file=sys.stderr)
+                    profile_data = None
 
         # Fall back to defaults
         if not profile_data:
@@ -263,6 +288,17 @@ class ProfileLoader:
         # Parse thinking config
         thinking_data = profile_data.get("thinking", {})
         thinking = ThinkingConfig.from_dict(thinking_data) if thinking_data else ThinkingConfig()
+
+        # Validate profile data if loaded from YAML
+        if self.profiles_dir:
+            from .validators import validate_profile_yaml
+
+            validation_errors = validate_profile_yaml(profile_data)
+            if validation_errors:
+                import sys
+
+                for err in validation_errors:
+                    print(f"Warning: Profile '{profile_name}' validation: {err}", file=sys.stderr)
 
         profile = Profile(
             name=profile_name,
@@ -327,6 +363,6 @@ class ProfileLoader:
         """Get the max thinking tokens for a profile."""
         profile = self.load(profile_name)
         if not profile:
-            return 16000
+            return DEFAULT_THINKING_TOKENS
 
         return profile.thinking.max_tokens

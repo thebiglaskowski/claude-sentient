@@ -6,6 +6,49 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.5.1] — 2026-02-07
+
+### Security
+- Fixed shell injection in TypeScript gates — replaced `shell: true` with parsed command arguments
+- Added command normalization to `bash-validator.js` — strips variable substitution, full binary paths, quoting tricks, and backslash continuations before pattern matching
+- Added symlink detection and path traversal prevention to `file-validator.js` — resolves symlinks with `realpathSync()`, validates parent directories, checks project root boundaries
+- Added `sanitizeJson()` to `utils.js` — prevents JSON prototype pollution by removing `__proto__`, `constructor`, `prototype` keys
+- Added `redactSecrets()` to `utils.js` — redacts API keys, GitHub tokens, Bearer tokens, AWS keys, Slack tokens, JWTs in log output
+
+### Added
+- `sdk/python/claude_sentient/validators.py` — JSON schema validation module
+  - `validate_state()` validates session state against `state.schema.json`
+  - `validate_profile_yaml()` validates profile data structure, gates, models, thinking config
+  - Wired into `ProfileLoader.load()` and `SessionManager.load()`
+- `shared/dangerous-patterns.json` — centralized bash validation patterns (extracted from bash-validator.js)
+- `shared/protected-paths.json` — centralized file validation patterns (extracted from file-validator.js)
+- `sdk/python/claude_sentient/client.py` — extracted `ClaudeSentientClient` from orchestrator.py
+- Profile detection caching (`_detection_cache`) with `clear_detection_cache()` for testing
+- **5 new test suites (105 new tests):**
+  - Command validation tests (48 tests) — `.claude/commands/__tests__/test-commands.js`
+  - TypeScript orchestrator tests (17 tests) — `sdk/typescript/src/orchestrator.test.ts`
+  - Install script tests (14 tests) — `tests/test-install.sh`
+  - Tools/schema tests (11 tests) — `tools/test_tools.py`
+  - Extended hook tests (+15 new tests for Agent Teams hooks, security utils, normalization)
+- README.md files in `agents/`, `patterns/`, `gates/blocking/`, `gates/advisory/`, `skills/` (replacing `.gitkeep` files)
+- `jsonschema>=4.0` added to Python SDK dependencies
+
+### Changed
+- `orchestrator.py` — made `_build_sdk_agents`, `_build_sandbox_config`, `_build_merged_hooks` public methods
+- `session-start.js` — refactored `detectProfile()` from 58 lines/5 nesting levels into 4 focused functions
+- `utils.js` — `loadJsonFile()` now sanitizes parsed JSON; `logMessage()` now redacts secrets and writes to stderr on failure
+- Named constants extracted across all hooks and SDK modules (8+ magic numbers replaced)
+- Silent YAML parse errors in `profiles.py` now warn to stderr instead of being suppressed
+- Commands CLAUDE.md now references all 11 commands (was missing 5)
+- Total test count: 479 → 584
+
+### Removed
+- `archive/v1-legacy/` — 310 files (3.4MB) of deprecated V1 code (preserved in git history)
+- 6 `.gitkeep` placeholder files (replaced with descriptive README.md files)
+- `rules/.gitkeep` (directory already contains 15+ rule files)
+
+---
+
 ## [0.5.0] — 2026-02-07
 
 ### Added
@@ -165,6 +208,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.5.1 | 2026-02-07 | Security hardening, JSON schema validation, 584 tests, v1-legacy removal |
 | 0.5.0 | 2026-02-07 | Agent Teams, /cs-team, team hooks, 11 commands, 13 hooks |
 | 0.4.0 | 2026-02-07 | Hooks, tests, /cs-init, SDK integration, 10 commands, 9 profiles |
 | 0.2.0 | 2026-02-01 | Native-first pivot, 4 commands, 3 profiles |

@@ -19,6 +19,21 @@ const MAX_RESULT_LENGTH = 500;
 const MAX_BACKUPS = 10;
 const MAX_AGENT_HISTORY = 50;
 
+// Patterns for redacting secrets from log output
+const SECRET_PATTERNS = [
+    /sk-[a-zA-Z0-9]{20,}/g,           // OpenAI/Anthropic API keys
+    /ghp_[a-zA-Z0-9]{36,}/g,          // GitHub personal access tokens
+    /gho_[a-zA-Z0-9]{36,}/g,          // GitHub OAuth tokens
+    /ghu_[a-zA-Z0-9]{36,}/g,          // GitHub user tokens
+    /ghs_[a-zA-Z0-9]{36,}/g,          // GitHub server tokens
+    /github_pat_[a-zA-Z0-9_]{80,}/g,  // GitHub fine-grained PATs
+    /Bearer\s+[a-zA-Z0-9._\-]{20,}/g, // Bearer tokens
+    /AKIA[A-Z0-9]{16}/g,              // AWS access key IDs
+    /[a-zA-Z0-9\/+]{40}(?=\s|$)/g,    // AWS secret keys (40-char base64)
+    /xox[bpsa]-[a-zA-Z0-9\-]{10,}/g,  // Slack tokens
+    /eyJ[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}/g, // JWTs
+];
+
 /**
  * Ensure the .claude/state directory exists
  * @returns {string} Path to the state directory
@@ -54,17 +69,54 @@ function parseHookInput() {
 }
 
 /**
+ * Sanitize parsed JSON to prevent prototype pollution.
+ * Removes __proto__, constructor, and prototype keys.
+ * @param {*} obj - Parsed JSON value
+ * @returns {*} Sanitized value
+ */
+function sanitizeJson(obj) {
+    if (obj === null || typeof obj !== 'object') {
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(sanitizeJson);
+    }
+    const clean = Object.create(null);
+    for (const [key, value] of Object.entries(obj)) {
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            continue; // Skip dangerous keys
+        }
+        clean[key] = sanitizeJson(value);
+    }
+    return clean;
+}
+
+/**
+ * Redact secrets from a string before logging.
+ * @param {string} text - Text to redact
+ * @returns {string} Text with secrets replaced by [REDACTED]
+ */
+function redactSecrets(text) {
+    let redacted = text;
+    for (const pattern of SECRET_PATTERNS) {
+        redacted = redacted.replace(pattern, '[REDACTED]');
+    }
+    return redacted;
+}
+
+/**
  * Load JSON data from a file
  * @param {string} filePath - Path to the JSON file
  * @param {Object} defaultValue - Default value if file doesn't exist or is invalid
- * @returns {Object} Parsed JSON or default value
+ * @returns {Object} Parsed JSON or default value (sanitized against prototype pollution)
  */
 function loadJsonFile(filePath, defaultValue = {}) {
     if (!fs.existsSync(filePath)) {
         return defaultValue;
     }
     try {
-        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        return sanitizeJson(parsed);
     } catch (e) {
         return defaultValue;
     }
@@ -93,11 +145,14 @@ function saveJsonFile(filePath, data) {
 function logMessage(message, level = 'INFO') {
     const logFile = path.join(process.cwd(), '.claude', 'session.log');
     const timestamp = new Date().toISOString().slice(0, 19);
-    const logEntry = `[cs] ${timestamp} ${level}: ${message}\n`;
+    // Redact secrets before logging
+    const safeMessage = redactSecrets(message);
+    const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
-        // Ignore log errors
+        // Fallback to stderr so log failures are visible during debugging
+        process.stderr.write(`[cs] log write failed: ${e.message}\n`);
     }
 }
 
@@ -140,6 +195,8 @@ module.exports = {
     getStateFilePath,
     loadState,
     saveState,
+    sanitizeJson,
+    redactSecrets,
     MAX_PROMPT_HISTORY,
     MAX_FILE_CHANGES,
     MAX_RESULT_LENGTH,
