@@ -21,7 +21,8 @@ fi
 if [ -d ".claude/commands" ] && [ -f ".claude/commands/cs-loop.md" ]; then
     echo ""
     echo "⚠ Claude Sentient appears to be already installed."
-    read -p "Reinstall/update? (y/N): " -n 1 -r
+    # Read from /dev/tty so the prompt works when piped via curl | bash
+    read -p "Reinstall/update? (y/N): " -n 1 -r < /dev/tty
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Aborted."
