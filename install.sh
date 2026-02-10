@@ -31,6 +31,8 @@ fi
 
 echo ""
 echo "Downloading claude-sentient..."
+# Clean up any leftover temp directory from a previous run
+rm -rf "$TEMP_DIR"
 git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR"
 
 echo "Installing commands..."
