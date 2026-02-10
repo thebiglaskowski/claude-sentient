@@ -117,7 +117,7 @@ Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md       (12 commands)'
 Write-Host '  .claude/hooks/*.js             (13 hook scripts)'
-Write-Host '  .claude/hooks/__tests__/       (91 hook tests)'
+Write-Host '  .claude/hooks/__tests__/       (93 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'
@@ -125,7 +125,7 @@ Write-Host '  agents/*.yaml                  (6 agent roles)'
 Write-Host '  agents/__tests__/              (108 agent tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/*.md                 (4 templates)'
-Write-Host '  .claude/rules/*.md              (17 path-scoped rules)'
+Write-Host '  .claude/rules/*.md              (14 path-scoped rules)'
 Write-Host '  .claude/rules/learnings.md'
 Write-Host ""
 Write-Host "Next steps:"
