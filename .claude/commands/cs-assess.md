@@ -21,7 +21,36 @@ Perform a comprehensive assessment of codebase health across 6 dimensions, produ
 /cs-assess                    # Assess entire codebase
 /cs-assess src/               # Assess specific directory
 /cs-assess --ultrathink       # Extended analysis (deeper exploration)
+/cs-assess --map              # Generate codebase map
+/cs-assess --map src/         # Map specific directory
 ```
+
+## Map Mode
+
+When `--map` is specified, skip the full audit and instead produce a structured codebase inventory:
+
+### Map Steps
+
+1. **Directory tree** — Scan directories, count source files per directory (ignore node_modules, .git, dist, build, __pycache__, .venv)
+2. **Dependency graph** — Analyze imports/requires to map which modules depend on which
+3. **Entry points** — Identify main files, API routes, CLI entry points
+4. **Hotspot analysis** — Use `git log --stat --oneline -50` to find most frequently changed files
+5. **Output** — Save structured inventory to `.claude/state/codebase-map.json`
+
+### Map Output Format
+
+```json
+{
+  "generated": "ISO timestamp",
+  "scope": "directory scanned",
+  "directories": [{"path": "src/", "fileCount": 15, "language": "typescript"}],
+  "entryPoints": ["src/index.ts", "src/cli.ts"],
+  "hotspots": [{"file": "src/api.ts", "changes": 12}],
+  "dependencies": {"src/api.ts": ["src/db.ts", "src/auth.ts"]}
+}
+```
+
+Report: `[MAP] Codebase map generated: {dirs} directories, {files} files, {hotspots} hotspots`
 
 <context>
 <dimensions>

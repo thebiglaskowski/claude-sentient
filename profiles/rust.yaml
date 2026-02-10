@@ -42,6 +42,7 @@ detection:
 gates:
   lint:
     command: cargo clippy -- -D warnings
+    fix_command: cargo clippy --fix --allow-dirty
     description: Check code quality with clippy
 
   test:
@@ -93,6 +94,17 @@ web_indicators:
     - "warp"
     - "tower-http"
   auto_rules: [ui-ux-design]
+
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      test: docker-compose run --rm app cargo test
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml]
+    type: auto-detect
 
 # Conventions
 conventions:

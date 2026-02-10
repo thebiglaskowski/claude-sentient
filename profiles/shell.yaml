@@ -74,6 +74,12 @@ patterns:
   - name: installer
     indicator: install.sh, setup.sh
 
+# Infrastructure detection
+infrastructure:
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml]
+    type: auto-detect
+
 # Conventions
 conventions:
   - Use set -euo pipefail at script start

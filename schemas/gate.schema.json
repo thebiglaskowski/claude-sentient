@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://claude-conductor.dev/schemas/gate.schema.json",
+  "$id": "https://claude-sentient.dev/schemas/gate.schema.json",
   "title": "Quality Gate Definition",
   "description": "Schema for modular quality gates",
   "allOf": [
@@ -71,6 +71,10 @@
       },
       "required": ["type"]
     },
+    "fix_command": {
+      "type": "string",
+      "description": "Shorthand auto-fix command for this gate (e.g., 'ruff check . --fix'). Used by profile YAML gates for quick lint/format fixes."
+    },
     "fix": {
       "type": "object",
       "properties": {
@@ -93,7 +97,7 @@
           "description": "Maximum fix attempts"
         }
       },
-      "description": "Auto-fix configuration"
+      "description": "Auto-fix configuration (structured alternative to fix_command)"
     },
     "severity": {
       "type": "string",

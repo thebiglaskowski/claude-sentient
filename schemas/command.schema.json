@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://claude-conductor.dev/schemas/command.schema.json",
+  "$id": "https://claude-sentient.dev/schemas/command.schema.json",
   "title": "Command Definition",
   "description": "Schema for explicit slash commands (/cs-*)",
   "allOf": [

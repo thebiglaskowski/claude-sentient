@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-07
-> **Current Phase:** Phase 3 — Quality & Testing
-> **Version:** 0.5.1
+> **Last Updated:** 2026-02-10
+> **Current Phase:** Phase 4 — Enhancement & Integration
+> **Version:** 1.2.0
 
 ---
 
@@ -12,13 +12,18 @@
 
 ```
 Foundation          [████████████████████] 100% ✓
-Commands            [████████████████████] 100% ✓
-Profiles            [████████████████████] 100% ✓
+Commands            [████████████████████] 100% ✓ (12 commands)
+Profiles            [████████████████████] 100% ✓ (9 profiles + infrastructure)
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
-Hooks               [████████████████████] 100% ✓ (13 hooks)
-Agent Teams         [████████████████████] 100% ✓ (cs-team + 2 hooks)
-Testing             [████████████████████] 100% ✓ (584 total across 6 suites)
+Hooks               [████████████████████] 100% ✓ (13 hooks, enhanced)
+Agent Teams         [████████████████████] 100% ✓ (cs-team + 6 agent roles)
+Self-Healing        [████████████████████] 100% ✓ (auto-fix sub-loop)
+Agent Roles         [████████████████████] 100% ✓ (6 specialized agents)
+Collective Intel    [████████████████████] 100% ✓ (scoped memory)
+Context Arch        [████████████████████] 100% ✓ (predictive + map)
+Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
+Testing             [████████████████████] 100% ✓ (600+ total across 7 suites)
 ```
 
 ---
@@ -42,6 +47,7 @@ Testing             [███████████████████�
 - [x] `/cs-init` - Create/optimize nested CLAUDE.md context architecture
 - [x] `/cs-ui` - UI/UX audit for web projects (modern design, accessibility)
 - [x] `/cs-team` - Create/manage Agent Teams for parallel multi-instance work
+- [x] `/cs-deploy` - Deployment readiness check (CI, Docker, env, migrations)
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -112,16 +118,18 @@ Testing             [███████████████████�
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 11 created |
-| Profiles | `profiles/*.yaml` | ✓ 9 created |
+| Commands | `commands/cs-*.md` | ✓ 12 created |
+| Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
+| Agent Roles | `agents/*.yaml` | ✓ 6 created |
 | Hooks | `.claude/hooks/*.js` | ✓ 12 created + utils.js |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 83 tests |
-| Profile Tests | `profiles/__tests__/` | ✓ 203 tests |
-| Command Tests | `.claude/commands/__tests__/` | ✓ 48 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 90+ tests |
+| Profile Tests | `profiles/__tests__/` | ✓ 220+ tests |
+| Command Tests | `.claude/commands/__tests__/` | ✓ 60+ tests |
+| Agent Tests | `agents/__tests__/` | ✓ 30+ tests |
 | Install Tests | `tests/` | ✓ 14 tests |
 | Tools Tests | `tools/` | ✓ 11 tests |
 | TS SDK Tests | `sdk/typescript/src/` | ✓ 17 tests |
-| Quality Gates | (embedded in profiles) | ✓ Defined |
+| Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 | Validators | `sdk/python/claude_sentient/validators.py` | ✓ JSON schema validation |
 | Shared Config | `shared/*.json` | ✓ Centralized patterns |
 
@@ -131,12 +139,14 @@ Testing             [███████████████████�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 11 | 11 ✓ |
+| Commands | 12 | 12 ✓ |
 | Profiles | 9 | 9 ✓ |
+| Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 83 | 83 ✓ |
-| Profile Tests | 203 | 203 ✓ |
-| Command Tests | 48 | 48 ✓ |
+| Hook Tests | 90+ | 90+ ✓ |
+| Profile Tests | 220+ | 220+ ✓ |
+| Command Tests | 60+ | 60+ ✓ |
+| Agent Tests | 30+ | 30+ ✓ |
 | Install Tests | 14 | 14 ✓ |
 | Tools Tests | 11 | 11 ✓ |
 | TS Orchestrator Tests | 17 | 17 ✓ |
@@ -148,6 +158,58 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-10 (Session 15)
+- **Assessment Remediation (v1.2.0):**
+  - Ran `/cs-assess` — scored 7.9/10 overall
+  - Promoted curl|sh and wget|sh from warning to blocked (supply-chain attack vector)
+  - Added base64-encoded command injection detection to bash-validator
+  - Added error logging to utils.js loadJsonFile for corrupt JSON files
+  - Standardized all 8 schema $id domains to claude-sentient.dev
+  - Added fix_command to Java profile lint gate (mvn spotless:apply)
+  - Added build gate to security agent quality_gates
+  - Increased command audit truncation from 100 to 500 chars
+  - Updated tests: 2 new bash-validator tests (wget|sh block, base64 detection), changed curl|sh test to expect block
+  - Updated CHANGELOG, STATUS, README
+
+### 2026-02-10 (Session 14)
+- **Native Memory Integration (v1.1.0):**
+  - Copied 15 rules to `.claude/rules/` with `paths:` frontmatter for native path-scoped loading
+  - 12 conditional rules load only when working on matching file paths
+  - 3 universal rules always loaded (anthropic-patterns, code-quality, learnings)
+  - Added `@rules/_index.md` import to root CLAUDE.md
+  - Updated `/cs-init` to generate `@rules/` imports in nested CLAUDE.md files
+  - Added `--scope personal` to `/cs-learn` for auto memory storage
+  - Updated installers, tests, and documentation
+  - Used Agent Teams with 4 parallel teammates
+
+### 2026-02-10 (Session 13)
+- **v0.6–v1.0 Enhancement Plan (5 phases implemented in parallel):**
+  - **Phase 1 — Self-Healing (v0.6.0):**
+    - Added AUTO-FIX sub-loop to cs-loop VERIFY phase
+    - Added `fix_command` to Go, Rust, C++ profiles
+    - Updated gate.schema.json with `fix_command` field
+    - Added profile tests for fix_command validation
+  - **Phase 2 — Specialized Agent Roles (v0.7.0):**
+    - Created 6 agent definitions in `agents/*.yaml` (security, devops, frontend, backend, tester, architect)
+    - Created `schemas/agent.schema.json` and `agents/CLAUDE.md`
+    - Updated cs-team.md for dynamic agent loading
+    - Updated cs-loop.md team mode for agent definitions
+    - Enhanced agent-tracker.js with role tracking
+    - Created agent test suite
+  - **Phase 3 — Collective Intelligence (v0.8.0):**
+    - Added `--scope` flag to cs-learn (project/global/org)
+    - Added cross-project memory search to cs-loop INIT
+    - Added dynamic profile generation to cs-init
+  - **Phase 4 — Context Architecture (v0.9.0):**
+    - Added file path prediction to context-injector.js
+    - Added `--map` mode to cs-assess
+    - Added compact context preservation to pre-compact.js
+  - **Phase 5 — Infrastructure (v1.0.0):**
+    - Added CI monitoring to cs-loop COMMIT phase
+    - Added infrastructure sections to all 9 profiles
+    - Created `/cs-deploy` command
+  - Used Agent Teams to parallelize work across 4 teammates
 
 ### 2026-02-07 (Session 12)
 - **Full Assessment Remediation (21 issues → 21 fixed):**

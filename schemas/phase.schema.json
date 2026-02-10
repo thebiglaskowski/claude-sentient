@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://claude-conductor.dev/schemas/phase.schema.json",
+  "$id": "https://claude-sentient.dev/schemas/phase.schema.json",
   "title": "Phase Definition",
   "description": "Schema for modular loop phases",
   "allOf": [

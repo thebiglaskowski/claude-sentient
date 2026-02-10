@@ -44,6 +44,7 @@ detection:
 gates:
   lint:
     command: mvn checkstyle:check
+    fix_command: mvn spotless:apply
     alternative: ./gradlew checkstyleMain
     description: Check code style
 
@@ -101,6 +102,20 @@ web_indicators:
     - "javax.servlet"
     - "jakarta.servlet"
   auto_rules: [ui-ux-design]
+
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      test: docker-compose run --rm app mvn test
+  ci:
+    indicators: [.github/workflows/, Jenkinsfile, .gitlab-ci.yml]
+    type: auto-detect
+  kubernetes:
+    indicators: [k8s/, kubernetes/, helm/]
+    type: kubernetes
 
 # Conventions
 conventions:

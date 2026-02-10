@@ -58,6 +58,13 @@ cp "$TEMP_DIR"/.claude/hooks/README.md .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/__tests__/*.js .claude/hooks/__tests__/
 echo "  Installed hook scripts + tests"
 
+echo "Installing agents..."
+mkdir -p agents/__tests__
+cp "$TEMP_DIR"/agents/*.yaml agents/
+cp "$TEMP_DIR"/agents/CLAUDE.md agents/
+cp "$TEMP_DIR"/agents/__tests__/*.js agents/__tests__/
+echo "  Installed agent definitions + tests"
+
 echo "Installing settings..."
 if [ ! -f ".claude/settings.json" ]; then
     cp "$TEMP_DIR"/.claude/settings.json .claude/settings.json
@@ -75,6 +82,15 @@ else
     echo "  Preserved existing .claude/rules/learnings.md"
 fi
 
+echo "Installing path-scoped rules..."
+for rule in "$TEMP_DIR"/.claude/rules/*.md; do
+    rulename=$(basename "$rule")
+    if [ "$rulename" != "learnings.md" ] && [ "$rulename" != "README.md" ]; then
+        cp "$rule" ".claude/rules/$rulename"
+    fi
+done
+echo "  Installed path-scoped rules to .claude/rules/"
+
 echo "Cleaning up..."
 rm -rf "$TEMP_DIR"
 
@@ -82,14 +98,17 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
-echo "  .claude/commands/cs-*.md       (11 commands)"
+echo "  .claude/commands/cs-*.md       (12 commands)"
 echo "  .claude/hooks/*.js             (13 hook scripts)"
-echo "  .claude/hooks/__tests__/       (68 hook tests)"
+echo "  .claude/hooks/__tests__/       (91 hook tests)"
 echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"
-echo "  profiles/__tests__/            (203 profile tests)"
+echo "  profiles/__tests__/            (242 profile tests)"
+echo "  agents/*.yaml                  (6 agent roles)"
+echo "  agents/__tests__/              (108 agent tests)"
 echo "  rules/*.md                     (15 topic rules)"
 echo "  templates/*.md                 (4 templates)"
+echo "  .claude/rules/*.md              (17 path-scoped rules)"
 echo "  .claude/rules/learnings.md"
 echo ""
 echo "Next steps:"

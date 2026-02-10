@@ -1,5 +1,7 @@
 # Rules Index
 
+> **Path-scoped rules:** These rules are also available in `.claude/rules/` with `paths:` frontmatter. Claude Code automatically loads relevant rules when you work on matching files. The keyword-based loading below is supplementary.
+
 Rules provide topic-specific standards that auto-load based on task context.
 
 ## Auto-Loading

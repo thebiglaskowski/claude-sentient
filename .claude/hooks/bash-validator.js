@@ -33,14 +33,19 @@ const DANGEROUS_PATTERNS = [
 
     // History manipulation
     { pattern: /history\s+-c/, reason: 'Clear command history' },
-    { pattern: /shred.*\.bash_history/, reason: 'Shred bash history' }
+    { pattern: /shred.*\.bash_history/, reason: 'Shred bash history' },
+
+    // Supply-chain attacks — piping remote scripts to shell
+    { pattern: /curl.*\|\s*(sh|bash|zsh)/, reason: 'Piping curl to shell' },
+    { pattern: /wget.*\|\s*(sh|bash|zsh)/, reason: 'Piping wget to shell' },
+
+    // Encoded command injection
+    { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' }
 ];
 
 // Warning patterns (allow but log)
 const WARNING_PATTERNS = [
     { pattern: /sudo\s+/, reason: 'Using sudo' },
-    { pattern: /curl.*\|\s*sh/, reason: 'Piping curl to shell' },
-    { pattern: /wget.*\|\s*sh/, reason: 'Piping wget to shell' },
     { pattern: /npm\s+install\s+-g/, reason: 'Global npm install' },
     { pattern: /pip\s+install\s+--user/, reason: 'User pip install' }
 ];
@@ -89,7 +94,7 @@ for (const { pattern, reason } of DANGEROUS_PATTERNS) {
             decision: 'block',
             reason: `BLOCKED: ${reason}`,
             pattern: pattern.toString(),
-            command: command.substring(0, 100)
+            command: command.substring(0, 500)
         };
         console.log(JSON.stringify(output));
 

@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -69,14 +69,15 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 11 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 12 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 4 | Governance file templates |
-| 🚦 Quality Gates | 4 | Lint, test, build, git |
+| 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
-| 🎣 Hooks | 12 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 584 | Hooks (83), profiles (203), SDK (208), commands (48), install (14), tools (11), TS (17) |
+| 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
+| 🧪 Tests | 503+ | Profiles (242), agents (108), hooks (91), commands (62) + SDK, install, tools |
+| 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
 ---
 
@@ -95,6 +96,7 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 | `/cs-init` | Create/optimize nested CLAUDE.md architecture | [Command](.claude/commands/cs-init.md) |
 | `/cs-ui` | UI/UX audit for web projects | [Command](.claude/commands/cs-ui.md) |
 | `/cs-team` | Create/manage Agent Teams for parallel work | [Command](.claude/commands/cs-team.md) |
+| `/cs-deploy` | Deployment readiness check (CI, Docker, env, migrations) | [Command](.claude/commands/cs-deploy.md) |
 
 ---
 
@@ -278,11 +280,12 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 11 slash commands
+│   ├── commands/cs-*.md    # 12 slash commands
 │   ├── hooks/*.js          # 13 hook scripts (security, teams, tracking)
 │   ├── settings.json       # Hook + team configuration
-│   └── rules/learnings.md  # Persistent memory
+│   └── rules/*.md            # Path-scoped rules + learnings
 ├── profiles/*.yaml          # 9 language profiles + schema
+├── agents/*.yaml            # 6 specialized agent roles
 ├── templates/*.md           # Governance templates
 └── rules/*.md               # 15 topic rules
 ```
@@ -442,7 +445,7 @@ your-project/
 
 ## 🎣 Hooks
 
-Claude Sentient includes 12 hook scripts that integrate with Claude Code's hook system:
+Claude Sentient includes 13 hook scripts that integrate with Claude Code's hook system:
 
 | Hook | Event | Purpose |
 |------|-------|---------|
@@ -465,16 +468,19 @@ Hooks are configured in `.claude/settings.json` and installed automatically.
 
 ## 🧪 Tests
 
-Six test suites validate hooks, profiles, commands, SDK, and infrastructure:
+Test suites validate hooks, profiles, commands, agents, SDK, and infrastructure:
 
 ```bash
-# Hook tests (83 tests) — security, I/O contracts, Agent Teams, normalization
-node .claude/hooks/__tests__/test-hooks.js
-
-# Profile validation (203 tests) — schema compliance, cross-profile consistency
+# Profile validation (242 tests) — schema compliance, gates, infrastructure, cross-profile consistency
 node profiles/__tests__/test-profiles.js
 
-# Command validation (48 tests) — frontmatter, structure, CLAUDE.md references
+# Agent validation (108 tests) — YAML schema, roles, expertise, spawn_prompts
+node agents/__tests__/test-agents.js
+
+# Hook tests (91 tests) — security, I/O contracts, Agent Teams, context predictions
+node .claude/hooks/__tests__/test-hooks.js
+
+# Command validation (62 tests) — frontmatter, structure, auto-fix, deploy, collective intel
 node .claude/commands/__tests__/test-commands.js
 
 # Install script tests (14 tests) — syntax, file refs, content checks

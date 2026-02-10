@@ -57,6 +57,8 @@ Hooks are configured in `.claude/settings.json`:
 - `mkfs` — Filesystem creation
 - `chmod -R 777 /` — Dangerous permissions
 - Fork bombs and reverse shells
+- `curl|sh`, `wget|sh` — Supply-chain attacks
+- `base64 -d | sh` — Encoded command injection
 
 **File Validator** protects sensitive paths:
 - System directories (`/etc`, `/usr`, `C:\Windows`)

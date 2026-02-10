@@ -110,6 +110,8 @@ Gather all context needed for the task: profile, environment, rules, external da
 
 3. **Load rules** based on task keywords:
 
+   > **Note:** Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code when working on matching files. The keyword table below serves as supplementary guidance for explicit rule loading.
+
    | Keywords | Rules |
    |----------|-------|
    | auth, login, jwt | security, api-design |
@@ -150,12 +152,19 @@ Gather all context needed for the task: profile, environment, rules, external da
    - Search nodes for matching decisions/patterns
    - Load and apply relevant context
 
-10. **WebFetch: Dependency changelogs** — If task involves dependencies:
+10. **MCP: Memory** — Cross-project intelligence (global/org learnings):
+    - Search for global learnings: `search_nodes(query="scope:global {task_keywords}")`
+    - Detect org name from `.claude/settings.json` → `sentient.org` field, or from git remote
+    - If org detected, search: `search_nodes(query="scope:org:{org_name} {task_keywords}")`
+    - Apply relevant global/org learnings to current task context
+    - Report: `[INIT] Found {n} cross-project learnings relevant to task`
+
+11. **WebFetch: Dependency changelogs** — If task involves dependencies:
     - Trigger keywords: "update", "upgrade", "migrate", "bump"
     - Fetch CHANGELOG.md or release notes
     - Prevent breaking changes from surprising you
 
-11. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
+12. Report: `[INIT] Profile: {name}, Tools: {lint}, {test}, MCP: {servers}`
 
 ### 2. UNDERSTAND
 
@@ -235,13 +244,17 @@ Classify complexity:
 
 **Team Mode** (when approved in PLAN phase):
 
-1. **Spawn teammates** — Create an Agent Team with role-specific prompts:
+1. **Load agent definitions** — Read `agents/*.yaml` files. Match each work stream to the best-fit agent based on `expertise` arrays. Use the agent's `spawn_prompt`, `rules_to_load`, and `file_scope_hints` for teammate configuration. Fall back to generic role prompts if no matching agent exists.
+
+2. **Spawn teammates** — Create an Agent Team with agent-specific prompts:
    ```
    Create an agent team for this task with {n} teammates:
 
-   Teammate "{name}":
-   - Scope: {directory/package they own}
+   Teammate "{agent-name or role-name}":
+   - Prompt: {spawn_prompt from agents/*.yaml, or generic role prompt}
+   - Scope: {file_scope_hints from agent, or directory/package they own}
    - Tasks: {specific task IDs and descriptions}
+   - Rules: {rules_to_load from agent YAML}
    - Quality gates: {lint command}, {test command}
    - Rule: Only modify files in your scope
 
@@ -250,15 +263,15 @@ Classify complexity:
    Require plan approval before teammates make changes.
    ```
 
-2. **Enable delegate mode** — Switch to coordination-only (Shift+Tab)
+3. **Enable delegate mode** — Switch to coordination-only (Shift+Tab)
    - Report: `[EXECUTE] Team mode: {n} teammates spawned, delegate mode active`
 
-3. **Monitor progress** — Track via shared task list
+4. **Monitor progress** — Track via shared task list
    - Redirect teammates that drift from scope
    - Unblock teammates that report issues
    - Synthesize results as tasks complete
 
-4. **Collect results** — When all teammate tasks complete:
+5. **Collect results** — When all teammate tasks complete:
    - Ask teammates to shut down
    - Review combined changes
    - Report: `[EXECUTE] Team complete: {completed}/{total} tasks`
@@ -289,6 +302,36 @@ Run quality gates from profile:
 | BUILD | Run build command if defined |
 | GIT | Check `git status` is clean |
 </criteria>
+
+**AUTO-FIX sub-loop** — When a gate fails, attempt automatic repair before reporting:
+
+<thinking>
+Classify the error type and apply the appropriate fix strategy.
+Never modify test assertions to make them pass. Never skip gates.
+If error count increases after a fix attempt, revert and stop.
+</thinking>
+
+| Error Type | Fix Strategy |
+|------------|-------------|
+| Lint (auto-fixable) | Run `fix_command` from profile gates (e.g., `ruff check . --fix`) |
+| Import ordering | Run format/sort command from profile gates |
+| Type errors | Read file at error location, fix type annotations |
+| Test failures | Read failing test + source under test, fix logic in source |
+| Build errors | Read compiler output, fix compilation issues |
+
+**Auto-fix procedure:**
+1. Gate fails → classify error type from output
+2. If profile has `fix_command` for this gate: run it, re-verify
+3. If no `fix_command` or fix_command didn't resolve: read error, apply manual fix, re-verify
+4. Maximum 3 attempts per gate. Track: `[VERIFY] Auto-fix attempt {n}/3: {gate}`
+5. If error count increases after any attempt: revert changes and stop
+6. If all 3 attempts fail: fall through to WebSearch strategy below
+
+**Constraints:**
+- Never modify test assertions or expected values to make tests pass
+- Never skip or disable quality gates
+- If fix introduces new errors, revert immediately
+- Report each attempt: `[VERIFY] Auto-fix attempt {n}/3: {gate} — {strategy}`
 
 **MCP: Puppeteer** — For web projects:
 - If significant UI changes: navigate → screenshot
@@ -325,6 +368,16 @@ Run quality gates from profile:
 - Enables `/cs-loop` to resume where it left off
 
 5. Report: `[COMMIT] Created checkpoint: {hash}`
+
+**CI Monitoring** — After committing on a branch with a PR:
+1. Check if current branch has an open PR: `mcp__github__get_pull_request_status`
+2. If PR exists, monitor CI status:
+   - **Passing** → Report: `[COMMIT] CI passed`
+   - **Pending** → Report: `[COMMIT] CI running...` and continue
+   - **Failing** → Analyze failure:
+     - **Fixable** (lint, test, type errors) → Auto-fix, commit, push
+     - **Infrastructure** (timeout, service down) → Report: `[COMMIT] CI infrastructure failure — manual review needed`
+3. Maximum 2 auto-fix attempts for CI failures
 
 ### 7. EVALUATE
 

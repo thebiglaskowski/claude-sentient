@@ -168,6 +168,21 @@ web_indicators:
     - "from flask import"
   auto_rules: [ui-ux-design]
 
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml, docker-compose.yaml]
+    commands:
+      build: docker build -t {project_name} .
+      up: docker-compose up -d
+      test: docker-compose run --rm app pytest
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml, .circleci/]
+    type: auto-detect
+  virtualenv:
+    indicators: [.venv/, venv/, .virtualenv/]
+    type: python-venv
+
 # Conventions
 conventions:
   - Use type hints for function signatures

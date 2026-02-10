@@ -6,6 +6,97 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-02-10
+
+### Fixed
+- **Security: curl|sh and wget|sh now blocked** — Promoted from warning to dangerous pattern in bash-validator. Piping remote scripts to shell is the most common supply-chain attack vector.
+- **Security: Base64-encoded command injection detection** — Added pattern to detect `base64 -d | sh` command injection bypass attempts.
+- **Security: Error logging in loadJsonFile** — Corrupt JSON files now log a warning instead of silently returning defaults, making debugging easier.
+- **Schema $id domain standardization** — Updated 7 schema files from legacy `claude-conductor.dev` to `claude-sentient.dev` domain.
+- **Java profile missing fix_command** — Added `fix_command: mvn spotless:apply` to Java lint gate, enabling auto-fix in VERIFY phase.
+- **Security agent missing build gate** — Added `build` to security agent's quality_gates for consistency with other agents.
+
+### Changed
+- bash-validator: Increased command truncation in audit output from 100 to 500 characters.
+- bash-validator: Removed curl|sh and wget|sh from WARNING_PATTERNS (now in DANGEROUS_PATTERNS).
+
+---
+
+## [1.1.0] — 2026-02-10
+
+### Added
+- **Path-scoped rules** — 15 rules now in `.claude/rules/` with `paths:` frontmatter for conditional loading
+  - 12 rules with path-specific triggers (security, testing, api-design, database, ui-ux-design, error-handling, performance, logging, terminal-ui, documentation, prompt-structure, git-workflow)
+  - 3 universal rules always loaded (anthropic-patterns, code-quality, learnings)
+  - Claude Code natively loads relevant rules when working on matching file paths
+- **CLAUDE.md `@import`** — Root CLAUDE.md now imports `@rules/_index.md` for rule visibility
+- **cs-init `@import` generation** — Nested CLAUDE.md files now include `@rules/` imports based on directory purpose
+- **`/cs-learn --scope personal`** — New scope writes to auto memory (`~/.claude/projects/`) instead of shared `.claude/rules/learnings.md`
+- Path-scoped rules validation tests (14+ new tests)
+- Installers now copy path-scoped rules to `.claude/rules/`
+
+### Changed
+- cs-loop INIT notes that path-scoped rules load automatically via Claude Code
+- Updated `rules/_index.md` with path-scoping note
+- Rewritten `.claude/rules/README.md` to document all rule files and frontmatter format
+
+---
+
+## [1.0.0] — 2026-02-10
+
+### Added
+- **Proactive Self-Healing (v0.6.0)** — VERIFY phase auto-fix sub-loop
+  - Gate failures trigger automatic repair (max 3 attempts per gate)
+  - Classifies error type: lint, import ordering, type errors, test failures, build errors
+  - Runs `fix_command` from profile gates when available
+  - Reverts if error count increases after fix attempt
+  - Falls back to WebSearch strategy after 3 failed attempts
+  - Added `fix_command` to Go (`golangci-lint run --fix`), Rust (`cargo clippy --fix --allow-dirty`), C++ (`clang-tidy --fix`) profiles
+  - Updated `gate.schema.json` with `fix_command` field definition
+
+- **Specialized Agent Roles (v0.7.0)** — Domain-expert agents for Agent Teams
+  - 6 agent role definitions in `agents/*.yaml`: security, devops, frontend, backend, tester, architect
+  - Each agent has: expertise areas, spawn_prompt, rules_to_load, quality_gates, file_scope_hints
+  - `schemas/agent.schema.json` for agent YAML validation
+  - `/cs-team` now loads agent definitions dynamically, matching expertise to work streams
+  - `/cs-loop` team mode uses agent spawn_prompts for teammate initialization
+  - `agent-tracker.js` enhanced to track agent role definitions and loaded rules
+  - `agents/CLAUDE.md` documentation for the agent system
+  - `agents/__tests__/test-agents.js` test suite
+
+- **Cross-Project Collective Intelligence (v0.8.0)** — Scoped memory sharing
+  - `/cs-learn` now supports `--scope` flag: `project` (default), `global`, `org`
+  - Global learnings shared across all projects via MCP memory
+  - Org learnings shared within organization via MCP memory with `scope:org:{name}` tag
+  - `/cs-loop` INIT phase searches global/org learnings relevant to current task
+  - `/cs-init` generates custom profiles for non-standard languages (Elixir, Swift, Kotlin, etc.)
+
+- **Seamless Context for Massive Repos (v0.9.0)** — Predictive context architecture
+  - `context-injector.js` now predicts relevant file paths based on detected topics
+  - `/cs-assess --map` mode: structured codebase inventory (directory tree, dependency graph, entry points, hotspot analysis)
+  - `pre-compact.js` generates `compact-context.json` summary for cs-loop recovery after context compaction
+  - Map output saved to `.claude/state/codebase-map.json`
+
+- **Infrastructure Orchestration (v1.0.0)** — CI monitoring and deployment readiness
+  - `/cs-loop` COMMIT phase monitors CI status via GitHub MCP, auto-fixes on failure
+  - All 9 profiles now include optional `infrastructure` sections (Docker, CI, platform-specific)
+  - `/cs-deploy` command: deployment readiness check (CI status, Docker build, env vars, migrations, dependencies)
+  - Commands: 11 → 12
+
+### Changed
+- Version bump: 0.5.1 → 1.0.0
+- `/cs-loop` VERIFY section now includes AUTO-FIX sub-loop before WebSearch fallback
+- `/cs-loop` INIT phase now includes cross-project memory search (step 10)
+- `/cs-loop` EXECUTE team mode references agent definitions from `agents/*.yaml`
+- `/cs-loop` COMMIT phase now includes CI monitoring
+- `/cs-team` loads specialized agent definitions dynamically instead of static 4-role table
+- `context-injector.js` outputs `filePredictions` array
+- `pre-compact.js` generates `compact-context.json` alongside existing backups
+- `agent-tracker.js` tracks `agentRole`, `rulesLoaded`, and `expertise` fields
+- Updated Quality Gates documentation to show auto-fix capability
+
+---
+
 ## [0.5.1] — 2026-02-07
 
 ### Security
@@ -208,6 +299,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.1.0 | 2026-02-10 | Path-scoped rules, @imports, --scope personal, native memory integration |
+| 1.0.0 | 2026-02-10 | Self-healing, agent roles, collective intelligence, context architecture, infrastructure, 12 commands, 503+ tests |
 | 0.5.1 | 2026-02-07 | Security hardening, JSON schema validation, 584 tests, v1-legacy removal |
 | 0.5.0 | 2026-02-07 | Agent Teams, /cs-team, team hooks, 11 commands, 13 hooks |
 | 0.4.0 | 2026-02-07 | Hooks, tests, /cs-init, SDK integration, 10 commands, 9 profiles |

@@ -118,6 +118,7 @@ function loadJsonFile(filePath, defaultValue = {}) {
         const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         return sanitizeJson(parsed);
     } catch (e) {
+        logMessage(`Failed to parse ${path.basename(filePath)}: ${e.message}`, 'WARNING');
         return defaultValue;
     }
 }

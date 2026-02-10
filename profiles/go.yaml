@@ -42,6 +42,7 @@ detection:
 gates:
   lint:
     command: golangci-lint run
+    fix_command: golangci-lint run --fix
     alternative: go vet ./...
     description: Check code quality and style
 
@@ -94,6 +95,21 @@ web_indicators:
     - "net/http"
     - "html/template"
   auto_rules: [ui-ux-design]
+
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      up: docker-compose up -d
+      test: docker-compose run --rm app go test ./...
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml]
+    type: auto-detect
+  kubernetes:
+    indicators: [k8s/, kubernetes/, helm/]
+    type: kubernetes
 
 # Conventions
 conventions:

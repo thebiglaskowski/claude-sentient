@@ -85,6 +85,17 @@ patterns:
   - name: ci
     indicator: .github/workflows/, .gitlab-ci.yml
 
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml, docker-compose.yaml]
+    commands:
+      build: docker build .
+      up: docker-compose up -d
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml, .circleci/, Jenkinsfile]
+    type: auto-detect
+
 # Universal conventions
 conventions:
   - Follow existing code style in the project

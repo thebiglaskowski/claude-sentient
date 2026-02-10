@@ -65,6 +65,13 @@ Copy-Item "$TempDir/.claude/hooks/README.md" -Destination ".claude/hooks/" -Forc
 Copy-Item "$TempDir/.claude/hooks/__tests__/*.js" -Destination ".claude/hooks/__tests__/" -Force
 Write-Host "  Installed hook scripts + tests"
 
+Write-Host "Installing agents..."
+New-Item -ItemType Directory -Force -Path "agents/__tests__" | Out-Null
+Copy-Item "$TempDir/agents/*.yaml" -Destination "agents/" -Force
+Copy-Item "$TempDir/agents/CLAUDE.md" -Destination "agents/" -Force
+Copy-Item "$TempDir/agents/__tests__/*.js" -Destination "agents/__tests__/" -Force
+Write-Host "  Installed agent definitions + tests"
+
 Write-Host "Installing settings..."
 if (-not (Test-Path ".claude/settings.json")) {
     Copy-Item "$TempDir/.claude/settings.json" -Destination ".claude/settings.json"
@@ -81,6 +88,12 @@ if (-not (Test-Path ".claude/rules/learnings.md")) {
 } else {
     Write-Host "  Preserved existing .claude/rules/learnings.md"
 }
+
+Write-Host "Installing path-scoped rules..."
+Get-ChildItem "$TempDir/.claude/rules/*.md" | Where-Object { $_.Name -ne "learnings.md" -and $_.Name -ne "README.md" } | ForEach-Object {
+    Copy-Item $_.FullName -Destination ".claude/rules/$($_.Name)" -Force
+}
+Write-Host "  Installed path-scoped rules to .claude/rules/"
 
 Write-Host "Cleaning up..."
 # Windows may hold file locks briefly after git clone - retry cleanup
@@ -102,14 +115,17 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
-Write-Host '  .claude/commands/cs-*.md       (11 commands)'
+Write-Host '  .claude/commands/cs-*.md       (12 commands)'
 Write-Host '  .claude/hooks/*.js             (13 hook scripts)'
-Write-Host '  .claude/hooks/__tests__/       (68 hook tests)'
+Write-Host '  .claude/hooks/__tests__/       (91 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
-Write-Host '  profiles/__tests__/            (203 profile tests)'
+Write-Host '  profiles/__tests__/            (242 profile tests)'
+Write-Host '  agents/*.yaml                  (6 agent roles)'
+Write-Host '  agents/__tests__/              (108 agent tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/*.md                 (4 templates)'
+Write-Host '  .claude/rules/*.md              (17 path-scoped rules)'
 Write-Host '  .claude/rules/learnings.md'
 Write-Host ""
 Write-Host "Next steps:"

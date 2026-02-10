@@ -56,8 +56,17 @@ All gates use standardized keys:
 | Key | Purpose |
 |-----|---------|
 | `command` | Primary command to run |
+| `fix_command` | Auto-fix command (used by VERIFY auto-fix sub-loop) |
 | `alternative` | Fallback if primary tool not available |
 | `detect` | File/dir that indicates this gate applies |
+
+**Auto-fix support:** Profiles with `fix_command` on lint gates enable the VERIFY auto-fix sub-loop:
+- Python: `ruff check . --fix`
+- TypeScript: `npx eslint . --fix`
+- Go: `golangci-lint run --fix`
+- Rust: `cargo clippy --fix --allow-dirty`
+- Ruby: `bundle exec rubocop -a`
+- C++: `clang-tidy --fix`
 
 **Important:** Gate keys were standardized in v0.4.0:
 - Java: `maven_command`/`gradle_command` → `command`/`alternative`
@@ -97,11 +106,33 @@ Profiles can include `web_indicators` for auto-loading UI/UX rules:
 
 ---
 
+## Infrastructure Detection
+
+Profiles can include optional `infrastructure` sections for Docker, CI, and platform detection:
+
+```yaml
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      up: docker-compose up -d
+      test: docker-compose run --rm app {test_command}
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml]
+    type: auto-detect
+```
+
+Used by `/cs-deploy` for deployment readiness checks.
+
+---
+
 ## Adding a New Profile
 
 1. Create `profiles/{language}.yaml` with required fields
 2. Add detection rules (files + extensions)
-3. Define gates (lint, test, build minimum)
+3. Define gates (lint, test, build minimum — include `fix_command` if available)
 4. Add conventions section
 5. Add `models` and `thinking` sections
-6. Run `node profiles/__tests__/test-profiles.js` to validate
+6. Optionally add `infrastructure` section
+7. Run `node profiles/__tests__/test-profiles.js` to validate

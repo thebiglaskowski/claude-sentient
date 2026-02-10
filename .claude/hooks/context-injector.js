@@ -34,6 +34,20 @@ const keywords = {
     documentation: ['doc', 'readme', 'comment', 'docstring', 'explain', 'document']
 };
 
+// File patterns for predictive context injection
+const filePatterns = {
+    auth: ['**/auth*', '**/middleware*', '**/session*', '**/login*', '**/passport*'],
+    test: ['**/test*', '**/__tests__*', '**/*.test.*', '**/*.spec.*'],
+    api: ['**/api*', '**/routes*', '**/controllers*', '**/endpoints*', '**/handlers*'],
+    database: ['**/models*', '**/migrations*', '**/schema*', '**/queries*', '**/db*'],
+    performance: ['**/cache*', '**/workers*', '**/queue*', '**/jobs*'],
+    ui: ['**/components*', '**/views*', '**/pages*', '**/layouts*', '**/styles*'],
+    security: ['**/auth*', '**/middleware*', '**/validators*', '**/sanitize*'],
+    codeQuality: ['**/lint*', '**/config*', '**/.eslint*', '**/.prettier*'],
+    errorHandling: ['**/errors*', '**/exceptions*', '**/middleware*', '**/handlers*'],
+    documentation: ['**/docs*', '**/*.md', '**/README*']
+};
+
 const promptLower = promptText.toLowerCase();
 const detectedTopics = [];
 
@@ -42,6 +56,16 @@ for (const [topic, words] of Object.entries(keywords)) {
         detectedTopics.push(topic);
     }
 }
+
+// Build file predictions from detected topics
+const filePredictions = [];
+for (const topic of detectedTopics) {
+    if (filePatterns[topic]) {
+        filePredictions.push(...filePatterns[topic]);
+    }
+}
+// Deduplicate
+const uniquePredictions = [...new Set(filePredictions)];
 
 // Track prompt metadata
 const promptMeta = {
@@ -62,7 +86,8 @@ saveState('prompts.json', prompts);
 // Output (continue execution)
 const output = {
     continue: true,
-    detectedTopics
+    detectedTopics,
+    filePredictions: uniquePredictions
 };
 
 console.log(JSON.stringify(output));

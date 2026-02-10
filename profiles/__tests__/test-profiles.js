@@ -344,6 +344,92 @@ for (const file of profileFiles) {
             }
         });
     });
+
+    suite(`${file} — fix_command validation`, () => {
+        test('fix_command is a string when present', () => {
+            const gatesSection = extractSection(content, 'gates');
+            const fixMatches = gatesSection.match(/^\s+fix_command:\s*(.+)/gm);
+            if (fixMatches) {
+                for (const match of fixMatches) {
+                    const value = match.replace(/^\s+fix_command:\s*/, '').trim();
+                    assert.ok(value.length > 0, 'fix_command should have a non-empty value');
+                }
+            }
+        });
+
+        test('fix_command only appears in gates that have command', () => {
+            const gateNames = getGateNames(content);
+            for (const gate of gateNames) {
+                const gatesSection = extractSection(content, 'gates');
+                const lines = gatesSection.split('\n');
+                let inGate = false;
+                let hasCommand = false;
+                let hasFixCommand = false;
+                for (const line of lines) {
+                    const gateMatch = line.match(/^  ([a-z_]+)\s*:/);
+                    if (gateMatch) {
+                        if (inGate && hasFixCommand && !hasCommand) {
+                            assert.fail(`gate "${gate}" has fix_command without command`);
+                        }
+                        inGate = gateMatch[1] === gate;
+                        hasCommand = false;
+                        hasFixCommand = false;
+                        continue;
+                    }
+                    if (inGate) {
+                        if (line.match(/^\s+command:\s/)) hasCommand = true;
+                        if (line.match(/^\s+fix_command:\s/)) hasFixCommand = true;
+                    }
+                }
+                // Check last gate in section
+                if (inGate && hasFixCommand && !hasCommand) {
+                    assert.fail(`gate "${gate}" has fix_command without command`);
+                }
+            }
+        });
+
+        if (['python', 'typescript', 'ruby'].includes(profileName)) {
+            test('lint gate has fix_command', () => {
+                const gatesSection = extractSection(content, 'gates');
+                const lines = gatesSection.split('\n');
+                let inLint = false;
+                let hasFixCommand = false;
+                for (const line of lines) {
+                    const gateMatch = line.match(/^  ([a-z_]+)\s*:/);
+                    if (gateMatch) {
+                        if (inLint) break;
+                        inLint = gateMatch[1] === 'lint';
+                        continue;
+                    }
+                    if (inLint && line.match(/^\s+fix_command:\s/)) {
+                        hasFixCommand = true;
+                    }
+                }
+                assert.ok(hasFixCommand, `${profileName} lint gate should have fix_command`);
+            });
+        }
+    });
+
+    suite(`${file} — infrastructure section`, () => {
+        test('infrastructure section is valid when present', () => {
+            if (content.includes('\ninfrastructure:')) {
+                const infraSection = extractSection(content, 'infrastructure');
+                // Should have at least one subsection
+                assert.ok(infraSection.length > 20,
+                    'infrastructure section should have content');
+            }
+        });
+
+        test('infrastructure ci section has indicators when present', () => {
+            if (content.includes('\ninfrastructure:')) {
+                const infraSection = extractSection(content, 'infrastructure');
+                if (infraSection.includes('ci:')) {
+                    assert.ok(infraSection.includes('indicators:'),
+                        'ci section should have indicators');
+                }
+            }
+        });
+    });
 }
 
 // ─────────────────────────────────────────────────────────────

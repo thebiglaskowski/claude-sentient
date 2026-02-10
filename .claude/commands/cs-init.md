@@ -73,6 +73,19 @@ This content is ALWAYS included in the root CLAUDE.md:
 - Admit mistakes immediately — "I made a mistake" not "there was an issue"
 ```
 
+## Rule Import Mapping
+
+When generating nested CLAUDE.md files, include `@import` references based on directory purpose:
+
+| Directory Pattern | Rules to Import |
+|------------------|----------------|
+| `**/api/**`, `**/routes/**` | `@rules/api-design.md`, `@rules/error-handling.md` |
+| `**/components/**`, `**/ui/**` | `@rules/ui-ux-design.md` |
+| `**/tests/**`, `**/__tests__/**` | `@rules/testing.md` |
+| `**/db/**`, `**/models/**` | `@rules/database.md` |
+| `**/auth/**`, `**/security/**` | `@rules/security.md` |
+| `**/cli/**`, `**/bin/**` | `@rules/terminal-ui.md` |
+
 ## Monorepo Detection
 
 | Config File | Tool | How to Read Packages |
@@ -106,12 +119,52 @@ Determine if this is create mode (no CLAUDE.md) or optimize mode (existing CLAUD
    - None found → **Create mode**
    - Found → **Optimize mode**
 3. **Detect tech stack** — scan for files in the tech detection table above
-4. **Detect monorepo** — check for workspace configs
-5. **Find significant directories** — use `Glob` and `Task` subagents to scan:
+4. **Dynamic profile generation** — if no standard profile matches (Python, TypeScript, Go, Rust, Java, C/C++, Ruby, Shell), generate a custom profile:
+
+   **Quality tool detection for non-standard languages:**
+
+   | Language | Indicator File | Lint Config | Lint Command | Test Command | Build Command |
+   |----------|---------------|-------------|--------------|--------------|---------------|
+   | Elixir | `mix.exs` | `.credo.exs` | `mix credo` | `mix test` | `mix compile` |
+   | Swift | `Package.swift` | `.swiftlint.yml` | `swiftlint` | `swift test` | `swift build` |
+   | Kotlin | `build.gradle.kts` | `detekt.yml` | `detekt` | `gradle test` | `gradle build` |
+   | Dart/Flutter | `pubspec.yaml` | `analysis_options.yaml` | `dart analyze` | `dart test` | `dart compile` |
+   | Zig | `build.zig` | — | — | `zig build test` | `zig build` |
+   | Haskell | `stack.yaml`, `*.cabal` | — | `hlint .` | `stack test` | `stack build` |
+   | Scala | `build.sbt` | `.scalafmt.conf` | `scalafmt --check` | `sbt test` | `sbt compile` |
+   | PHP | `composer.json` | `phpcs.xml` | `phpcs` | `phpunit` | — |
+   | Perl | `cpanfile` | — | `perlcritic .` | `prove -r t/` | — |
+
+   **Generation steps:**
+   1. Scan for quality tool config files from the table above
+   2. Detect conventions from existing source files (naming, structure)
+   3. Generate `profiles/{name}.yaml` following the profile schema:
+      ```yaml
+      name: {language}
+      version: "1.0"
+      description: "{Language} project — auto-generated profile"
+      detection:
+        files: [{detected indicator files}]
+        patterns: ["**/*.{ext}"]
+      gates:
+        lint:
+          command: {detected lint command or "echo 'No linter configured'"}
+        test:
+          command: {detected test command}
+        build:
+          command: {detected build command}
+      conventions:
+        - {detected from source file analysis}
+      ignore:
+        - {language-specific ignore patterns}
+      ```
+   4. Report: `[DETECT] Generated custom profile: {name}.yaml`
+5. **Detect monorepo** — check for workspace configs
+6. **Find significant directories** — use `Glob` and `Task` subagents to scan:
    - Count source files per directory (exclude ignored dirs)
    - Identify workspace packages
    - Build list of directories that qualify for nested CLAUDE.md
-6. **Read project metadata** — extract info from:
+7. **Read project metadata** — extract info from:
    - `package.json` (name, description, scripts)
    - `pyproject.toml` (name, description)
    - `README.md` (first paragraph for overview)
@@ -245,6 +298,8 @@ If "Cancel" → exit gracefully.
 # {Directory Name}
 
 > {Purpose of this directory}
+
+{@rules/ imports based on Rule Import Mapping above}
 
 ## Patterns
 

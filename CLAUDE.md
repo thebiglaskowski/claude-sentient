@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 0.5.0
+> **Version:** 1.0.0
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -34,6 +34,7 @@ Claude Sentient is an **orchestration layer** that leverages Claude Code's nativ
 /cs-ui                                     # UI/UX audit (web projects)
 /cs-team "refactor auth across packages"   # Parallel Agent Teams
 /cs-assess                                 # Full codebase health audit
+/cs-deploy                                 # Deployment readiness check
 ```
 
 ---
@@ -69,6 +70,7 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 | `/cs-init [dir]` | Create/optimize nested CLAUDE.md architecture |
 | `/cs-ui [dir] [--full]` | UI/UX audit for web projects |
 | `/cs-team [task] [--status] [--stop]` | Create/manage Agent Teams |
+| `/cs-deploy [--ci] [--docker] [--env]` | Deployment readiness check |
 
 > Detailed command structure and skill chaining: `.claude/commands/CLAUDE.md`
 
@@ -96,14 +98,16 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 
 Before committing, these must pass:
 
-| Gate | Requirement |
-|------|-------------|
-| **LINT** | Zero errors from linter |
-| **TEST** | All tests pass |
-| **BUILD** | Project builds successfully |
-| **GIT** | Clean working state |
+| Gate | Requirement | Auto-Fix |
+|------|-------------|----------|
+| **LINT** | Zero errors from linter | `fix_command` from profile (up to 3 attempts) |
+| **TEST** | All tests pass | Read test + source, fix logic (never modify assertions) |
+| **BUILD** | Project builds successfully | Read error, fix compilation |
+| **GIT** | Clean working state | Stage changes |
 
 Advisory (report only): TYPE, DOCS, SECURITY.
+
+When a gate fails, the VERIFY phase runs an auto-fix sub-loop (max 3 attempts) before falling back to WebSearch.
 
 ---
 
@@ -133,12 +137,23 @@ Uses the **official Claude Code pattern** — `.claude/rules/*.md` files are aut
 | `.claude/rules/learnings.md` | Decisions, patterns, learnings | Yes (git) |
 | `CLAUDE.md` | Project instructions | Yes (git) |
 | `CLAUDE.local.md` | Personal preferences | No (gitignored) |
+| `~/.claude/projects/<project>/memory/MEMORY.md` | Personal insights | No (auto memory) |
 
 ```bash
 /cs-learn decision "Use PostgreSQL" "Chose for JSON support"
 /cs-learn pattern "Error shape" "All errors return {error, message, code}"
 /cs-learn learning "Avoid ORM" "Raw SQL 10x faster for bulk ops"
+/cs-learn decision "Auth pattern" "Use JWT" --scope global    # Share across projects
+/cs-learn learning "Docker" "Multi-stage builds" --scope org  # Share within org
 ```
+
+---
+
+## Rules Reference
+
+@rules/_index.md
+
+> Domain-specific rules in `.claude/rules/` use `paths:` frontmatter for conditional loading — they only load when Claude works on matching files. Universal rules (anthropic-patterns, code-quality, learnings) load every session.
 
 ---
 
@@ -240,6 +255,7 @@ Detailed documentation lives in nested CLAUDE.md files that load only when neede
 | `.claude/hooks/CLAUDE.md` | All 13 hooks, configuration, security patterns, state files | Editing hooks |
 | `profiles/CLAUDE.md` | Profile detection, model routing, gate structure, conventions | Editing profiles |
 | `.claude/commands/CLAUDE.md` | Command structure, documentation policy, rule auto-loading | Editing commands |
+| `agents/CLAUDE.md` | Agent role definitions, YAML structure, custom agents | Editing agent configs |
 
 This reduces root context from ~1000 lines to ~250 lines while keeping all detail accessible.
 

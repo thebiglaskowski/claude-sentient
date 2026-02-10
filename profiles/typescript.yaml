@@ -127,6 +127,24 @@ web_indicators:
     - "@angular"
   auto_rules: [ui-ux-design]
 
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml, docker-compose.yaml]
+    commands:
+      build: docker build -t {project_name} .
+      up: docker-compose up -d
+      test: docker-compose run --rm app npm test
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml, .circleci/]
+    type: auto-detect
+  vercel:
+    indicators: [vercel.json, .vercel/]
+    type: vercel
+  netlify:
+    indicators: [netlify.toml]
+    type: netlify
+
 # Conventions
 conventions:
   - Use strict TypeScript (strict: true)

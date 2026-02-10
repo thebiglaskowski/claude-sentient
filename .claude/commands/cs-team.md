@@ -65,6 +65,22 @@ Teams are stored in `~/.claude/teams/{team-name}/config.json` and tasks in `~/.c
 | **reviewer** | Code review, quality checks | Security, performance audits |
 | **researcher** | Investigation, documentation | Bug hunting, architecture research |
 | **tester** | Test writing, coverage | Test suites, edge cases |
+| **architect** | Design patterns, dependency management | Refactors, code quality |
+
+### Specialized Agent Definitions
+
+Agent definitions in `agents/*.yaml` provide role-specific expertise, spawn prompts, and quality gate requirements. During team design, load all agent YAML files and match their `expertise` arrays against work stream requirements.
+
+Available agents: `security`, `devops`, `frontend`, `backend`, `tester`, `architect`.
+
+Each agent YAML contains:
+- `spawn_prompt`: Detailed initialization prompt for the teammate
+- `expertise`: Areas matched against task keywords
+- `rules_to_load`: Rule files injected into teammate context
+- `file_scope_hints`: Glob patterns for file ownership
+- `quality_gates`: Gates the agent must run
+
+**Fallback:** If no matching agent YAML exists for a work stream, use generic role-based prompts.
 
 ### Quality Enforcement
 
@@ -113,6 +129,8 @@ Teammates are configured with the project's profile and quality gates:
    - What's the right teammate-to-task ratio? (aim for 5-6 tasks per teammate)
    </thinking>
 
+   **Load agent definitions:** Read all `agents/*.yaml` files. For each work stream, match against agent `expertise` arrays to find the best-fit agent. Use the agent's `spawn_prompt`, `rules_to_load`, and `file_scope_hints` when configuring the teammate.
+
    Rules for team sizing:
    | Independent Streams | Teammates | Rationale |
    |---------------------|-----------|-----------|
@@ -138,19 +156,27 @@ Teammates are configured with the project's profile and quality gates:
 
 6. **CREATE TEAM**
 
+   For each teammate, check if a matching agent definition exists in `agents/*.yaml`:
+   - If matched: use the agent's `spawn_prompt` as the base prompt, load `rules_to_load`, and use `file_scope_hints` for scope
+   - If no match: fall back to a generic role-based prompt
+
    Instruct Claude Code to create the team:
    ```
    Create an agent team named "{task-slug}" with {n} teammates:
 
-   Teammate 1: "{role-name}"
+   Teammate 1: "{agent-name or role-name}"
+   - Prompt: {spawn_prompt from agent YAML, or generic role prompt}
    - Focus: {specific work area}
-   - Files: {directory/package scope}
+   - Files: {file_scope_hints from agent YAML, or directory/package scope}
    - Tasks: {specific task list}
+   - Rules: {rules_to_load from agent YAML}
 
-   Teammate 2: "{role-name}"
+   Teammate 2: "{agent-name or role-name}"
+   - Prompt: {spawn_prompt from agent YAML, or generic role prompt}
    - Focus: {specific work area}
-   - Files: {directory/package scope}
+   - Files: {file_scope_hints from agent YAML, or directory/package scope}
    - Tasks: {specific task list}
+   - Rules: {rules_to_load from agent YAML}
 
    Quality gates for ALL teammates:
    - Lint: {lint command from profile}

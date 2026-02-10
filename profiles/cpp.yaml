@@ -47,6 +47,7 @@ detection:
 gates:
   lint:
     command: clang-tidy **/*.cpp **/*.c
+    fix_command: clang-tidy --fix **/*.cpp **/*.c
     alternative: cppcheck --enable=all .
     description: Check code quality
 
@@ -92,6 +93,17 @@ patterns:
 
   - name: boost
     indicator: boost/
+
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      test: docker-compose run --rm app ctest
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml, CMakePresets.json]
+    type: auto-detect
 
 # Conventions
 conventions:

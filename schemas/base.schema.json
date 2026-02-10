@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://claude-conductor.dev/schemas/base.schema.json",
+  "$id": "https://claude-sentient.dev/schemas/base.schema.json",
   "title": "Base Component",
   "description": "Base schema that all components extend",
   "type": "object",

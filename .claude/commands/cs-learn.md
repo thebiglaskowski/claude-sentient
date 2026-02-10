@@ -20,10 +20,25 @@ Save important learnings to `.claude/rules/learnings.md` and MCP memory. This cr
 - `title`: Short title for the entry
 - `content`: Detailed description
 
+## Flags
+
+- `--scope`: Memory scope (default: `project`)
+
+| Scope | Storage | Available To |
+|-------|---------|-------------|
+| `project` (default) | `.claude/rules/learnings.md` + MCP memory | This project only |
+| `global` | MCP memory with `scope:global` tag | All projects |
+| `org` | MCP memory with `scope:org:{name}` tag | Organization projects |
+| `personal` | `~/.claude/projects/<project>/memory/MEMORY.md` | Just you (auto memory) |
+
+Org name is detected from: `.claude/settings.json` → `sentient.org` field, or fallback to git remote org name (`git remote get-url origin` → extract org).
+
 <steps>
 ## Behavior
 
 ### 1. Save to File (learnings.md)
+
+**If `--scope personal`:** Append to `~/.claude/projects/<project>/memory/MEMORY.md` instead of `.claude/rules/learnings.md`. Keep MEMORY.md under 200 lines (first 200 lines are auto-loaded every session). If MEMORY.md exceeds 200 lines, move older entries to `~/.claude/projects/<project>/memory/learnings.md`.
 
 1. Read the current `.claude/rules/learnings.md` file (create if missing)
 2. Append a new entry under the appropriate section:
@@ -34,7 +49,7 @@ Save important learnings to `.claude/rules/learnings.md` and MCP memory. This cr
 
 ### 2. Save to MCP Memory (searchable)
 
-Also save to MCP memory for searchable retrieval:
+Also save to MCP memory for searchable retrieval. Add scope tag based on `--scope` flag:
 
 ```
 mcp__memory__create_entities([{
@@ -45,10 +60,17 @@ mcp__memory__create_entities([{
     "topic: {title}",
     "content: {content}",
     "date: {YYYY-MM-DD}",
-    "project: {current project name}"
+    "project: {current project name}",
+    "scope: {project|global|org:{org_name}}"
   ]
 }])
 ```
+
+**Scope-specific behavior:**
+- `--scope project` (default): Save to file AND MCP memory with `scope:project` tag
+- `--scope global`: Save to MCP memory ONLY with `scope:global` tag (not to file — global learnings shouldn't clutter project files)
+- `--scope org`: Save to MCP memory ONLY with `scope:org:{name}` tag. Detect org name from `.claude/settings.json` → `sentient.org`, or extract from `git remote get-url origin`
+- `--scope personal`: Save to auto memory ONLY (not to project file or MCP memory — personal insights stay personal)
 
 **Create relations** to connect related entities:
 ```
@@ -114,6 +136,9 @@ Report what was saved to both locations.
 /cs-learn decision "Use PostgreSQL" "Chose over MySQL for better JSON support"
 /cs-learn pattern "API errors" "All errors return {error, message, code} shape"
 /cs-learn learning "Avoid N+1" "Use eager loading for related entities"
+/cs-learn decision "Auth pattern" "Use JWT with refresh tokens" --scope global
+/cs-learn learning "Docker builds" "Multi-stage builds reduce image size" --scope org
+/cs-learn learning "Debug tip" "Use console.trace for stack traces" --scope personal
 ```
 </examples>
 

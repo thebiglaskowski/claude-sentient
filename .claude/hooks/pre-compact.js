@@ -67,6 +67,48 @@ if (backedUp.length > 0) {
     }
 }
 
+// Generate compact context summary for cs-loop recovery
+const summary = {
+    timestamp: new Date().toISOString(),
+    activeTask: null,
+    recentDecisions: [],
+    fileChanges: [],
+    unresolved: []
+};
+
+// Extract active task from session state
+const sessionState = backupBundle['session_start.json'];
+if (sessionState) {
+    summary.activeTask = sessionState.currentTask || sessionState.task || null;
+}
+
+// Extract recent file changes
+const fileChanges = backupBundle['file_changes.json'];
+if (fileChanges && Array.isArray(fileChanges)) {
+    summary.fileChanges = fileChanges.slice(-10).map(f => ({
+        file: f.file || f.path,
+        action: f.action || f.type || 'modified'
+    }));
+} else if (fileChanges && typeof fileChanges === 'object') {
+    summary.fileChanges = Object.keys(fileChanges).slice(-10).map(f => ({
+        file: f,
+        action: 'modified'
+    }));
+}
+
+// Extract recent prompts for decision context
+const prompts = backupBundle['prompts.json'];
+if (prompts && Array.isArray(prompts)) {
+    summary.recentDecisions = prompts.slice(-5).map(p => ({
+        topics: p.topics || [],
+        timestamp: p.timestamp
+    }));
+}
+
+// Save compact context
+const compactPath = path.join(stateDir, 'compact-context.json');
+saveJsonFile(compactPath, summary);
+
 // Log the backup
 logMessage(`PreCompact backup created: ${backedUp.length} files`);
 

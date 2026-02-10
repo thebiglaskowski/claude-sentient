@@ -95,6 +95,20 @@ web_indicators:
     - "class ApplicationController"
   auto_rules: [ui-ux-design]
 
+# Infrastructure detection
+infrastructure:
+  docker:
+    indicators: [Dockerfile, docker-compose.yml]
+    commands:
+      build: docker build -t {project_name} .
+      test: docker-compose run --rm app bundle exec rspec
+  ci:
+    indicators: [.github/workflows/, .gitlab-ci.yml, .circleci/]
+    type: auto-detect
+  heroku:
+    indicators: [Procfile, app.json]
+    type: heroku
+
 # Conventions
 conventions:
   - Use snake_case for methods and variables

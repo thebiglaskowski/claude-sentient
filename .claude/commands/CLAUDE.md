@@ -90,6 +90,7 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-learn` | — | Standalone, appends to learnings.md |
 | `/cs-mcp` | — | Standalone, registers/validates MCP servers |
 | `/cs-ui` | `/cs-loop` | When UI issues found, user chooses to fix |
+| `/cs-deploy` | — | Standalone, read-only deployment readiness check |
 
 ---
 
