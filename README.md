@@ -63,6 +63,28 @@ iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main
 /cs-loop "your task"      # Start working
 ```
 
+### Uninstall
+
+**Bash (Linux/Mac):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/uninstall.sh | bash
+```
+
+**PowerShell (Windows):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/thebiglaskowski/claude-sentient/main/uninstall.ps1 | iex
+```
+
+**Or run locally:**
+```bash
+./uninstall.sh                # Standard uninstall
+./uninstall.sh --dry-run      # Preview what would be removed
+./uninstall.sh --purge        # Also remove learnings.md
+./uninstall.sh --keep-settings  # Don't touch .claude/settings.json
+```
+
+By default, `learnings.md` (your decisions/patterns) is preserved and `settings.json` is backed up to `.bak`. `CLAUDE.md` is left for manual removal.
+
 ---
 
 ## 📊 By the Numbers
