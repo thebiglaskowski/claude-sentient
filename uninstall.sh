@@ -56,7 +56,7 @@ fi
 
 # Confirm (skip for dry run)
 if [ "$DRY_RUN" = false ]; then
-    read -p "Remove Claude Sentient from this project? (y/N): " -n 1 -r
+    read -p "Remove Claude Sentient from this project? (y/N): " -n 1 -r < /dev/tty
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Aborted."
