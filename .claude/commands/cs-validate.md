@@ -74,6 +74,12 @@ Check if this is the claude-sentient repo (development) or a user project:
 - Verify `.claude/rules/learnings.md` exists
 - Verify `.claude/settings.json` exists with hooks
 
+**Command Chaining Integrity:**
+- Read `.claude/commands/CLAUDE.md` skill chaining table
+- For each row where a command chains to another (e.g., cs-assess → cs-loop), verify that the source command's `allowed-tools` frontmatter includes `Skill`
+- Report mismatches as: `✗ {command} chains to {target} but missing Skill in allowed-tools`
+- Report valid chains as: `✓ Command chaining integrity verified`
+
 ### 3. Check Optional Components
 
 **Governance Files (Optional):**

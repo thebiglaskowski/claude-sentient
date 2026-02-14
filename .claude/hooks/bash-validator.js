@@ -40,7 +40,17 @@ const DANGEROUS_PATTERNS = [
     { pattern: /wget.*\|\s*(sh|bash|zsh)/, reason: 'Piping wget to shell' },
 
     // Encoded command injection
-    { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' }
+    { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' },
+
+    // Destructive find operations
+    { pattern: /\bfind\s+\/\s+.*-delete\b/, reason: 'find with -delete from root' },
+    { pattern: /\bfind\s+\/\s+.*-exec\s+rm\b/, reason: 'find with -exec rm from root' },
+
+    // Scripting language one-liners (obfuscation risk)
+    { pattern: /\bpython[23]?\s+-c\s+['"].*(?:import\s+os|subprocess|eval|exec)/, reason: 'Python one-liner with dangerous imports' },
+    { pattern: /\bperl\s+-e\s+['"].*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
+    { pattern: /\bruby\s+-e\s+['"].*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
+    { pattern: /\bnode\s+-e\s+['"].*(?:child_process|fs\.rm|fs\.unlink)/, reason: 'Node one-liner with dangerous modules' }
 ];
 
 // Warning patterns (allow but log)

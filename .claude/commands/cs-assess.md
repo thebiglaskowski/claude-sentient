@@ -1,7 +1,7 @@
 ---
 description: Full codebase health audit with scored assessment
 argument-hint: [directory] [--ultrathink]
-allowed-tools: Read, Glob, Grep, Task, TaskCreate, AskUserQuestion, mcp__memory__search_nodes, mcp__github__search_code
+allowed-tools: Read, Glob, Grep, Task, TaskCreate, AskUserQuestion, Skill, mcp__memory__search_nodes, mcp__github__search_code
 model: opus
 ---
 
@@ -350,3 +350,20 @@ Prior decisions provide context for why certain patterns exist.
 3. Increase test coverage from 45% to 80%
 ```
 </examples>
+
+## After Assessment
+
+If actionable issues were found (score < 7 in any dimension), offer to fix:
+
+```
+AskUserQuestion:
+  question: "Fix the issues found in this assessment?"
+  header: "Fix"
+  options:
+    - label: "Yes, start fixing (Recommended)"
+      description: "Invoke /cs-loop to address priority findings"
+    - label: "No, just the report"
+      description: "Keep the assessment as reference"
+```
+
+If yes: `Skill(skill="cs-loop", args="fix assessment findings: {top 3 priorities}")`

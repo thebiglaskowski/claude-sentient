@@ -2,7 +2,7 @@
 # Loaded when Gemfile detected
 
 name: ruby
-version: "1.0"
+version: "1.2.1"
 description: "Ruby projects using RuboCop for linting and RSpec for testing"
 
 # Model routing configuration

@@ -14,7 +14,6 @@ import { SessionManager } from "./session.js";
 import { ProfileLoader, Profile } from "./profiles.js";
 import { QualityGates } from "./gates.js";
 // Note: HookManager import reserved for future Claude Agent SDK integration
-// import { HookManager } from "./hooks.js";
 
 /**
  * SDK wrapper for Claude Sentient autonomous development loop.

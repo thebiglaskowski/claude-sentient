@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -98,7 +98,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 503+ | Profiles (242), agents (108), hooks (91), commands (62) + SDK, install, tools |
+| 🧪 Tests | 716+ | Profiles (242), agents (108), hooks (93), commands (81), schemas (166), integration (26) + SDK, install, tools |
 | 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
 ---
@@ -305,10 +305,12 @@ your-project/
 │   ├── commands/cs-*.md    # 12 slash commands
 │   ├── hooks/*.js          # 13 hook scripts (security, teams, tracking)
 │   ├── settings.json       # Hook + team configuration
-│   └── rules/*.md            # Path-scoped rules + learnings
+│   └── rules/*.md          # Path-scoped rules + learnings
 ├── profiles/*.yaml          # 9 language profiles + schema
 ├── agents/*.yaml            # 6 specialized agent roles
+├── schemas/*.json           # 9 JSON schemas (validation)
 ├── templates/*.md           # Governance templates
+├── test-utils.js            # Shared test infrastructure
 └── rules/*.md               # 15 topic rules
 ```
 
@@ -490,7 +492,7 @@ Hooks are configured in `.claude/settings.json` and installed automatically.
 
 ## 🧪 Tests
 
-Test suites validate hooks, profiles, commands, agents, SDK, and infrastructure:
+Test suites validate hooks, profiles, commands, agents, schemas, cross-module integrity, SDK, and infrastructure:
 
 ```bash
 # Profile validation (242 tests) — schema compliance, gates, infrastructure, cross-profile consistency
@@ -499,11 +501,17 @@ node profiles/__tests__/test-profiles.js
 # Agent validation (108 tests) — YAML schema, roles, expertise, spawn_prompts
 node agents/__tests__/test-agents.js
 
-# Hook tests (91 tests) — security, I/O contracts, Agent Teams, context predictions
+# Hook tests (93 tests) — security, I/O contracts, Agent Teams, context predictions
 node .claude/hooks/__tests__/test-hooks.js
 
-# Command validation (62 tests) — frontmatter, structure, auto-fix, deploy, collective intel
+# Command validation (81 tests) — frontmatter, structure, auto-fix, deploy, skill chaining
 node .claude/commands/__tests__/test-commands.js
+
+# Schema validation (166 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
+node schemas/__tests__/test-schemas.js
+
+# Integration tests (26 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency
+node integration/__tests__/test-integration.js
 
 # Install script tests (14 tests) — syntax, file refs, content checks
 bash tests/test-install.sh
@@ -515,7 +523,7 @@ python3 tools/test_tools.py
 cd sdk/typescript && npx vitest run
 ```
 
-Hook, command, install, and tools tests use built-in `assert` — no dependencies required.
+All core test suites use shared `test-utils.js` with built-in `assert` — zero external dependencies.
 
 ---
 

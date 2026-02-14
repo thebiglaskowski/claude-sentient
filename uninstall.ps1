@@ -89,11 +89,15 @@ if (-not $DryRun) {
     Write-Host ""
 }
 
+# --- Shared test infrastructure ---
+Remove-FileItem "test-utils.js"
+
 # --- Commands ---
 Write-Host "Removing commands..."
 Get-ChildItem ".claude/commands/cs-*.md" -ErrorAction SilentlyContinue | ForEach-Object {
     Remove-FileItem $_.FullName
 }
+Remove-FileItem ".claude/commands/CLAUDE.md"
 
 # --- Hooks ---
 Write-Host "Removing hooks..."

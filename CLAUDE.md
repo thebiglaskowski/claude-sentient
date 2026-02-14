@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 1.0.0
+> **Version:** 1.2.1
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -92,6 +92,8 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 
 > Profile details, model routing, gate structure: `profiles/CLAUDE.md`
 
+> Canonical reference for detection rules, gates, and conventions: `profiles/CLAUDE.md`
+
 ---
 
 ## Quality Gates
@@ -108,6 +110,8 @@ Before committing, these must pass:
 Advisory (report only): TYPE, DOCS, SECURITY.
 
 When a gate fails, the VERIFY phase runs an auto-fix sub-loop (max 3 attempts) before falling back to WebSearch.
+
+> Gate definitions live in each `profiles/*.yaml` file. See `profiles/CLAUDE.md` for structure.
 
 ---
 

@@ -15,8 +15,8 @@
     },
     "version": {
       "type": "string",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Semantic version (major.minor.patch)"
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Semantic version (major.minor or major.minor.patch)"
     },
     "description": {
       "type": "string",

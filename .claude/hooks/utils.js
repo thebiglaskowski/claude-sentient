@@ -19,6 +19,10 @@ const MAX_RESULT_LENGTH = 500;
 const MAX_BACKUPS = 10;
 const MAX_AGENT_HISTORY = 50;
 
+// Constants used by individual hooks (centralized here for single source of truth)
+const MAX_FILES_PER_TASK = 20;         // task-completed.js: max files per teammate task
+const LARGE_FILE_THRESHOLD = 100000;   // file-validator.js: 100KB threshold for warnings
+
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
     /sk-[a-zA-Z0-9]{20,}/g,           // OpenAI/Anthropic API keys
@@ -32,6 +36,10 @@ const SECRET_PATTERNS = [
     /[a-zA-Z0-9\/+]{40}(?=\s|$)/g,    // AWS secret keys (40-char base64)
     /xox[bpsa]-[a-zA-Z0-9\-]{10,}/g,  // Slack tokens
     /eyJ[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}/g, // JWTs
+    /sk_live_[a-zA-Z0-9]{20,}/g,          // Stripe secret keys
+    /pk_live_[a-zA-Z0-9]{20,}/g,          // Stripe publishable keys
+    /(?:postgres|mysql|mongodb):\/\/\w+:[^@]+@/g, // Database connection strings (mask password)
+    /-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----/g, // Private key headers
 ];
 
 /**
@@ -124,18 +132,37 @@ function loadJsonFile(filePath, defaultValue = {}) {
 }
 
 /**
- * Save JSON data to a file
+ * Save JSON data to a file (atomic write via temp file + rename)
  * @param {string} filePath - Path to the JSON file
  * @param {Object} data - Data to save
  * @returns {boolean} True if successful, false otherwise
  */
 function saveJsonFile(filePath, data) {
     try {
-        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        ensureStateDir();
+        const content = JSON.stringify(data, null, 2);
+        const tmpPath = filePath + '.tmp.' + process.pid;
+        fs.writeFileSync(tmpPath, content, 'utf8');
+        fs.renameSync(tmpPath, filePath);
         return true;
     } catch (e) {
+        logMessage(`Failed to save ${filePath}: ${e.message}`, 'ERROR');
+        // Clean up temp file if rename failed
+        try { fs.unlinkSync(filePath + '.tmp.' + process.pid); } catch (_) {}
         return false;
     }
+}
+
+/**
+ * Validate file path for safety.
+ * Returns null if valid, error string if invalid.
+ */
+function validateFilePath(filePath) {
+    if (!filePath || typeof filePath !== 'string') return 'Empty or non-string path';
+    if (filePath.length > 4096) return 'Path too long (max 4096 chars)';
+    if (filePath.includes('\0')) return 'Path contains null byte';
+    if (/[\x00-\x1f]/.test(filePath) && !/[\t\n\r]/.test(filePath)) return 'Path contains control characters';
+    return null;
 }
 
 /**
@@ -198,9 +225,12 @@ module.exports = {
     saveState,
     sanitizeJson,
     redactSecrets,
+    validateFilePath,
     MAX_PROMPT_HISTORY,
     MAX_FILE_CHANGES,
     MAX_RESULT_LENGTH,
     MAX_BACKUPS,
     MAX_AGENT_HISTORY,
+    MAX_FILES_PER_TASK,
+    LARGE_FILE_THRESHOLD,
 };

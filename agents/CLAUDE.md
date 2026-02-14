@@ -15,7 +15,7 @@ Every agent definition must have these fields:
 ```yaml
 name: security
 description: "Security specialist for vulnerability analysis"
-version: "0.5.1"
+version: "1.2.0"
 role: reviewer
 expertise:
   - OWASP Top 10

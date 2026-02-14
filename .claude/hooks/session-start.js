@@ -4,6 +4,10 @@
  *
  * Triggered when a Claude Code session begins.
  * Creates session state file and injects initial context.
+ *
+ * NOTE: Commands (cs-loop, cs-status, cs-team, cs-ui, cs-init) depend on
+ * the `profile` field in .claude/state/session_start.json written by this hook.
+ * If you change the profile detection logic, update the commands accordingly.
  */
 
 const fs = require('fs');

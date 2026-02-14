@@ -130,6 +130,67 @@
         "skipped": { "type": "string" }
       },
       "description": "Custom messages for gate results"
+    },
+    "alternative": {
+      "type": "string",
+      "description": "Fallback command if primary tool unavailable"
+    },
+    "detect": {
+      "type": "string",
+      "description": "File or directory indicating this gate applies"
+    },
+    "verbose_command": {
+      "type": "string",
+      "description": "Verbose output variant of the check command"
+    },
+    "coverage_command": {
+      "type": "string",
+      "description": "Coverage reporting command"
+    },
+    "check_command": {
+      "type": "string",
+      "description": "Type or format checking command"
+    },
+    "watch_command": {
+      "type": "string",
+      "description": "Watch mode command for continuous checking"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this gate"
+    },
+    "command": {
+      "type": "string",
+      "description": "Shorthand check command (alternative to check.command)"
+    },
+    "lint_command": {
+      "type": "string",
+      "description": "Lint command variant (e.g., for notebook support)"
+    },
+    "lint_fix_command": {
+      "type": "string",
+      "description": "Lint auto-fix command variant"
+    },
+    "format_command": {
+      "type": "string",
+      "description": "Format command variant"
+    },
+    "release_command": {
+      "type": "string",
+      "description": "Release/optimized build command variant"
+    },
+    "test_command": {
+      "type": "string",
+      "description": "Test command variant (e.g., for notebook validation)"
+    },
+    "test_strict_command": {
+      "type": "string",
+      "description": "Strict test command variant"
+    },
+    "requires": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Required packages/tools for this gate"
     }
   }
 }

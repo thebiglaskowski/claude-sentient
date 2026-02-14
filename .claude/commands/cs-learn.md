@@ -36,6 +36,28 @@ Org name is detected from: `.claude/settings.json` → `sentient.org` field, or 
 <steps>
 ## Behavior
 
+### 0. Check for Contradictions
+
+Before saving, check for conflicts with existing entries:
+
+1. Read existing `.claude/rules/learnings.md`
+2. Check if the new entry contradicts any existing entry of the same type
+   (e.g., new decision "Use MySQL" vs existing decision "Use PostgreSQL")
+3. If contradiction found, report it and ask the user:
+   ```
+   AskUserQuestion:
+     question: "This contradicts an existing {type}: '{existing_title}'. How should we handle it?"
+     header: "Conflict"
+     options:
+       - label: "Replace the old entry (Recommended)"
+         description: "Remove the old entry and add the new one"
+       - label: "Keep both"
+         description: "Add context explaining the change in direction"
+       - label: "Cancel"
+         description: "Don't save the new entry"
+   ```
+4. If no contradiction, proceed to Step 1.
+
 ### 1. Save to File (learnings.md)
 
 **If `--scope personal`:** Append to `~/.claude/projects/<project>/memory/MEMORY.md` instead of `.claude/rules/learnings.md`. Keep MEMORY.md under 200 lines (first 200 lines are auto-loaded every session). If MEMORY.md exceeds 200 lines, move older entries to `~/.claude/projects/<project>/memory/learnings.md`.

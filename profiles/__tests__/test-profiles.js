@@ -14,27 +14,7 @@ const path = require('path');
 
 const profilesDir = path.resolve(__dirname, '..');
 
-// Test infrastructure
-let passed = 0;
-let failed = 0;
-const failures = [];
-
-function test(name, fn) {
-    try {
-        fn();
-        passed++;
-        process.stdout.write(`  \x1b[32m✓\x1b[0m ${name}\n`);
-    } catch (e) {
-        failed++;
-        failures.push({ name, error: e.message });
-        process.stdout.write(`  \x1b[31m✗\x1b[0m ${name}\n    ${e.message}\n`);
-    }
-}
-
-function suite(name, fn) {
-    process.stdout.write(`\n\x1b[1m${name}\x1b[0m\n`);
-    fn();
-}
+const { test, suite, summary, getResults } = require('../../test-utils');
 
 /**
  * Minimal YAML top-level key extractor.
@@ -471,15 +451,5 @@ suite('Cross-profile consistency', () => {
 // ─────────────────────────────────────────────────────────────
 // Report
 // ─────────────────────────────────────────────────────────────
-process.stdout.write('\n─────────────────────────────────────\n');
-process.stdout.write(`\x1b[1mResults:\x1b[0m ${passed} passed, ${failed} failed\n`);
-process.stdout.write(`\x1b[1mProfiles tested:\x1b[0m ${profileFiles.length}\n`);
-
-if (failures.length > 0) {
-    process.stdout.write('\n\x1b[31mFailures:\x1b[0m\n');
-    for (const f of failures) {
-        process.stdout.write(`  - ${f.name}: ${f.error}\n`);
-    }
-}
-
-process.exit(failed > 0 ? 1 : 0);
+summary(`Profiles tested: ${profileFiles.length}`);
+process.exit(getResults().failed > 0 ? 1 : 0);

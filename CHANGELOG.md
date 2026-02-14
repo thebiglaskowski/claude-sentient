@@ -6,6 +6,53 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1] — 2026-02-14
+
+### Added
+- **Integration test suite** — 26 cross-module integrity tests (`integration/__tests__/test-integration.js`)
+  - Cross-file reference integrity: commands ↔ CLAUDE.md, profiles ↔ CLAUDE.md, rules ↔ _index.md
+  - Hook chain state flow: session-start → state file → downstream hooks
+  - Install/uninstall parity: bash and PowerShell scripts install/remove same components
+  - Documentation consistency: version, counts, and references match actual files
+- **Schema test suite** — 166 tests for JSON schema validation (`schemas/__tests__/test-schemas.js`)
+  - Validates all 9 JSON schemas are parseable with correct structure
+  - Cross-validates profiles, agents, and gates against their respective schemas
+  - Verifies command chaining integrity (Skill in allowed-tools)
+- **`profile.schema.json`** — New schema for profile YAML validation (detection, gates, models, conventions)
+- **`generate-checksums.sh`** — SHA-256 checksum generation for installer verification
+- **`CHECKSUMS.sha256`** — Pre-computed checksums for all installable files
+- **Installer checksum verification** — Both `install.sh` and `install.ps1` verify file integrity after download
+- **Shared test infrastructure** — `test-utils.js` consolidates test/suite/skip/summary across all 6 test suites
+- **Command chaining** — cs-assess, cs-review, cs-ui, cs-team, cs-init now chain to cs-loop via Skill tool
+- **Auto-learning in cs-loop** — PLAN phase captures architecture decisions, COMMIT phase captures insights
+- **Unified profile detection** — Commands read from `.claude/state/session_start.json` (session-start hook output)
+- **Contradiction detection in cs-learn** — Checks existing learnings before saving to prevent conflicts
+- **Command chaining validation in cs-validate** — Verifies allowed-tools includes Skill for chaining commands
+
+### Fixed
+- **Security: file-validator.js** — Now blocks writes outside project root (previously empty condition block)
+  - Allows exceptions for /tmp, os.tmpdir(), and ~/.claude/
+- **Security: bash-validator.js** — Added 8 new patterns for `find -delete`, scripting one-liners (python -c, perl -e, ruby -e, node -e)
+- **Security: Secret redaction** — Expanded SECRET_PATTERNS for Stripe keys, DB connection strings, private key headers
+- **Atomic state writes** — `saveJsonFile()` in utils.js now uses temp-file-plus-rename pattern to prevent corruption
+- **Path validation** — New `validateFilePath()` checks null bytes, control chars, excessive path length
+- **Profile version consistency** — All 9 profiles updated to version "1.2.0" (was mix of 1.0, 1.1, 1.2)
+- **Schema version pattern** — `base.schema.json` now accepts both `X.Y` and `X.Y.Z` versions
+- **Gate schema completeness** — Added 16 missing optional properties to `gate.schema.json`
+- **Agent versions** — All 6 agents updated to version "1.2.0" (was 0.5.1)
+- **Install scripts** — Now install test-utils.js, schemas/, .claude/commands/CLAUDE.md, profiles/CLAUDE.md
+- **Uninstall scripts** — Now remove test-utils.js and .claude/commands/CLAUDE.md
+
+### Changed
+- **Documentation deduplication** — cs-loop references profiles/CLAUDE.md and rules/_index.md instead of inline tables
+- **rules/_index.md** — Added "Always-Loaded Rules" section documenting unconditional rules
+- **Hook constants centralized** — MAX_FILES_PER_TASK and LARGE_FILE_THRESHOLD moved to utils.js
+- **session-start.js** — Added comment noting commands depend on state output
+- Total test count: 503+ → 716+ (242 profiles + 108 agents + 93 hooks + 81 commands + 166 schemas + 26 integration)
+- Install scripts updated: schema count 8 → 9, schema test count 152 → 166
+
+---
+
 ## [1.2.0] — 2026-02-10
 
 ### Fixed
@@ -299,6 +346,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.2.1 | 2026-02-14 | Cognitive coherence, integration tests, schema validation, security hardening, installer checksums, 716+ tests |
+| 1.2.0 | 2026-02-10 | Security fixes, schema standardization, Java/security agent fixes |
 | 1.1.0 | 2026-02-10 | Path-scoped rules, @imports, --scope personal, native memory integration |
 | 1.0.0 | 2026-02-10 | Self-healing, agent roles, collective intelligence, context architecture, infrastructure, 12 commands, 503+ tests |
 | 0.5.1 | 2026-02-07 | Security hardening, JSON schema validation, 584 tests, v1-legacy removal |

@@ -19,10 +19,7 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
-
-// Max files a single teammate should modify (prevents scope creep)
-const MAX_FILES_PER_TASK = 20;
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK } = require('./utils');
 
 function main() {
     const input = parseHookInput();

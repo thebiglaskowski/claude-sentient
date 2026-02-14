@@ -103,11 +103,15 @@ remove_dir_if_empty() {
     fi
 }
 
+# --- Shared test infrastructure ---
+remove_file "test-utils.js"
+
 # --- Commands ---
 echo "Removing commands..."
 for f in .claude/commands/cs-*.md; do
     [ -f "$f" ] && remove_file "$f"
 done
+remove_file ".claude/commands/CLAUDE.md"
 
 # --- Hooks ---
 echo "Removing hooks..."

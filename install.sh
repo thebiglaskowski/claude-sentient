@@ -36,13 +36,28 @@ echo "Downloading claude-sentient..."
 rm -rf "$TEMP_DIR"
 git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR"
 
+# Verify file integrity
+if [ -f "$TEMP_DIR/CHECKSUMS.sha256" ]; then
+    echo "Verifying file integrity..."
+    if (cd "$TEMP_DIR" && sha256sum -c CHECKSUMS.sha256 --quiet 2>/dev/null); then
+        echo "✓ All file checksums verified"
+    else
+        echo "⚠ Checksum verification failed (non-fatal, may be a newer version)"
+    fi
+fi
+
+echo "Installing shared test infrastructure..."
+cp "$TEMP_DIR"/test-utils.js ./test-utils.js
+
 echo "Installing commands..."
 mkdir -p .claude/commands
 cp "$TEMP_DIR"/.claude/commands/cs-*.md .claude/commands/
+cp "$TEMP_DIR"/.claude/commands/CLAUDE.md .claude/commands/
 
 echo "Installing profiles..."
 mkdir -p profiles/__tests__
 cp "$TEMP_DIR"/profiles/*.yaml profiles/
+cp "$TEMP_DIR"/profiles/CLAUDE.md profiles/
 cp "$TEMP_DIR"/profiles/__tests__/*.js profiles/__tests__/
 
 echo "Installing rules..."
@@ -67,6 +82,12 @@ cp "$TEMP_DIR"/agents/*.yaml agents/
 cp "$TEMP_DIR"/agents/CLAUDE.md agents/
 cp "$TEMP_DIR"/agents/__tests__/*.js agents/__tests__/
 echo "  Installed agent definitions + tests"
+
+echo "Installing schemas..."
+mkdir -p schemas/__tests__
+cp "$TEMP_DIR"/schemas/*.json schemas/
+cp "$TEMP_DIR"/schemas/__tests__/*.js schemas/__tests__/
+echo "  Installed JSON schemas + tests"
 
 echo "Installing settings..."
 if [ ! -f ".claude/settings.json" ]; then
@@ -109,8 +130,11 @@ echo "  profiles/*.yaml                (9 profiles + schema)"
 echo "  profiles/__tests__/            (242 profile tests)"
 echo "  agents/*.yaml                  (6 agent roles)"
 echo "  agents/__tests__/              (108 agent tests)"
+echo "  schemas/*.json                 (9 JSON schemas)"
+echo "  schemas/__tests__/             (166 schema tests)"
 echo "  rules/*.md                     (15 topic rules)"
 echo "  templates/*.md                 (4 templates)"
+echo "  test-utils.js                  (shared test infrastructure)"
 echo "  .claude/rules/*.md              (14 path-scoped rules)"
 echo "  .claude/rules/learnings.md"
 echo ""

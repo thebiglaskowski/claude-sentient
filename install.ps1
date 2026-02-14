@@ -40,13 +40,44 @@ Write-Host ""
 Write-Host "Downloading claude-sentient..."
 git clone --depth 1 --quiet $RepoUrl $TempDir
 
+# Verify file integrity
+$checksumFile = "$TempDir/CHECKSUMS.sha256"
+if (Test-Path $checksumFile) {
+    Write-Host "Verifying file integrity..."
+    $allValid = $true
+    $checksums = Get-Content $checksumFile | Where-Object { $_ -match '^\w{64}\s+' }
+    foreach ($line in $checksums) {
+        if ($line -match '^(\w{64})\s+(.+)$') {
+            $expectedHash = $Matches[1]
+            $filePath = "$TempDir/$($Matches[2])"
+            if (Test-Path $filePath) {
+                $actualHash = (Get-FileHash $filePath -Algorithm SHA256).Hash.ToLower()
+                if ($actualHash -ne $expectedHash) {
+                    $allValid = $false
+                    break
+                }
+            }
+        }
+    }
+    if ($allValid) {
+        Write-Host "✓ All file checksums verified" -ForegroundColor Green
+    } else {
+        Write-Host "⚠ Checksum verification failed (non-fatal, may be a newer version)" -ForegroundColor Yellow
+    }
+}
+
+Write-Host "Installing shared test infrastructure..."
+Copy-Item "$TempDir/test-utils.js" -Destination "./test-utils.js" -Force
+
 Write-Host "Installing commands..."
 New-Item -ItemType Directory -Force -Path ".claude/commands" | Out-Null
 Copy-Item "$TempDir/.claude/commands/cs-*.md" -Destination ".claude/commands/" -Force
+Copy-Item "$TempDir/.claude/commands/CLAUDE.md" -Destination ".claude/commands/" -Force
 
 Write-Host "Installing profiles..."
 New-Item -ItemType Directory -Force -Path "profiles/__tests__" | Out-Null
 Copy-Item "$TempDir/profiles/*.yaml" -Destination "profiles/" -Force
+Copy-Item "$TempDir/profiles/CLAUDE.md" -Destination "profiles/" -Force
 Copy-Item "$TempDir/profiles/__tests__/*.js" -Destination "profiles/__tests__/" -Force
 
 Write-Host "Installing rules..."
@@ -71,6 +102,12 @@ Copy-Item "$TempDir/agents/*.yaml" -Destination "agents/" -Force
 Copy-Item "$TempDir/agents/CLAUDE.md" -Destination "agents/" -Force
 Copy-Item "$TempDir/agents/__tests__/*.js" -Destination "agents/__tests__/" -Force
 Write-Host "  Installed agent definitions + tests"
+
+Write-Host "Installing schemas..."
+New-Item -ItemType Directory -Force -Path "schemas/__tests__" | Out-Null
+Copy-Item "$TempDir/schemas/*.json" -Destination "schemas/" -Force
+Copy-Item "$TempDir/schemas/__tests__/*.js" -Destination "schemas/__tests__/" -Force
+Write-Host "  Installed JSON schemas + tests"
 
 Write-Host "Installing settings..."
 if (-not (Test-Path ".claude/settings.json")) {
@@ -123,8 +160,11 @@ Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'
 Write-Host '  agents/*.yaml                  (6 agent roles)'
 Write-Host '  agents/__tests__/              (108 agent tests)'
+Write-Host '  schemas/*.json                 (9 JSON schemas)'
+Write-Host '  schemas/__tests__/             (166 schema tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/*.md                 (4 templates)'
+Write-Host '  test-utils.js                  (shared test infrastructure)'
 Write-Host '  .claude/rules/*.md              (14 path-scoped rules)'
 Write-Host '  .claude/rules/learnings.md'
 Write-Host ""

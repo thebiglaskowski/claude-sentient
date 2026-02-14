@@ -8,10 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { parseHookInput, logMessage } = require('./utils');
-
-// Named constants
-const LARGE_FILE_THRESHOLD = 100000; // 100KB
+const { parseHookInput, logMessage, LARGE_FILE_THRESHOLD } = require('./utils');
 
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
@@ -84,9 +81,16 @@ const projectRoot = process.cwd();
 const absolutePath = path.resolve(resolvedPath);
 if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
     !absolutePath.startsWith('/tmp') &&
-    !absolutePath.startsWith(require('os').tmpdir())) {
-    // Path is outside project root — check if it's a protected system path
-    // (non-project paths are still allowed unless they match protected patterns)
+    !absolutePath.startsWith(require('os').tmpdir()) &&
+    !absolutePath.startsWith(path.join(require('os').homedir(), '.claude'))) {
+    const output = {
+        decision: 'block',
+        reason: 'BLOCKED: Cannot modify files outside project root',
+        path: filePath
+    };
+    console.log(JSON.stringify(output));
+    logMessage(`BLOCKED ${toolName} outside project root: ${filePath}`, 'BLOCKED');
+    process.exit(0);
 }
 
 // Check protected paths

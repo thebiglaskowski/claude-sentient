@@ -14,33 +14,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// Test infrastructure
-let passed = 0;
-let failed = 0;
-let skipped = 0;
-const failures = [];
-
-function test(name, fn) {
-    try {
-        fn();
-        passed++;
-        process.stdout.write(`  \x1b[32m✓\x1b[0m ${name}\n`);
-    } catch (e) {
-        failed++;
-        failures.push({ name, error: e.message });
-        process.stdout.write(`  \x1b[31m✗\x1b[0m ${name}\n    ${e.message}\n`);
-    }
-}
-
-function skip(name, _reason) {
-    skipped++;
-    process.stdout.write(`  \x1b[33m-\x1b[0m ${name} (skipped)\n`);
-}
-
-function suite(name, fn) {
-    process.stdout.write(`\n\x1b[1m${name}\x1b[0m\n`);
-    fn();
-}
+// Shared test infrastructure
+const { test, suite, skip, summary, getResults } = require('../../../test-utils');
 
 /**
  * Run a hook script with JSON input via env var, return parsed stdout.
@@ -1091,15 +1066,6 @@ suite('agent-tracker.js — agent role detection', () => {
 // ─────────────────────────────────────────────────────────────
 // Cleanup and report
 // ─────────────────────────────────────────────────────────────
-process.stdout.write('\n─────────────────────────────────────\n');
-process.stdout.write(`\x1b[1mResults:\x1b[0m ${passed} passed, ${failed} failed, ${skipped} skipped\n`);
-
-if (failures.length > 0) {
-    process.stdout.write('\n\x1b[31mFailures:\x1b[0m\n');
-    for (const f of failures) {
-        process.stdout.write(`  - ${f.name}: ${f.error}\n`);
-    }
-}
 
 // Cleanup temp directory
 try {
@@ -1108,4 +1074,5 @@ try {
     // Ignore cleanup errors on Windows (file locks)
 }
 
-process.exit(failed > 0 ? 1 : 0);
+summary();
+process.exit(getResults().failed > 0 ? 1 : 0);

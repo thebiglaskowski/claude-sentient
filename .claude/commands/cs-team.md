@@ -1,7 +1,7 @@
 ---
 description: Create and manage Agent Teams for parallel development work
 argument-hint: <task description> | --status | --stop
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, mcp__memory__search_nodes
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Skill, mcp__memory__search_nodes
 ---
 
 # /cs-team
@@ -110,8 +110,9 @@ Teammates are configured with the project's profile and quality gates:
      ```
 
 2. **DETECT PROFILE**
-   - Scan for project files to determine language profile
-   - Load quality gate commands (lint, test, build)
+   - Read `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field.
+   - If state file missing or stale, fall back to scanning for project files (see `profiles/CLAUDE.md`)
+   - Load quality gate commands (lint, test, build) from matching `profiles/{name}.yaml`
    - Report: `[TEAM] Profile: {name}, Gates: {lint}, {test}`
 
 3. **ANALYZE TASK**
@@ -272,6 +273,6 @@ Teammates are configured with the project's profile and quality gates:
 
 - Agent Teams is an experimental Claude Code feature — behavior may change
 - Teams work best with clear file ownership boundaries
-- If team creation fails, fallback to standard `/cs-loop` execution
+- If team creation fails or remaining solo work exists after team completion, chain to cs-loop: `Skill(skill="cs-loop", args="{remaining tasks}")`
 - Each teammate reads CLAUDE.md and project context automatically
 - TeammateIdle and TaskCompleted hooks enforce quality gates automatically

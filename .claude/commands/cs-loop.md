@@ -72,17 +72,9 @@ Models are automatically selected by phase for cost optimization:
 </context>
 
 <profiles>
-| Files | Profile | Tools |
-|-------|---------|-------|
-| `pyproject.toml`, `*.py` | Python | ruff, pytest |
-| `package.json`, `tsconfig.json` | TypeScript | eslint, vitest |
-| `go.mod` | Go | golangci-lint, go test |
-| `Cargo.toml` | Rust | clippy, cargo test |
-| `pom.xml`, `build.gradle` | Java | checkstyle, JUnit |
-| `CMakeLists.txt`, `Makefile` | C/C++ | clang-tidy, ctest |
-| `Gemfile` | Ruby | rubocop, rspec |
-| `*.sh`, `*.ps1` | Shell | shellcheck |
-| (fallback) | General | auto-detect |
+Profiles are auto-detected by project files. See `profiles/CLAUDE.md` for
+detection rules, gates, and conventions. Profile capabilities (lint, test,
+build commands) are defined in each `profiles/{name}.yaml` file.
 </profiles>
 </context>
 
@@ -95,7 +87,11 @@ Models are automatically selected by phase for cost optimization:
 Gather all context needed for the task: profile, environment, rules, external data.
 </thinking>
 
-1. **Detect profile** by scanning for project files (see profiles table above)
+1. **Load profile from session state** — Read `.claude/state/session_start.json`
+   (created by session-start hook). Use the `profile` field.
+   If state file missing or stale, fall back to scanning for project files
+   (see `profiles/CLAUDE.md`). For profile capabilities (gates, conventions),
+   read the matching `profiles/{name}.yaml` file.
 
 2. **Detect Python environment** (if Python profile):
 
@@ -110,17 +106,9 @@ Gather all context needed for the task: profile, environment, rules, external da
 
 3. **Load rules** based on task keywords:
 
-   > **Note:** Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code when working on matching files. The keyword table below serves as supplementary guidance for explicit rule loading.
-
-   | Keywords | Rules |
-   |----------|-------|
-   | auth, login, jwt | security, api-design |
-   | test, coverage | testing |
-   | api, endpoint | api-design, error-handling |
-   | database, query | database |
-   | refactor, quality | code-quality |
-   | cli, command | terminal-ui |
-   | react, vue, next, frontend | ui-ux-design |
+   > Rules with `paths:` frontmatter in `.claude/rules/` are loaded
+   > automatically by Claude Code. For supplementary keyword-based loading,
+   > see `rules/_index.md` for the full keyword → rule mapping.
 
 4. **Detect web project** (auto-load UI/UX rules):
 
@@ -230,6 +218,13 @@ Classify complexity:
    **If team mode approved:** proceed to EXECUTE (Team Mode).
    **If declined or not eligible:** proceed to EXECUTE (Standard Mode).
    **If env var not set:** skip silently, use standard mode.
+
+5. **Auto-capture decisions** — If the PLAN phase involved `AskUserQuestion`
+   for architecture or design decisions, auto-capture each decision:
+   ```
+   Skill(skill="cs-learn", args="decision \"{decision_title}\" \"{user's choice and rationale}\"")
+   ```
+   This ensures decisions made during planning are persisted for future sessions.
 
 ### 4. EXECUTE
 
@@ -367,7 +362,14 @@ If error count increases after a fix attempt, revert and stop.
 - Save current task progress, decisions made, blockers
 - Enables `/cs-loop` to resume where it left off
 
-5. Report: `[COMMIT] Created checkpoint: {hash}`
+5. **Auto-capture learnings** — If during EXECUTE or VERIFY, you discovered a
+   non-obvious pattern, workaround, or important insight about the codebase:
+   ```
+   Skill(skill="cs-learn", args="learning \"{title}\" \"{insight}\"")
+   ```
+   Only capture genuinely useful insights, not routine observations.
+
+6. Report: `[COMMIT] Created checkpoint: {hash}`
 
 **CI Monitoring** — After committing on a branch with a PR:
 1. Check if current branch has an open PR: `mcp__github__get_pull_request_status`

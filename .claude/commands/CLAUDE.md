@@ -54,20 +54,7 @@ Claude Sentient automates documentation based on task context:
 
 ## Rule Auto-Loading
 
-During `/cs-loop` INIT, rules are loaded based on task keywords:
-
-| Task Keywords | Rules Loaded |
-|---------------|--------------|
-| auth, login, jwt | `security`, `api-design` |
-| test, coverage, mock | `testing` |
-| api, endpoint, rest | `api-design`, `error-handling` |
-| database, query | `database` |
-| performance, cache | `performance` |
-| ui, component | `ui-ux-design` |
-| refactor, quality | `code-quality` |
-| cli, command | `terminal-ui` |
-| react, vue, next, frontend | `ui-ux-design` |
-
+During `/cs-loop` INIT, rules are loaded by task keywords.
 Full mapping: `rules/_index.md`
 
 ---

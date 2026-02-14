@@ -1,7 +1,7 @@
 ---
 description: Review a pull request with automated analysis
 argument-hint: <PR number or URL>
-allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, mcp__github__get_pull_request, mcp__github__get_pull_request_files, mcp__github__get_pull_request_comments, mcp__github__get_pull_request_reviews, mcp__github__create_pull_request_review, mcp__github__search_code
+allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, Skill, mcp__github__get_pull_request, mcp__github__get_pull_request_files, mcp__github__get_pull_request_comments, mcp__github__get_pull_request_reviews, mcp__github__create_pull_request_review, mcp__github__search_code
 ---
 
 # /cs-review
@@ -225,6 +225,23 @@ User: Approve
 [REVIEW] Submitted APPROVE review on PR #42
 ```
 </examples>
+
+## After Review
+
+If changes are needed, offer to implement:
+
+```
+AskUserQuestion:
+  question: "Implement the changes suggested in this review?"
+  header: "Implement"
+  options:
+    - label: "Yes, fix the issues (Recommended)"
+      description: "Invoke /cs-loop to address review feedback"
+    - label: "No, just the review"
+      description: "Keep as feedback for manual implementation"
+```
+
+If yes: `Skill(skill="cs-loop", args="address PR review feedback: {summary of changes needed}")`
 
 ## Notes
 

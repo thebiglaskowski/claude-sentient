@@ -1,6 +1,6 @@
 name: tester
 description: "Test specialist for comprehensive test coverage, edge cases, and quality assurance"
-version: "0.5.1"
+version: "1.2.1"
 role: tester
 expertise:
   - Unit test design and isolation

@@ -1,7 +1,7 @@
 ---
 description: Create or optimize CLAUDE.md with nested context architecture
 argument-hint: [directory]
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, AskUserQuestion, mcp__memory__search_nodes
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, AskUserQuestion, Skill, mcp__memory__search_nodes
 ---
 
 # /cs-init
@@ -118,7 +118,7 @@ Determine if this is create mode (no CLAUDE.md) or optimize mode (existing CLAUD
 2. **Check for existing CLAUDE.md** at target root:
    - None found → **Create mode**
    - Found → **Optimize mode**
-3. **Detect tech stack** — scan for files in the tech detection table above
+3. **Detect tech stack** — Read `.claude/state/session_start.json` for `profile` field first. If missing or stale, scan for files in the tech detection table above
 4. **Dynamic profile generation** — if no standard profile matches (Python, TypeScript, Go, Rust, Java, C/C++, Ruby, Shell), generate a custom profile:
 
    **Quality tool detection for non-standard languages:**

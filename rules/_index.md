@@ -26,6 +26,16 @@ During `/cs-loop` INIT, rules are loaded based on task keywords:
 | error, exception, catch | `error-handling` |
 | prompt, command, xml, template | `prompt-structure` |
 
+## Always-Loaded Rules
+
+These rules load every session regardless of task keywords:
+
+| Rule | Purpose |
+|------|---------|
+| `anthropic-patterns` | Universal prompt patterns for all Claude interactions |
+| `code-quality` | Code quality standards applied to all source code |
+| `learnings` | Team-shared decisions, patterns, and learnings |
+
 ## Available Rules
 
 | Rule | Focus |
