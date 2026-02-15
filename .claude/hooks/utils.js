@@ -11,6 +11,50 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+// Cached project root (resolved once per process invocation)
+let _cachedProjectRoot = null;
+
+/**
+ * Get the project root directory.
+ * Uses git rev-parse --show-toplevel, falls back to walking up
+ * looking for .claude/ directory, then falls back to cwd.
+ * Result is cached per process invocation.
+ * @returns {string} Absolute path to project root
+ */
+function getProjectRoot() {
+    if (_cachedProjectRoot) return _cachedProjectRoot;
+
+    // Try git rev-parse
+    try {
+        const root = execSync('git rev-parse --show-toplevel', {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe']
+        }).trim();
+        if (root && fs.existsSync(root)) {
+            _cachedProjectRoot = root;
+            return root;
+        }
+    } catch (e) {
+        // Not in a git repo, fall through
+    }
+
+    // Walk up looking for .claude/ directory
+    let dir = process.cwd();
+    while (dir !== path.dirname(dir)) {
+        if (fs.existsSync(path.join(dir, '.claude'))) {
+            _cachedProjectRoot = dir;
+            return dir;
+        }
+        dir = path.dirname(dir);
+    }
+
+    // Fallback to cwd
+    _cachedProjectRoot = process.cwd();
+    return _cachedProjectRoot;
+}
+
 
 // Named constants for state management limits
 const MAX_PROMPT_HISTORY = 50;
@@ -47,7 +91,7 @@ const SECRET_PATTERNS = [
  * @returns {string} Path to the state directory
  */
 function ensureStateDir() {
-    const stateDir = path.join(process.cwd(), '.claude', 'state');
+    const stateDir = path.join(getProjectRoot(), '.claude', 'state');
     if (!fs.existsSync(stateDir)) {
         fs.mkdirSync(stateDir, { recursive: true });
     }
@@ -171,7 +215,7 @@ function validateFilePath(filePath) {
  * @param {string} level - Log level (INFO, WARNING, ERROR, BLOCKED)
  */
 function logMessage(message, level = 'INFO') {
-    const logFile = path.join(process.cwd(), '.claude', 'session.log');
+    const logFile = path.join(getProjectRoot(), '.claude', 'session.log');
     const timestamp = new Date().toISOString().slice(0, 19);
     // Redact secrets before logging
     const safeMessage = redactSecrets(message);
@@ -231,6 +275,7 @@ module.exports = {
     MAX_RESULT_LENGTH,
     MAX_BACKUPS,
     MAX_AGENT_HISTORY,
+    getProjectRoot,
     MAX_FILES_PER_TASK,
     LARGE_FILE_THRESHOLD,
 };

@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/session-start.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/session-start.js\"",
             "timeout": 5000
           }
         ]
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/context-injector.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/context-injector.js\"",
             "timeout": 3000
           }
         ]
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/bash-validator.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/bash-validator.js\"",
             "timeout": 5000
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/file-validator.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/file-validator.js\"",
             "timeout": 3000
           }
         ]
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/post-edit.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/post-edit.js\"",
             "timeout": 3000
           }
         ]
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/agent-tracker.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/agent-tracker.js\"",
             "timeout": 3000
           }
         ]
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/agent-synthesizer.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/agent-synthesizer.js\"",
             "timeout": 3000
           }
         ]
@@ -87,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/pre-compact.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/pre-compact.js\"",
             "timeout": 5000
           }
         ]
@@ -98,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/dod-verifier.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/dod-verifier.js\"",
             "timeout": 5000
           }
         ]
@@ -109,7 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/session-end.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/session-end.js\"",
             "timeout": 5000
           }
         ]
@@ -120,7 +120,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/teammate-idle.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/teammate-idle.js\"",
             "timeout": 5000
           }
         ]
@@ -131,7 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/task-completed.js",
+            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/task-completed.js\"",
             "timeout": 5000
           }
         ]

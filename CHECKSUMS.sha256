@@ -1,5 +1,5 @@
 # Claude Sentient v1.2.0 — File Checksums
-# Generated: 2026-02-15T15:53:03Z
+# Generated: 2026-02-15T17:25:32Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
 b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
@@ -21,14 +21,14 @@ f2f1ec4cbda5b592ffa4c2e97d177686b42d051a33fb7d2ece9b4b7276804a7a  .claude/hooks/
 a53108853e8cbbe11efb7024edd77286eaf8a1e4b35b03ccf021ef08ae2307d6  .claude/hooks/bash-validator.js
 2036d4b9def63504b33ec249b9a4f13aefcfcc93e7f9445cd9bf7d3469de3999  .claude/hooks/context-injector.js
 bbf17f3419796a2868c1a49a479ca15ab0bc928203254c6f3dc3b56b8956810e  .claude/hooks/dod-verifier.js
-e99b5b41e10745c9c7c2df6fb051374e986b1a15756cab7f62a4127a79b8d55e  .claude/hooks/file-validator.js
+a3c408902d04db6f9a24be039de5c47868875a8c30964877b8e299a8c63de0bb  .claude/hooks/file-validator.js
 ca1971a3efea9aa9f761098fc0013bd3465a12a9bab25e0f7972cee3f217e014  .claude/hooks/post-edit.js
 a3323affa745dc614f7295f3c81179acc7bf53c6885c986dd12f5d095a7fd5dc  .claude/hooks/pre-compact.js
 966f89936620f25f525bfe9c3c2aee731c666e36933f651816b8cf502b0304a0  .claude/hooks/session-end.js
 8d33e80ed54373905f8d567b339cfeac38caee246bb3e2d7da412c02d910a204  .claude/hooks/session-start.js
 4405ce9426b1ee8d0dbb5c4153935d1bf7b48c6e908c7f6f4eed10d25a9ed160  .claude/hooks/task-completed.js
 f7d826c79cf5f8b7a2a60dc15aa35994f155d5dd2f45ba2266576c05fed4b592  .claude/hooks/teammate-idle.js
-5083a357afd689f1954a6b24aa06e22eb654c8cfc269b990407b6c5b5aadc575  .claude/hooks/utils.js
+ef9e4a0d94e79a29cd729fd95e348246fae19a98cac5eb0f741f6ea1caa7c2f7  .claude/hooks/utils.js
 dc3b24d45653288f0af63afb079353ae87facd01c8daeae6a29a68ada1b5136e  profiles/CLAUDE.md
 3d45b7fdab946613d1836635812f0fbb4f0a9de83a9b7140481f1ca54b0f2924  profiles/_profile.schema.yaml
 b952b998bebd1b38e9ad984cdf09e5b1c31a52e814beacb72fa911455c26003f  profiles/cpp.yaml

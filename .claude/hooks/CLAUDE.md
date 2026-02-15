@@ -30,22 +30,17 @@ Hooks are configured in `.claude/settings.json`:
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-start.js", "timeout": 5000 }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/session-start.js\"", "timeout": 5000 }] }],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node .claude/hooks/bash-validator.js" }] },
-      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/file-validator.js" }] }
-    ],
-    "PostToolUse": [{ "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/post-edit.js" }] }],
-    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/agent-tracker.js" }] }],
-    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/agent-synthesizer.js" }] }],
-    "PreCompact": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/pre-compact.js" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/dod-verifier.js" }] }],
-    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-end.js" }] }],
-    "TeammateIdle": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/teammate-idle.js" }] }],
-    "TaskCompleted": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/task-completed.js" }] }]
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/bash-validator.js\"" }] },
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/file-validator.js\"" }] }
+    ]
   }
 }
 ```
+
+> Hook commands use `git rev-parse --show-toplevel` to resolve the project root, ensuring hooks work correctly even when Claude `cd`s into subdirectories.
+> The `|| echo .` fallback handles non-git projects (resolves to cwd).
 
 ---
 
@@ -125,10 +120,11 @@ console.log(JSON.stringify({ decision: 'allow', warnings: ['Warning'] }));
 
 | Function | Purpose |
 |----------|---------|
+| `getProjectRoot()` | Resolve project root via git (cached per process) |
 | `parseHookInput()` | Parse from HOOK_INPUT env var or stdin |
 | `loadState(filename)` | Load from `.claude/state/` |
 | `saveState(filename, data)` | Save to `.claude/state/` |
 | `logMessage(msg, level)` | Append to `.claude/session.log` |
 | `ensureStateDir()` | Create state directory if missing |
 
-Named constants: `MAX_PROMPT_HISTORY` (50), `MAX_FILE_CHANGES` (100), `MAX_AGENT_HISTORY` (50).
+Named constants: `MAX_PROMPT_HISTORY` (50), `MAX_FILE_CHANGES` (100), `MAX_AGENT_HISTORY` (50), `MAX_FILES_PER_TASK` (20), `LARGE_FILE_THRESHOLD` (100KB).

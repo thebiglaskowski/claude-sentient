@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { parseHookInput, logMessage, LARGE_FILE_THRESHOLD } = require('./utils');
+const { parseHookInput, logMessage, getProjectRoot, LARGE_FILE_THRESHOLD } = require('./utils');
 
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
@@ -77,7 +77,7 @@ try {
 const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
 
 // Ensure path stays within project root
-const projectRoot = process.cwd();
+const projectRoot = getProjectRoot();
 const absolutePath = path.resolve(resolvedPath);
 if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
     !absolutePath.startsWith('/tmp') &&
