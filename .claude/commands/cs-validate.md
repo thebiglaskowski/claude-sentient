@@ -98,6 +98,37 @@ Use this format:
 - ○ for optional items that aren't set up (NOT an error)
 - ✗ for actually missing required items
 
+### 4.5. Check Plugins (Advisory)
+
+Run `claude plugin list` via Bash. If the `claude` CLI is unavailable, skip this section entirely with a note.
+
+**Check installed plugins:**
+- `security-guidance` → ✓ if installed, ○ if missing (recommend install)
+- Profile LSP plugin → Read profile from `.claude/state/session_start.json` (or detect from project files). Look up the matching LSP plugin from the profile's `plugins.lsp` field. Show ✓ if installed, ○ if missing
+- `pr-review-toolkit` → ○ if missing (optional, show install command)
+- `ralph-loop` → ○ if missing (optional, show install command)
+
+**Profile-to-LSP mapping:**
+
+| Profile | LSP Plugin |
+|---------|-----------|
+| python | `pyright-lsp@claude-plugins-official` |
+| typescript | `typescript-lsp@claude-plugins-official` |
+| go | `gopls-lsp@claude-plugins-official` |
+| rust | `rust-analyzer-lsp@claude-plugins-official` |
+| java | `jdtls-lsp@claude-plugins-official` |
+| cpp | `clangd-lsp@claude-plugins-official` |
+| ruby, shell, general | none |
+
+Add a PLUGINS section to the output format:
+```
+PLUGINS (advisory):
+  ✓ security-guidance
+  ✓ pyright-lsp (matches python profile)
+  ○ pr-review-toolkit      (optional: claude plugin install pr-review-toolkit@claude-plugins-official)
+  ○ ralph-loop              (optional: claude plugin install ralph-loop@claude-plugins-official)
+```
+
 ### 5. Offer Setup (only for optional items)
 
 If optional governance files are missing, offer to set them up:
@@ -147,6 +178,12 @@ OPTIONAL COMPONENTS:
 
     These are optional. Use /cs-validate --setup to create them,
     or copy manually from templates/ when needed.
+
+PLUGINS (advisory):
+  ✓ security-guidance
+  ✓ pyright-lsp (matches python profile)
+  ○ pr-review-toolkit      (optional: claude plugin install pr-review-toolkit@claude-plugins-official)
+  ○ ralph-loop              (optional: claude plugin install ralph-loop@claude-plugins-official)
 
 === Installation Valid ===
 

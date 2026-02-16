@@ -2,7 +2,7 @@
 # Loaded when .sh or .ps1 scripts detected
 
 name: shell
-version: "1.2.1"
+version: "1.2.2"
 description: "Shell and PowerShell projects using shellcheck and PSScriptAnalyzer for linting"
 
 # Model routing configuration
@@ -125,3 +125,7 @@ ignore:
   - node_modules
   - __pycache__
   - "*.log"
+
+# Recommended Claude Code plugins
+plugins:
+  lsp: null

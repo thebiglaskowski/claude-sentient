@@ -1,6 +1,6 @@
 name: frontend
 description: "Frontend specialist for UI components, accessibility, and responsive design"
-version: "1.2.1"
+version: "1.2.2"
 role: implementer
 expertise:
   - UI component architecture and design systems

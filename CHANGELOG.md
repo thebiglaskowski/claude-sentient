@@ -6,6 +6,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.2] — 2026-02-16
+
+### Added
+- **Plugin auto-installation** — Installer now auto-installs Claude Code plugins from the official marketplace
+  - `security-guidance@claude-plugins-official` (user scope, all projects)
+  - Profile-matched LSP plugin (project scope): pyright-lsp, typescript-lsp, gopls-lsp, rust-analyzer-lsp, jdtls-lsp, clangd-lsp
+  - Non-fatal: missing `claude` CLI or install failures don't block setup
+- **Profile `plugins` property** — Added `plugins.lsp` to `profile.schema.json` and all 9 profile YAML files
+- **Plugin parity tests** — 4 new integration tests ensure install.sh, install.ps1, uninstall scripts, and profiles all reference identical plugin sets
+- **PLUGINS advisory in `/cs-validate`** — New step checks installed plugins against profile expectations
+- **Uninstaller plugin cleanup** — Removes project-scoped LSP plugins on uninstall, preserves user-scoped security-guidance
+
+### Fixed
+- **`templates/settings.json` sync** — Added missing `TeammateIdle`, `TaskCompleted` hooks and `env` block to match `.claude/settings.json`
+- **README.md accuracy** — Updated test counts (720+), added Plugins documentation section
+
+### Changed
+- Total test count: 716+ → 720+ (integration tests: 26 → 30)
+- Installer summary now shows installed plugins and recommended optional plugins
+- Next steps in installer updated to include plugin review step
+
+---
+
 ## [1.2.1] — 2026-02-14
 
 ### Added

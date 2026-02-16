@@ -2,7 +2,7 @@
 # Loaded when Cargo.toml detected
 
 name: rust
-version: "1.2.1"
+version: "1.2.2"
 description: "Rust projects using clippy for linting, cargo test for testing, and cargo build"
 
 # Model routing configuration
@@ -137,3 +137,7 @@ ignore:
   - target
   - .git
   - Cargo.lock
+
+# Recommended Claude Code plugins
+plugins:
+  lsp: rust-analyzer-lsp@claude-plugins-official

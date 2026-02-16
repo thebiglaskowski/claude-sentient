@@ -173,6 +173,24 @@ if ($KeepSettings) {
 # --- State directory ---
 Remove-DirItem ".claude/state"
 
+# --- Plugins (project-scoped only) ---
+$claudeCmd = Get-Command claude -ErrorAction SilentlyContinue
+if ($claudeCmd) {
+    Write-Host "Removing project-scoped plugins..."
+    $lspPlugins = @(
+        "pyright-lsp@claude-plugins-official",
+        "typescript-lsp@claude-plugins-official",
+        "gopls-lsp@claude-plugins-official",
+        "rust-analyzer-lsp@claude-plugins-official",
+        "jdtls-lsp@claude-plugins-official",
+        "clangd-lsp@claude-plugins-official"
+    )
+    foreach ($plugin in $lspPlugins) {
+        try { claude plugin uninstall $plugin --scope project 2>$null } catch {}
+    }
+    Write-Host "  Note: security-guidance (user scope) preserved — benefits all projects" -ForegroundColor Yellow
+}
+
 # --- Clean up empty directories ---
 Write-Host "Cleaning up..."
 Remove-DirIfEmpty ".claude/rules"

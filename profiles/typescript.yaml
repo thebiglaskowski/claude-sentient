@@ -2,7 +2,7 @@
 # Loaded when tsconfig.json detected
 
 name: typescript
-version: "1.2.1"
+version: "1.2.2"
 description: "TypeScript projects using eslint for linting, vitest for testing, and tsc for type checking"
 
 # Model routing configuration
@@ -192,3 +192,7 @@ ignore:
   - coverage
   - "*.d.ts"
   - .turbo
+
+# Recommended Claude Code plugins
+plugins:
+  lsp: typescript-lsp@claude-plugins-official

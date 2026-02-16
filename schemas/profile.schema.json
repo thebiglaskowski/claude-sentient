@@ -155,6 +155,16 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Patterns to ignore during search and analysis"
+    },
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "lsp": {
+          "type": ["string", "null"],
+          "description": "Recommended LSP plugin identifier for Claude Code"
+        }
+      },
+      "description": "Recommended Claude Code plugins for this profile"
     }
   }
 }

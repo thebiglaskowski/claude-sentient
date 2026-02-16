@@ -148,6 +148,53 @@ for ($i = 1; $i -le $retries; $i++) {
     }
 }
 
+# --- Plugins ---
+$PluginsInstalled = @()
+$claudeCmd = Get-Command claude -ErrorAction SilentlyContinue
+if ($claudeCmd) {
+    Write-Host ""
+    Write-Host "Installing Claude Code plugins..."
+
+    # Universal: security-guidance (user scope)
+    try {
+        claude plugin install security-guidance@claude-plugins-official --scope user 2>$null
+        Write-Host "  ✓ security-guidance (user scope)" -ForegroundColor Green
+        $PluginsInstalled += "security-guidance"
+    } catch {
+        Write-Host "  ⚠ Could not install security-guidance plugin (non-fatal)" -ForegroundColor Yellow
+    }
+
+    # Profile-dependent: LSP plugin (project scope)
+    $LspPlugin = $null
+    if ((Test-Path "pyproject.toml") -or (Test-Path "requirements.txt") -or (Test-Path "setup.py")) {
+        $LspPlugin = "pyright-lsp@claude-plugins-official"
+    } elseif (Test-Path "tsconfig.json") {
+        $LspPlugin = "typescript-lsp@claude-plugins-official"
+    } elseif (Test-Path "go.mod") {
+        $LspPlugin = "gopls-lsp@claude-plugins-official"
+    } elseif (Test-Path "Cargo.toml") {
+        $LspPlugin = "rust-analyzer-lsp@claude-plugins-official"
+    } elseif ((Test-Path "pom.xml") -or (Test-Path "build.gradle")) {
+        $LspPlugin = "jdtls-lsp@claude-plugins-official"
+    } elseif ((Test-Path "CMakeLists.txt") -or (Test-Path "Makefile")) {
+        $LspPlugin = "clangd-lsp@claude-plugins-official"
+    }
+
+    if ($LspPlugin) {
+        try {
+            claude plugin install $LspPlugin --scope project 2>$null
+            Write-Host "  ✓ $LspPlugin (project scope)" -ForegroundColor Green
+            $PluginsInstalled += $LspPlugin
+        } catch {
+            Write-Host "  ⚠ Could not install $LspPlugin (non-fatal)" -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host ""
+    Write-Host "⚠ claude CLI not found — skipping plugin installation" -ForegroundColor Yellow
+    Write-Host "  Install plugins manually after setting up Claude Code"
+}
+
 Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
@@ -167,12 +214,21 @@ Write-Host '  templates/*.md                 (4 templates)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'
 Write-Host '  .claude/rules/*.md              (14 path-scoped rules)'
 Write-Host '  .claude/rules/learnings.md'
+if ($PluginsInstalled.Count -gt 0) {
+    $pluginList = $PluginsInstalled -join ", "
+    Write-Host "  plugins                        ($pluginList)"
+}
+Write-Host ""
+Write-Host "Recommended plugins (optional):"
+Write-Host "  claude plugin install pr-review-toolkit@claude-plugins-official"
+Write-Host "  claude plugin install ralph-loop@claude-plugins-official"
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host "  1. Run /cs-validate to verify installation"
 Write-Host "  2. Run /cs-mcp --fix to register MCP servers"
-Write-Host "  3. Run /cs-status to see detected profile"
-Write-Host "  4. Run /cs-loop `"your task`" to start working"
+Write-Host "  3. Review recommended plugins above"
+Write-Host "  4. Run /cs-status to see detected profile"
+Write-Host "  5. Run /cs-loop `"your task`" to start working"
 Write-Host ""
 Write-Host "Note (Windows): MCP servers require 'cmd /c' wrapper." -ForegroundColor Yellow
 Write-Host "  Run /cs-mcp --fix after restarting Claude Code."

@@ -118,6 +118,50 @@ echo "  Installed path-scoped rules to .claude/rules/"
 echo "Cleaning up..."
 rm -rf "$TEMP_DIR"
 
+# --- Plugins ---
+PLUGINS_INSTALLED=""
+if command -v claude &>/dev/null; then
+    echo ""
+    echo "Installing Claude Code plugins..."
+
+    # Universal: security-guidance (user scope)
+    if claude plugin install security-guidance@claude-plugins-official --scope user 2>/dev/null; then
+        echo "  ✓ security-guidance (user scope)"
+        PLUGINS_INSTALLED="security-guidance"
+    else
+        echo "  ⚠ Could not install security-guidance plugin (non-fatal)"
+    fi
+
+    # Profile-dependent: LSP plugin (project scope)
+    LSP_PLUGIN=""
+    if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ] || [ -f "setup.py" ]; then
+        LSP_PLUGIN="pyright-lsp@claude-plugins-official"
+    elif [ -f "tsconfig.json" ]; then
+        LSP_PLUGIN="typescript-lsp@claude-plugins-official"
+    elif [ -f "go.mod" ]; then
+        LSP_PLUGIN="gopls-lsp@claude-plugins-official"
+    elif [ -f "Cargo.toml" ]; then
+        LSP_PLUGIN="rust-analyzer-lsp@claude-plugins-official"
+    elif [ -f "pom.xml" ] || [ -f "build.gradle" ]; then
+        LSP_PLUGIN="jdtls-lsp@claude-plugins-official"
+    elif [ -f "CMakeLists.txt" ] || [ -f "Makefile" ]; then
+        LSP_PLUGIN="clangd-lsp@claude-plugins-official"
+    fi
+
+    if [ -n "$LSP_PLUGIN" ]; then
+        if claude plugin install "$LSP_PLUGIN" --scope project 2>/dev/null; then
+            echo "  ✓ $LSP_PLUGIN (project scope)"
+            PLUGINS_INSTALLED="${PLUGINS_INSTALLED:+$PLUGINS_INSTALLED, }$LSP_PLUGIN"
+        else
+            echo "  ⚠ Could not install $LSP_PLUGIN (non-fatal)"
+        fi
+    fi
+else
+    echo ""
+    echo "⚠ claude CLI not found — skipping plugin installation"
+    echo "  Install plugins manually after setting up Claude Code"
+fi
+
 echo ""
 echo "=== Installation Complete ==="
 echo ""
@@ -137,10 +181,18 @@ echo "  templates/*.md                 (4 templates)"
 echo "  test-utils.js                  (shared test infrastructure)"
 echo "  .claude/rules/*.md              (14 path-scoped rules)"
 echo "  .claude/rules/learnings.md"
+if [ -n "$PLUGINS_INSTALLED" ]; then
+    echo "  plugins                        ($PLUGINS_INSTALLED)"
+fi
+echo ""
+echo "Recommended plugins (optional):"
+echo "  claude plugin install pr-review-toolkit@claude-plugins-official"
+echo "  claude plugin install ralph-loop@claude-plugins-official"
 echo ""
 echo "Next steps:"
 echo "  1. Run /cs-validate to verify installation"
 echo "  2. Run /cs-mcp --fix to register MCP servers"
-echo "  3. Run /cs-status to see detected profile"
-echo "  4. Run /cs-loop \"your task\" to start working"
+echo "  3. Review recommended plugins above"
+echo "  4. Run /cs-status to see detected profile"
+echo "  5. Run /cs-loop \"your task\" to start working"
 echo ""

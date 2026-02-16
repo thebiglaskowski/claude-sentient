@@ -542,6 +542,117 @@ suite('Documentation consistency', () => {
 });
 
 // ============================================================
+// Suite 5: Plugin parity
+// ============================================================
+
+suite('Plugin parity', () => {
+
+    /** Extract LSP plugin names from installer script content */
+    function extractLspPlugins(scriptContent) {
+        const plugins = [];
+        const pattern = /([a-z][a-z-]*-lsp@claude-plugins-official)/g;
+        let match;
+        while ((match = pattern.exec(scriptContent)) !== null) {
+            if (!plugins.includes(match[1])) {
+                plugins.push(match[1]);
+            }
+        }
+        return plugins.sort();
+    }
+
+    /** Extract recommended plugin names from installer script content */
+    function extractRecommendedPlugins(scriptContent) {
+        const plugins = [];
+        // Match lines like: echo "  claude plugin install pr-review-toolkit@claude-plugins-official"
+        const pattern = /plugin install ([a-z-]+@claude-plugins-official)/g;
+        let match;
+        while ((match = pattern.exec(scriptContent)) !== null) {
+            const name = match[1];
+            // Exclude LSP plugins and security-guidance (those are auto-installed, not recommended)
+            if (!name.includes('-lsp@') && name !== 'security-guidance@claude-plugins-official') {
+                if (!plugins.includes(name)) {
+                    plugins.push(name);
+                }
+            }
+        }
+        return plugins.sort();
+    }
+
+    test('install.sh and install.ps1 reference the same LSP plugins', () => {
+        const bashScript = readFile('install.sh');
+        const ps1Script = readFile('install.ps1');
+
+        const bashPlugins = extractLspPlugins(bashScript);
+        const ps1Plugins = extractLspPlugins(ps1Script);
+
+        assert.ok(bashPlugins.length > 0, 'install.sh should reference LSP plugins');
+        assert.ok(ps1Plugins.length > 0, 'install.ps1 should reference LSP plugins');
+
+        assert.deepStrictEqual(bashPlugins, ps1Plugins,
+            `LSP plugins should match between installers.\n` +
+            `  Bash: ${bashPlugins.join(', ')}\n` +
+            `  PS1:  ${ps1Plugins.join(', ')}`);
+    });
+
+    test('install.sh and install.ps1 list the same recommended plugins', () => {
+        const bashScript = readFile('install.sh');
+        const ps1Script = readFile('install.ps1');
+
+        const bashRecommended = extractRecommendedPlugins(bashScript);
+        const ps1Recommended = extractRecommendedPlugins(ps1Script);
+
+        assert.ok(bashRecommended.length > 0, 'install.sh should list recommended plugins');
+        assert.ok(ps1Recommended.length > 0, 'install.ps1 should list recommended plugins');
+
+        assert.deepStrictEqual(bashRecommended, ps1Recommended,
+            `Recommended plugins should match between installers.\n` +
+            `  Bash: ${bashRecommended.join(', ')}\n` +
+            `  PS1:  ${ps1Recommended.join(', ')}`);
+    });
+
+    test('installer LSP plugins match profile plugins.lsp values', () => {
+        const bashScript = readFile('install.sh');
+        const installerPlugins = extractLspPlugins(bashScript);
+
+        // Read all profiles and collect non-null plugins.lsp values
+        const profilePlugins = [];
+        const profileDir = path.join(ROOT, 'profiles');
+        const profileFiles = fs.readdirSync(profileDir)
+            .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
+
+        for (const file of profileFiles) {
+            const content = fs.readFileSync(path.join(profileDir, file), 'utf8');
+            const lspMatch = content.match(/^  lsp:\s*(.+)/m);
+            if (lspMatch) {
+                const value = lspMatch[1].trim();
+                if (value !== 'null' && !profilePlugins.includes(value)) {
+                    profilePlugins.push(value);
+                }
+            }
+        }
+
+        assert.ok(profilePlugins.length > 0, 'Some profiles should have LSP plugins');
+        assert.deepStrictEqual(installerPlugins, profilePlugins.sort(),
+            `Installer LSP plugins should match profile plugins.lsp values.\n` +
+            `  Installer: ${installerPlugins.join(', ')}\n` +
+            `  Profiles:  ${profilePlugins.sort().join(', ')}`);
+    });
+
+    test('uninstall scripts reference the same LSP plugins as install scripts', () => {
+        const bashInstall = readFile('install.sh');
+        const bashUninstall = readFile('uninstall.sh');
+
+        const installPlugins = extractLspPlugins(bashInstall);
+        const uninstallPlugins = extractLspPlugins(bashUninstall);
+
+        assert.deepStrictEqual(installPlugins, uninstallPlugins,
+            `Uninstaller should reference the same LSP plugins as installer.\n` +
+            `  Install:   ${installPlugins.join(', ')}\n` +
+            `  Uninstall: ${uninstallPlugins.join(', ')}`);
+    });
+});
+
+// ============================================================
 // Summary
 // ============================================================
 

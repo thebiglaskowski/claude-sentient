@@ -2,7 +2,7 @@
 # Loaded when pyproject.toml or requirements.txt detected
 
 name: python
-version: "1.2.1"
+version: "1.2.2"
 description: "Python projects using ruff for linting, pytest for testing, and pyright for type checking"
 
 # Model routing configuration
@@ -217,3 +217,7 @@ ignore:
   - "*.egg-info"
   - dist
   - build
+
+# Recommended Claude Code plugins
+plugins:
+  lsp: pyright-lsp@claude-plugins-official

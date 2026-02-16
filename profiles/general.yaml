@@ -2,7 +2,7 @@
 # Fallback when no specific profile matches
 
 name: general
-version: "1.2.1"
+version: "1.2.2"
 description: "General fallback profile with auto-detection of common linters, test runners, and build tools"
 
 # Model routing configuration
@@ -117,3 +117,7 @@ ignore:
   - "*.log"
   - .DS_Store
   - Thumbs.db
+
+# Recommended Claude Code plugins
+plugins:
+  lsp: null

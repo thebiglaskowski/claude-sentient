@@ -140,6 +140,24 @@
 - **Correction**: User said "pre-existing or not its an issue, why would we not want to fix it?"
 - **Rule**: Fix ALL lint issues during VERIFY phase - never dismiss warnings as "pre-existing" or non-blocking. If ruff reports it, fix it. This is an Integrity Rule violation.
 
+### 2026-02-16: Never use shell substitutions in hook commands
+- **Context**: Hook commands in settings.json used `$(git rev-parse --show-toplevel 2>/dev/null || echo .)` to resolve project root
+- **Problem**: Claude Code passes hook commands through `cmd.exe` on Windows, which treats `$(...)` as a literal string. Node then looks for a file at `<cwd>\$(git rev-parse ...)\.claude\hooks\foo.js` which doesn't exist. This broke ALL hooks on Windows.
+- **Root cause**: Commit e8f295c tried to fix subdirectory cwd by adding bash shell substitution, but Claude Code's hook executor doesn't guarantee bash on all platforms
+- **Solution**: Use simple relative paths (`node .claude/hooks/foo.js`). Claude Code runs hooks from the project root. Each hook uses `getProjectRoot()` from `utils.js` internally for file operations.
+- **Rule**: Hook commands in settings.json must be plain cross-platform invocations (`node <path>`). Never use bash-specific syntax (`$(...)`, backticks, pipes). If a hook needs the project root, resolve it inside the JS script using `getProjectRoot()`.
+
+### 2026-02-16: Auto-install Claude Code plugins during setup
+- **Context**: Claude Code has an official plugin marketplace with LSP plugins and security tools
+- **Decision**: The installer auto-installs two categories of plugins:
+  1. `security-guidance@claude-plugins-official` (user scope, universal)
+  2. Profile-matched LSP plugin (project scope): pyright-lsp, typescript-lsp, gopls-lsp, rust-analyzer-lsp, jdtls-lsp, or clangd-lsp
+- **Non-fatal**: Plugin installs use `2>/dev/null || true` — missing `claude` CLI or install failures don't block setup
+- **Uninstall**: Only project-scoped LSP plugins are removed; user-scoped security-guidance is preserved
+- **Profile schema**: Added `plugins.lsp` property to `profile.schema.json` so each profile declares its recommended LSP plugin
+- **Parity**: Integration tests enforce that install.sh and install.ps1 reference identical plugin sets
+- **Rule**: When adding a new language profile, set `plugins.lsp` to the matching LSP plugin identifier (or `null` if none)
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

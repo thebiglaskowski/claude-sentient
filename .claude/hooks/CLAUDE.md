@@ -30,17 +30,18 @@ Hooks are configured in `.claude/settings.json`:
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/session-start.js\"", "timeout": 5000 }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-start.js", "timeout": 5000 }] }],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/bash-validator.js\"" }] },
-      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/hooks/file-validator.js\"" }] }
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node .claude/hooks/bash-validator.js" }] },
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/file-validator.js" }] }
     ]
   }
 }
 ```
 
-> Hook commands use `git rev-parse --show-toplevel` to resolve the project root, ensuring hooks work correctly even when Claude `cd`s into subdirectories.
-> The `|| echo .` fallback handles non-git projects (resolves to cwd).
+> Hook commands use simple relative paths. Claude Code runs hooks from the project root directory, so `.claude/hooks/` resolves correctly. Each hook uses `getProjectRoot()` from `utils.js` internally for any file operations that need the project root path.
+>
+> **Important**: Do NOT use shell substitutions like `$(...)` in hook commands — Claude Code passes commands through `cmd.exe` on Windows, which does not interpret bash syntax. Keep commands as plain `node <path>` invocations.
 
 ---
 

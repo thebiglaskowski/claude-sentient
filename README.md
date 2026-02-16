@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -98,7 +98,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 716+ | Profiles (242), agents (108), hooks (93), commands (81), schemas (166), integration (26) + SDK, install, tools |
+| 🧪 Tests | 720+ | Profiles (242), agents (108), hooks (93), commands (81), schemas (166), integration (30) + SDK, install, tools |
 | 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
 ---
@@ -221,6 +221,45 @@ Claude Sentient can leverage MCP (Model Context Protocol) servers for extended c
 ```
 
 **Note:** MCP servers are registered at the user level (`~/.claude.json`). Once registered, they're available in all projects.
+
+---
+
+## 🔌 Plugins
+
+The installer auto-installs recommended plugins from the Claude Code official marketplace when the `claude` CLI is available. Plugin installation is non-fatal — if `claude` isn't found or a plugin fails to install, setup continues normally.
+
+### Auto-Installed Plugins
+
+**Security Guidance** (all projects, user scope):
+
+`security-guidance@claude-plugins-official` scans file content for security anti-patterns like `eval()`, `pickle.loads()`, unsanitized HTML injection, and hardcoded secrets. It complements the bash-validator and file-validator hooks that ship with Claude Sentient by catching patterns at the content level rather than the command level.
+
+**LSP Plugins** (profile-dependent, project scope):
+
+Each language profile declares a recommended LSP plugin that gives Claude deeper understanding of your code — real-time type information, symbol resolution, and diagnostics that go beyond static file reading.
+
+| Profile | Plugin | What It Adds |
+|---------|--------|-------------|
+| Python | `pyright-lsp` | Type inference, import resolution, missing attribute detection |
+| TypeScript | `typescript-lsp` | Type checking, module resolution, refactoring support |
+| Go | `gopls-lsp` | Type analysis, interface satisfaction, unused variable detection |
+| Rust | `rust-analyzer-lsp` | Borrow checker insights, trait resolution, macro expansion |
+| Java | `jdtls-lsp` | Class hierarchy, dependency analysis, annotation processing |
+| C/C++ | `clangd-lsp` | Header resolution, compile command awareness, memory safety hints |
+| Ruby, Shell, General | — | No LSP plugin (profile tools handle linting directly) |
+
+### Recommended Plugins (Optional)
+
+These are not auto-installed but are shown in the installer summary for manual setup:
+
+```bash
+claude plugin install pr-review-toolkit@claude-plugins-official   # Enhanced PR review workflows
+claude plugin install ralph-loop@claude-plugins-official           # Advanced loop orchestration
+```
+
+### Checking Plugin Status
+
+Run `/cs-validate` to see which plugins are installed and which are missing. The PLUGINS advisory section shows installed, missing, and optional plugins with one-liner install commands.
 
 ---
 
@@ -510,7 +549,7 @@ node .claude/commands/__tests__/test-commands.js
 # Schema validation (166 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
 node schemas/__tests__/test-schemas.js
 
-# Integration tests (26 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency
+# Integration tests (30 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity
 node integration/__tests__/test-integration.js
 
 # Install script tests (14 tests) — syntax, file refs, content checks

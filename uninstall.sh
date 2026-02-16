@@ -187,6 +187,23 @@ fi
 # --- State directory ---
 remove_dir ".claude/state"
 
+# --- Plugins (project-scoped only) ---
+if command -v claude &>/dev/null; then
+    echo "Removing project-scoped plugins..."
+    LSP_PLUGINS=(
+        "pyright-lsp@claude-plugins-official"
+        "typescript-lsp@claude-plugins-official"
+        "gopls-lsp@claude-plugins-official"
+        "rust-analyzer-lsp@claude-plugins-official"
+        "jdtls-lsp@claude-plugins-official"
+        "clangd-lsp@claude-plugins-official"
+    )
+    for plugin in "${LSP_PLUGINS[@]}"; do
+        claude plugin uninstall "$plugin" --scope project 2>/dev/null || true
+    done
+    echo "  Note: security-guidance (user scope) preserved — benefits all projects"
+fi
+
 # --- Clean up empty directories ---
 echo "Cleaning up..."
 remove_dir_if_empty ".claude/rules"
