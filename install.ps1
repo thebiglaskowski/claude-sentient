@@ -111,7 +111,7 @@ Write-Host "  Installed JSON schemas + tests"
 
 Write-Host "Installing dashboard..."
 New-Item -ItemType Directory -Force -Path "dashboard/__tests__" | Out-Null
-Copy-Item "$TempDir/dashboard/server.js" -Destination "dashboard/" -Force
+Copy-Item "$TempDir/dashboard/server.cjs" -Destination "dashboard/" -Force
 Copy-Item "$TempDir/dashboard/index.html" -Destination "dashboard/" -Force
 Copy-Item "$TempDir/dashboard/CLAUDE.md" -Destination "dashboard/" -Force
 Copy-Item "$TempDir/dashboard/__tests__/*.js" -Destination "dashboard/__tests__/" -Force

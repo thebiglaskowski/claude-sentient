@@ -91,7 +91,7 @@ echo "  Installed JSON schemas + tests"
 
 echo "Installing dashboard..."
 mkdir -p dashboard/__tests__
-cp "$TEMP_DIR"/dashboard/server.js dashboard/
+cp "$TEMP_DIR"/dashboard/server.cjs dashboard/
 cp "$TEMP_DIR"/dashboard/index.html dashboard/
 cp "$TEMP_DIR"/dashboard/CLAUDE.md dashboard/
 cp "$TEMP_DIR"/dashboard/__tests__/*.js dashboard/__tests__/

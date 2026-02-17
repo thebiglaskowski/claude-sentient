@@ -16,11 +16,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Live duration counters for session and running agents
   - Incremental log reading (tracks file size, reads only new bytes)
   - Responsive CSS Grid layout (3-col / 2-col / 1-col)
-  - `dashboard/server.js` — HTTP server + SSE + `fs.watch` (zero dependencies)
+  - `dashboard/server.cjs` — HTTP server + SSE + `fs.watch` (zero dependencies)
   - `dashboard/index.html` — Single-file frontend (HTML + CSS + JS, no build step)
   - `dashboard/CLAUDE.md` — Nested context documentation
   - `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP routes, SSE, frontend structure)
-- Launch: `node dashboard/server.js` (default port 3777, configurable via `CS_DASHBOARD_PORT`)
+- Launch: `node dashboard/server.cjs` (default port 3777, configurable via `CS_DASHBOARD_PORT`)
 
 ### Changed
 - Total test count: 720+ → 758+ (dashboard: 38 new tests)

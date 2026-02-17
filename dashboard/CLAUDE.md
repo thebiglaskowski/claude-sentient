@@ -15,8 +15,8 @@ A real-time dashboard that visualizes data captured by Claude Sentient's hooks. 
 ## Running
 
 ```bash
-node dashboard/server.js                          # Default port 3777
-CS_DASHBOARD_PORT=4000 node dashboard/server.js   # Custom port
+node dashboard/server.cjs                          # Default port 3777
+CS_DASHBOARD_PORT=4000 node dashboard/server.cjs   # Custom port
 ```
 
 Open `http://localhost:3777` in a browser. The dashboard auto-connects via SSE and updates in real time as Claude Code works.
@@ -39,7 +39,7 @@ Tests use the project's shared `test-utils.js` pattern. They cover log parsing, 
 
 | File | Purpose |
 |------|---------|
-| `server.js` | HTTP server, SSE broadcast, file watcher, state reader |
+| `server.cjs` | HTTP server, SSE broadcast, file watcher, state reader |
 | `index.html` | Single-file frontend (HTML + CSS + JS, no build step) |
 | `__tests__/test-dashboard.js` | Test suite |
 | `CLAUDE.md` | This file |

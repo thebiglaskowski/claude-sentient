@@ -162,13 +162,13 @@ Testing             [███████████████████�
 
 ### 2026-02-17 (Session 17)
 - **Real-time Web Dashboard (v1.2.3):**
-  - Created `dashboard/server.js` — zero-dependency Node.js HTTP server with SSE + fs.watch
+  - Created `dashboard/server.cjs` — zero-dependency Node.js HTTP server with SSE + fs.watch
   - Created `dashboard/index.html` — single-file frontend with 8 panels, dark terminal theme
   - Created `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP, SSE, frontend)
   - Created `dashboard/CLAUDE.md` — nested context documentation
   - Server reads hook state files from `.claude/state/` and streams updates via Server-Sent Events
   - Panels: Session, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, Session History
-  - Launch: `node dashboard/server.js` (port 3777, configurable via `CS_DASHBOARD_PORT`)
+  - Launch: `node dashboard/server.cjs` (port 3777, configurable via `CS_DASHBOARD_PORT`)
   - Updated README.md, CHANGELOG.md, STATUS.md
 
 ### 2026-02-10 (Session 15)

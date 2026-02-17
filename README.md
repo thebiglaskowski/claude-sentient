@@ -499,13 +499,13 @@ your-project/
 
 ```bash
 # Launch the dashboard server
-node dashboard/server.js
+node dashboard/server.cjs
 
 # Open http://localhost:3777 in your browser
 # The dashboard auto-connects and streams updates in real time
 
 # Use a custom port if needed
-CS_DASHBOARD_PORT=4000 node dashboard/server.js
+CS_DASHBOARD_PORT=4000 node dashboard/server.cjs
 ```
 
 The dashboard shows 8 panels: Session info, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, and Session History. All data is read from the hook state files in `.claude/state/` and streamed via Server-Sent Events.

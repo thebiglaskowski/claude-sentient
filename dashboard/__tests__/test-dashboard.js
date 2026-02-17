@@ -38,7 +38,7 @@ function writeArchive(filename, data) {
 }
 
 // Import server module
-const serverPath = path.join(__dirname, '..', 'server.js');
+const serverPath = path.join(__dirname, '..', 'server.cjs');
 const {
   parseLogLines,
   readJsonFile,
