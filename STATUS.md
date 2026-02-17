@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-10
+> **Last Updated:** 2026-02-17
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.2.0
+> **Version:** 1.2.3
 
 ---
 
@@ -23,7 +23,8 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (600+ total across 7 suites)
+Dashboard           [████████████████████] 100% ✓ (real-time web UI)
+Testing             [████████████████████] 100% ✓ (758+ total across 8 suites)
 ```
 
 ---
@@ -158,6 +159,17 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-17 (Session 17)
+- **Real-time Web Dashboard (v1.2.3):**
+  - Created `dashboard/server.js` — zero-dependency Node.js HTTP server with SSE + fs.watch
+  - Created `dashboard/index.html` — single-file frontend with 8 panels, dark terminal theme
+  - Created `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP, SSE, frontend)
+  - Created `dashboard/CLAUDE.md` — nested context documentation
+  - Server reads hook state files from `.claude/state/` and streams updates via Server-Sent Events
+  - Panels: Session, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, Session History
+  - Launch: `node dashboard/server.js` (port 3777, configurable via `CS_DASHBOARD_PORT`)
+  - Updated README.md, CHANGELOG.md, STATUS.md
 
 ### 2026-02-10 (Session 15)
 - **Assessment Remediation (v1.2.0):**

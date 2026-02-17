@@ -98,7 +98,8 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 720+ | Profiles (242), agents (108), hooks (93), commands (81), schemas (166), integration (30) + SDK, install, tools |
+| 📊 Dashboard | 1 | Real-time web dashboard for session monitoring |
+| 🧪 Tests | 758+ | Profiles (242), agents (108), hooks (93), commands (81), schemas (166), integration (30), dashboard (38) + SDK, install, tools |
 | 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
 ---
@@ -348,6 +349,9 @@ your-project/
 ├── profiles/*.yaml          # 9 language profiles + schema
 ├── agents/*.yaml            # 6 specialized agent roles
 ├── schemas/*.json           # 9 JSON schemas (validation)
+├── dashboard/                  # Real-time web dashboard
+│   ├── server.js              # Zero-dependency Node.js server + SSE
+│   └── index.html             # Single-file frontend (dark theme)
 ├── templates/*.md           # Governance templates
 ├── test-utils.js            # Shared test infrastructure
 └── rules/*.md               # 15 topic rules
@@ -491,7 +495,22 @@ your-project/
 /cs-team --stop
 ```
 
-### Workflow 10: MCP Server Setup
+### Workflow 10: Real-Time Dashboard
+
+```bash
+# Launch the dashboard server
+node dashboard/server.js
+
+# Open http://localhost:3777 in your browser
+# The dashboard auto-connects and streams updates in real time
+
+# Use a custom port if needed
+CS_DASHBOARD_PORT=4000 node dashboard/server.js
+```
+
+The dashboard shows 8 panels: Session info, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, and Session History. All data is read from the hook state files in `.claude/state/` and streamed via Server-Sent Events.
+
+### Workflow 11: MCP Server Setup
 
 ```bash
 # First time setup
@@ -531,7 +550,7 @@ Hooks are configured in `.claude/settings.json` and installed automatically.
 
 ## 🧪 Tests
 
-Test suites validate hooks, profiles, commands, agents, schemas, cross-module integrity, SDK, and infrastructure:
+Test suites validate hooks, profiles, commands, agents, schemas, cross-module integrity, dashboard, SDK, and infrastructure:
 
 ```bash
 # Profile validation (242 tests) — schema compliance, gates, infrastructure, cross-profile consistency
@@ -551,6 +570,9 @@ node schemas/__tests__/test-schemas.js
 
 # Integration tests (30 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity
 node integration/__tests__/test-integration.js
+
+# Dashboard tests (38 tests) — server routes, SSE, log parser, state reader, frontend structure
+node dashboard/__tests__/test-dashboard.js
 
 # Install script tests (14 tests) — syntax, file refs, content checks
 bash tests/test-install.sh
@@ -599,9 +621,10 @@ Learnings are stored in [`.claude/rules/learnings.md`](.claude/rules/learnings.m
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [DECISIONS.md](DECISIONS.md) | Architecture decisions |
 
-### SDK Documentation
+### SDK & Dashboard Documentation
 | File | Purpose |
 |------|---------|
+| [Dashboard](dashboard/CLAUDE.md) | Real-time dashboard: routes, panels, data flow |
 | [Python SDK](sdk/python/README.md) | Python installation, API reference, CLI usage |
 | [TypeScript SDK](sdk/typescript/README.md) | TypeScript installation, API reference |
 

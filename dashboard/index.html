@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Sentient Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0c0e13;
+  --surface:   #141720;
+  --surface-2: #1a1e2a;
+  --border:    #252a3a;
+  --text:      #c8cdd8;
+  --text-dim:  #6b7280;
+  --amber:     #f0b429;
+  --amber-dim: rgba(240, 180, 41, 0.15);
+  --cyan:      #22d3ee;
+  --cyan-dim:  rgba(34, 211, 238, 0.15);
+  --green:     #34d399;
+  --red:       #f87171;
+  --purple:    #a78bfa;
+  --font:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --radius:    6px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  z-index: 9999;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.header h1 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.5px;
+}
+
+.header h1 span { color: var(--text-dim); font-weight: 300; }
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  transition: background 0.3s;
+}
+
+.status-dot.connected { background: var(--green); }
+.status-dot.connected::after {
+  content: '';
+  display: block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.6); }
+}
+
+/* ---------- Grid Layout ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 20px 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .grid { grid-template-columns: 1fr; } }
+
+/* ---------- Panel ---------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.panel-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.panel-body {
+  padding: 14px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.panel-body.tall { max-height: 440px; }
+
+/* ---------- Session Panel ---------- */
+.session-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.session-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.session-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.session-value { font-size: 14px; font-weight: 500; }
+.session-value.amber { color: var(--amber); }
+.session-value.cyan { color: var(--cyan); }
+
+.timer {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Agent List ---------- */
+.agent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.agent-item:last-child { border-bottom: none; }
+
+.agent-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.agent-dot.running {
+  background: var(--cyan);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.agent-dot.success { background: var(--green); }
+.agent-dot.fail { background: var(--red); }
+
+.agent-info { flex: 1; min-width: 0; }
+.agent-type { font-size: 12px; font-weight: 500; }
+.agent-meta { font-size: 10px; color: var(--text-dim); }
+
+.badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.badge-opus   { background: rgba(167,139,250,0.15); color: var(--purple); }
+.badge-sonnet { background: var(--amber-dim); color: var(--amber); }
+.badge-haiku  { background: var(--cyan-dim); color: var(--cyan); }
+.badge-edit   { background: var(--amber-dim); color: var(--amber); }
+.badge-write  { background: var(--cyan-dim); color: var(--cyan); }
+
+.duration {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ---------- File Activity ---------- */
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(37,42,58,0.5);
+  font-size: 12px;
+}
+
+.file-item:last-child { border-bottom: none; }
+
+.file-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.file-time { font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+
+/* ---------- Team Status ---------- */
+.teammate-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.teammate-item:last-child { border-bottom: none; }
+
+.teammate-name { font-size: 12px; font-weight: 500; flex: 1; }
+.teammate-tasks { font-size: 10px; color: var(--text-dim); }
+
+/* ---------- Event Timeline ---------- */
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(37,42,58,0.3);
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-time { color: var(--text-dim); flex-shrink: 0; width: 60px; }
+.log-level {
+  flex-shrink: 0;
+  width: 44px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.log-level.INFO  { color: var(--cyan); }
+.log-level.WARN  { color: var(--amber); }
+.log-level.ERROR { color: var(--red); }
+.log-level.DEBUG { color: var(--text-dim); }
+
+.log-msg { flex: 1; word-break: break-word; }
+
+/* ---------- Prompt Activity ---------- */
+.topic-bar {
+  display: flex;
+  height: 24px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.topic-segment {
+  height: 100%;
+  min-width: 2px;
+  transition: width 0.3s;
+}
+
+.topic-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.topic-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topic-swatch {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+}
+
+/* ---------- Archive ---------- */
+.archive-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.archive-item:last-child { border-bottom: none; }
+
+.archive-info { flex: 1; }
+.archive-profile { font-size: 12px; font-weight: 500; }
+.archive-meta { font-size: 10px; color: var(--text-dim); }
+.archive-date { font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+
+/* ---------- Empty State ---------- */
+.empty {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 24px 12px;
+  font-size: 12px;
+}
+
+.empty-hint { font-size: 10px; margin-top: 6px; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CLAUDE SENTIENT <span>/ dashboard</span></h1>
+  <div class="connection-status">
+    <div class="status-dot" id="conn-dot"></div>
+    <span id="conn-label">Connecting...</span>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- Session -->
+  <div class="panel" id="p-session">
+    <div class="panel-header">
+      <span class="panel-title">Session</span>
+      <span class="panel-badge" id="session-profile" style="background:var(--amber-dim);color:var(--amber)"></span>
+    </div>
+    <div class="panel-body">
+      <div id="session-content" class="empty">No active session</div>
+    </div>
+  </div>
+
+  <!-- Active Agents -->
+  <div class="panel" id="p-active-agents">
+    <div class="panel-header">
+      <span class="panel-title">Active Agents</span>
+      <span class="panel-badge" id="active-count" style="background:var(--cyan-dim);color:var(--cyan)">0</span>
+    </div>
+    <div class="panel-body" id="active-agents-content">
+      <div class="empty">No agents running</div>
+    </div>
+  </div>
+
+  <!-- Agent History -->
+  <div class="panel" id="p-agent-history">
+    <div class="panel-header">
+      <span class="panel-title">Agent History</span>
+      <span class="panel-badge" id="history-count" style="background:var(--amber-dim);color:var(--amber)">0</span>
+    </div>
+    <div class="panel-body" id="agent-history-content">
+      <div class="empty">No agent history</div>
+    </div>
+  </div>
+
+  <!-- File Activity -->
+  <div class="panel" id="p-files">
+    <div class="panel-header">
+      <span class="panel-title">File Activity</span>
+      <span class="panel-badge" id="files-count" style="background:var(--amber-dim);color:var(--amber)">0</span>
+    </div>
+    <div class="panel-body" id="files-content">
+      <div class="empty">No file changes tracked</div>
+    </div>
+  </div>
+
+  <!-- Team Status -->
+  <div class="panel" id="p-team">
+    <div class="panel-header">
+      <span class="panel-title">Team Status</span>
+      <span class="panel-badge" id="team-count" style="background:var(--cyan-dim);color:var(--cyan)">0</span>
+    </div>
+    <div class="panel-body" id="team-content">
+      <div class="empty">No team active</div>
+    </div>
+  </div>
+
+  <!-- Event Timeline -->
+  <div class="panel" id="p-log">
+    <div class="panel-header">
+      <span class="panel-title">Event Timeline</span>
+    </div>
+    <div class="panel-body tall" id="log-content">
+      <div class="empty">No log entries<div class="empty-hint">Events appear as hooks fire</div></div>
+    </div>
+  </div>
+
+  <!-- Prompt Activity -->
+  <div class="panel" id="p-prompts">
+    <div class="panel-header">
+      <span class="panel-title">Prompt Activity</span>
+      <span class="panel-badge" id="prompt-count" style="background:var(--amber-dim);color:var(--amber)">0</span>
+    </div>
+    <div class="panel-body" id="prompts-content">
+      <div class="empty">No prompts tracked</div>
+    </div>
+  </div>
+
+  <!-- Session History -->
+  <div class="panel" id="p-archive">
+    <div class="panel-header">
+      <span class="panel-title">Session History</span>
+    </div>
+    <div class="panel-body" id="archive-content">
+      <div class="empty">No archived sessions</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// -------------------------------------------------------------------------
+// Global state
+// -------------------------------------------------------------------------
+
+const state = {
+  session_start: null,
+  active_agents: null,
+  agent_history: null,
+  file_changes: null,
+  team_state: null,
+  last_verification: null,
+  prompts: null
+};
+
+let logEntries = [];
+let archiveEntries = [];
+
+// -------------------------------------------------------------------------
+// Utilities
+// -------------------------------------------------------------------------
+
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function relTime(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return 'just now';
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return s + 's ago';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+
+function fmtDuration(seconds) {
+  if (typeof seconds !== 'number' || seconds < 0) return '0s';
+  if (seconds < 60) return seconds + 's';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return m + 'm ' + s + 's';
+  const h = Math.floor(m / 60);
+  return h + 'h ' + (m % 60) + 'm';
+}
+
+function liveDuration(isoStart) {
+  if (!isoStart) return '0s';
+  const s = Math.max(0, Math.floor((Date.now() - new Date(isoStart).getTime()) / 1000));
+  return fmtDuration(s);
+}
+
+function shortPath(fullPath) {
+  if (!fullPath) return '';
+  // Remove common cwd prefix
+  const cwd = state.session_start?.cwd;
+  if (cwd && fullPath.startsWith(cwd)) {
+    return fullPath.slice(cwd.length + 1);
+  }
+  // Show last 3 segments
+  const parts = fullPath.split('/');
+  return parts.length > 3 ? '.../' + parts.slice(-3).join('/') : fullPath;
+}
+
+function modelBadge(model) {
+  if (!model) return '';
+  const cls = model.includes('opus') ? 'opus' : model.includes('haiku') ? 'haiku' : 'sonnet';
+  return '<span class="badge badge-' + cls + '">' + esc(model) + '</span>';
+}
+
+function timeOnly(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch {
+    return iso;
+  }
+}
+
+// -------------------------------------------------------------------------
+// Topic colors
+// -------------------------------------------------------------------------
+
+const TOPIC_COLORS = {
+  test:          '#22d3ee',
+  api:           '#f0b429',
+  database:      '#a78bfa',
+  performance:   '#34d399',
+  ui:            '#f472b6',
+  security:      '#f87171',
+  codeQuality:   '#60a5fa',
+  errorHandling: '#fb923c',
+  documentation: '#94a3b8',
+  auth:          '#e879f9'
+};
+
+// -------------------------------------------------------------------------
+// Render functions
+// -------------------------------------------------------------------------
+
+function renderSession() {
+  const el = document.getElementById('session-content');
+  const badge = document.getElementById('session-profile');
+  const s = state.session_start;
+
+  if (!s) {
+    el.innerHTML = '<div class="empty">No active session</div>';
+    badge.textContent = '';
+    return;
+  }
+
+  badge.textContent = s.profile || 'unknown';
+  el.innerHTML = `
+    <div class="timer" id="session-timer">${liveDuration(s.timestamp)}</div>
+    <div class="session-grid" style="margin-top:12px">
+      <div class="session-item">
+        <span class="session-label">Branch</span>
+        <span class="session-value cyan">${esc(s.gitBranch || '—')}</span>
+      </div>
+      <div class="session-item">
+        <span class="session-label">Git Status</span>
+        <span class="session-value">${esc(s.gitStatus || '—')}</span>
+      </div>
+      <div class="session-item">
+        <span class="session-label">Platform</span>
+        <span class="session-value">${esc(s.platform || '—')}</span>
+      </div>
+      <div class="session-item">
+        <span class="session-label">Node</span>
+        <span class="session-value">${esc(s.nodeVersion || '—')}</span>
+      </div>
+    </div>`;
+}
+
+function renderActiveAgents() {
+  const el = document.getElementById('active-agents-content');
+  const badge = document.getElementById('active-count');
+  const agents = state.active_agents;
+
+  if (!agents || typeof agents !== 'object') {
+    badge.textContent = '0';
+    el.innerHTML = '<div class="empty">No agents running</div>';
+    return;
+  }
+
+  const entries = Object.values(agents);
+  badge.textContent = entries.length;
+
+  if (entries.length === 0) {
+    el.innerHTML = '<div class="empty">No agents running</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(a => `
+    <div class="agent-item">
+      <div class="agent-dot running"></div>
+      <div class="agent-info">
+        <div class="agent-type">${esc(a.agentRole || a.type || 'agent')}</div>
+        <div class="agent-meta">${esc(a.description || '')}</div>
+      </div>
+      ${modelBadge(a.model)}
+      <span class="duration agent-timer" data-start="${esc(a.startTime)}">${liveDuration(a.startTime)}</span>
+    </div>`).join('');
+}
+
+function renderAgentHistory() {
+  const el = document.getElementById('agent-history-content');
+  const badge = document.getElementById('history-count');
+  const history = state.agent_history;
+
+  if (!Array.isArray(history) || history.length === 0) {
+    badge.textContent = '0';
+    el.innerHTML = '<div class="empty">No agent history</div>';
+    return;
+  }
+
+  badge.textContent = history.length;
+  // Show newest first
+  const items = history.slice().reverse().slice(0, 20);
+
+  el.innerHTML = items.map(a => `
+    <div class="agent-item">
+      <div class="agent-dot ${a.success ? 'success' : 'fail'}"></div>
+      <div class="agent-info">
+        <div class="agent-type">${esc(a.type || 'agent')}</div>
+        <div class="agent-meta">${esc(a.resultSummary || '')}</div>
+      </div>
+      ${modelBadge(a.model)}
+      <span class="duration">${fmtDuration(a.durationSeconds || 0)}</span>
+    </div>`).join('');
+}
+
+function renderFiles() {
+  const el = document.getElementById('files-content');
+  const badge = document.getElementById('files-count');
+  const files = state.file_changes;
+
+  if (!Array.isArray(files) || files.length === 0) {
+    badge.textContent = '0';
+    el.innerHTML = '<div class="empty">No file changes tracked</div>';
+    return;
+  }
+
+  badge.textContent = files.length;
+  // Newest first
+  const items = files.slice().reverse().slice(0, 30);
+
+  el.innerHTML = items.map(f => `
+    <div class="file-item">
+      <span class="badge badge-${(f.tool || '').toLowerCase() === 'write' ? 'write' : 'edit'}">${esc(f.tool || '?')}</span>
+      <span class="file-path" title="${esc(f.path)}">${esc(shortPath(f.path))}</span>
+      <span class="file-time">${relTime(f.timestamp)}</span>
+    </div>`).join('');
+}
+
+function renderTeam() {
+  const el = document.getElementById('team-content');
+  const badge = document.getElementById('team-count');
+  const ts = state.team_state;
+
+  if (!ts || !ts.teammates || Object.keys(ts.teammates).length === 0) {
+    badge.textContent = '0';
+    el.innerHTML = '<div class="empty">No team active</div>';
+    return;
+  }
+
+  const teammates = Object.entries(ts.teammates);
+  badge.textContent = teammates.length;
+
+  const completedTasks = ts.completed_tasks || [];
+
+  el.innerHTML = teammates.map(([name, info]) => {
+    const tasksDone = completedTasks.filter(t => t.teammate === name).length;
+    return `
+      <div class="teammate-item">
+        <div class="agent-dot ${info.last_idle ? 'success' : 'running'}"></div>
+        <span class="teammate-name">${esc(name)}</span>
+        <span class="teammate-tasks">${tasksDone} task${tasksDone !== 1 ? 's' : ''} done</span>
+        <span class="duration">${relTime(info.last_idle)}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderLog() {
+  const el = document.getElementById('log-content');
+
+  if (logEntries.length === 0) {
+    el.innerHTML = '<div class="empty">No log entries<div class="empty-hint">Events appear as hooks fire</div></div>';
+    return;
+  }
+
+  // Newest first
+  const items = logEntries.slice().reverse().slice(0, 100);
+
+  el.innerHTML = items.map(e => `
+    <div class="log-entry">
+      <span class="log-time">${esc(timeOnly(e.timestamp))}</span>
+      <span class="log-level ${esc(e.level)}">${esc(e.level)}</span>
+      <span class="log-msg">${esc(e.message)}</span>
+    </div>`).join('');
+}
+
+function renderPrompts() {
+  const el = document.getElementById('prompts-content');
+  const badge = document.getElementById('prompt-count');
+  const prompts = state.prompts;
+
+  if (!Array.isArray(prompts) || prompts.length === 0) {
+    badge.textContent = '0';
+    el.innerHTML = '<div class="empty">No prompts tracked</div>';
+    return;
+  }
+
+  badge.textContent = prompts.length;
+
+  // Count topics
+  const counts = {};
+  let total = 0;
+  for (const p of prompts) {
+    if (Array.isArray(p.topics)) {
+      for (const t of p.topics) {
+        counts[t] = (counts[t] || 0) + 1;
+        total++;
+      }
+    }
+  }
+
+  if (total === 0) {
+    el.innerHTML = '<div class="empty">No topics detected</div>';
+    return;
+  }
+
+  // Sort by count
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  const bar = sorted.map(([topic, count]) => {
+    const pct = (count / total * 100).toFixed(1);
+    const color = TOPIC_COLORS[topic] || '#6b7280';
+    return `<div class="topic-segment" style="width:${pct}%;background:${color}" title="${topic}: ${count}"></div>`;
+  }).join('');
+
+  const legend = sorted.map(([topic, count]) => {
+    const color = TOPIC_COLORS[topic] || '#6b7280';
+    return `<div class="topic-legend-item"><div class="topic-swatch" style="background:${color}"></div>${esc(topic)} (${count})</div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="topic-bar">${bar}</div><div class="topic-legend">${legend}</div>`;
+}
+
+function renderArchive() {
+  const el = document.getElementById('archive-content');
+
+  if (archiveEntries.length === 0) {
+    el.innerHTML = '<div class="empty">No archived sessions</div>';
+    return;
+  }
+
+  el.innerHTML = archiveEntries.slice(0, 20).map(a => `
+    <div class="archive-item">
+      <div class="archive-info">
+        <div class="archive-profile">${esc(a.profile || 'unknown')} — ${esc(a.gitBranch || '—')}</div>
+        <div class="archive-meta">${esc(a.platform || '')} ${esc(a.nodeVersion || '')}</div>
+      </div>
+      <span class="archive-date">${relTime(a.timestamp)}</span>
+    </div>`).join('');
+}
+
+// -------------------------------------------------------------------------
+// State update dispatcher
+// -------------------------------------------------------------------------
+
+const renderers = {
+  session_start:     renderSession,
+  active_agents:     renderActiveAgents,
+  agent_history:     renderAgentHistory,
+  file_changes:      renderFiles,
+  team_state:        renderTeam,
+  last_verification: () => {}, // displayed via session panel
+  prompts:           renderPrompts
+};
+
+function applyUpdate(key, data) {
+  state[key] = data;
+  const fn = renderers[key];
+  if (fn) fn();
+}
+
+function renderAll() {
+  for (const fn of Object.values(renderers)) fn();
+  renderLog();
+  renderArchive();
+}
+
+// -------------------------------------------------------------------------
+// Live timers
+// -------------------------------------------------------------------------
+
+setInterval(() => {
+  // Session timer
+  const timerEl = document.getElementById('session-timer');
+  if (timerEl && state.session_start?.timestamp) {
+    timerEl.textContent = liveDuration(state.session_start.timestamp);
+  }
+
+  // Agent timers
+  document.querySelectorAll('.agent-timer').forEach(el => {
+    const start = el.dataset.start;
+    if (start) el.textContent = liveDuration(start);
+  });
+}, 1000);
+
+// -------------------------------------------------------------------------
+// SSE connection
+// -------------------------------------------------------------------------
+
+function connectSSE() {
+  const dot = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+
+  const es = new EventSource('/events');
+
+  es.addEventListener('full_state', (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      for (const [key, val] of Object.entries(data)) {
+        state[key] = val;
+      }
+      renderAll();
+    } catch { /* ignore parse errors */ }
+  });
+
+  es.addEventListener('state_update', (e) => {
+    try {
+      const { key, data } = JSON.parse(e.data);
+      applyUpdate(key, data);
+    } catch { /* ignore */ }
+  });
+
+  es.addEventListener('log_append', (e) => {
+    try {
+      const lines = JSON.parse(e.data);
+      if (Array.isArray(lines)) {
+        logEntries = logEntries.concat(lines);
+        // Cap at 500
+        if (logEntries.length > 500) logEntries = logEntries.slice(-500);
+        renderLog();
+      }
+    } catch { /* ignore */ }
+  });
+
+  es.onopen = () => {
+    dot.classList.add('connected');
+    label.textContent = 'Connected';
+  };
+
+  es.onerror = () => {
+    dot.classList.remove('connected');
+    label.textContent = 'Reconnecting...';
+  };
+}
+
+// -------------------------------------------------------------------------
+// Initial load
+// -------------------------------------------------------------------------
+
+async function init() {
+  // Fetch log and archive in parallel with SSE connection
+  try {
+    const [logRes, archiveRes] = await Promise.all([
+      fetch('/api/log?tail=200'),
+      fetch('/api/archive')
+    ]);
+    if (logRes.ok) logEntries = await logRes.json();
+    if (archiveRes.ok) archiveEntries = await archiveRes.json();
+  } catch { /* offline — SSE will handle state */ }
+
+  connectSSE();
+}
+
+init();
+</script>
+</body>
+</html>

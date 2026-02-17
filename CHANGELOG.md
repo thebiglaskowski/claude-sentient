@@ -6,6 +6,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.3] — 2026-02-17
+
+### Added
+- **Real-time web dashboard** (`dashboard/`) — Zero-dependency Node.js server that visualizes hook state data
+  - 8 panels: Session, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, Session History
+  - Server-Sent Events for real-time streaming with 100ms debounce
+  - Dark terminal theme with amber accent, JetBrains Mono font, scanline overlay
+  - Live duration counters for session and running agents
+  - Incremental log reading (tracks file size, reads only new bytes)
+  - Responsive CSS Grid layout (3-col / 2-col / 1-col)
+  - `dashboard/server.js` — HTTP server + SSE + `fs.watch` (zero dependencies)
+  - `dashboard/index.html` — Single-file frontend (HTML + CSS + JS, no build step)
+  - `dashboard/CLAUDE.md` — Nested context documentation
+  - `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP routes, SSE, frontend structure)
+- Launch: `node dashboard/server.js` (default port 3777, configurable via `CS_DASHBOARD_PORT`)
+
+### Changed
+- Total test count: 720+ → 758+ (dashboard: 38 new tests)
+- README.md: Added dashboard workflow, test section, project structure, documentation links
+- STATUS.md: Updated metrics and recent activity
+
+---
+
 ## [1.2.2] — 2026-02-16
 
 ### Added
@@ -369,6 +392,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.2.3 | 2026-02-17 | Real-time web dashboard, 38 new tests, 758+ total |
 | 1.2.1 | 2026-02-14 | Cognitive coherence, integration tests, schema validation, security hardening, installer checksums, 716+ tests |
 | 1.2.0 | 2026-02-10 | Security fixes, schema standardization, Java/security agent fixes |
 | 1.1.0 | 2026-02-10 | Path-scoped rules, @imports, --scope personal, native memory integration |
