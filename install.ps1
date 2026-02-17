@@ -109,6 +109,14 @@ Copy-Item "$TempDir/schemas/*.json" -Destination "schemas/" -Force
 Copy-Item "$TempDir/schemas/__tests__/*.js" -Destination "schemas/__tests__/" -Force
 Write-Host "  Installed JSON schemas + tests"
 
+Write-Host "Installing dashboard..."
+New-Item -ItemType Directory -Force -Path "dashboard/__tests__" | Out-Null
+Copy-Item "$TempDir/dashboard/server.js" -Destination "dashboard/" -Force
+Copy-Item "$TempDir/dashboard/index.html" -Destination "dashboard/" -Force
+Copy-Item "$TempDir/dashboard/CLAUDE.md" -Destination "dashboard/" -Force
+Copy-Item "$TempDir/dashboard/__tests__/*.js" -Destination "dashboard/__tests__/" -Force
+Write-Host "  Installed dashboard server + tests"
+
 Write-Host "Installing settings..."
 if (-not (Test-Path ".claude/settings.json")) {
     Copy-Item "$TempDir/.claude/settings.json" -Destination ".claude/settings.json"
@@ -209,6 +217,8 @@ Write-Host '  agents/*.yaml                  (6 agent roles)'
 Write-Host '  agents/__tests__/              (108 agent tests)'
 Write-Host '  schemas/*.json                 (9 JSON schemas)'
 Write-Host '  schemas/__tests__/             (166 schema tests)'
+Write-Host '  dashboard/                     (real-time web dashboard)'
+Write-Host '  dashboard/__tests__/           (38 dashboard tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/*.md                 (4 templates)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'

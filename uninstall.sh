@@ -142,6 +142,10 @@ remove_dir "templates"
 echo "Removing schemas..."
 remove_dir "schemas"
 
+# --- Dashboard ---
+echo "Removing dashboard..."
+remove_dir "dashboard"
+
 # --- Path-scoped rules (.claude/rules/) ---
 echo "Removing path-scoped rules..."
 SCOPED_RULES=(

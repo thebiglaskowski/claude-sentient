@@ -128,6 +128,10 @@ Remove-DirItem "templates"
 Write-Host "Removing schemas..."
 Remove-DirItem "schemas"
 
+# --- Dashboard ---
+Write-Host "Removing dashboard..."
+Remove-DirItem "dashboard"
+
 # --- Path-scoped rules (.claude/rules/) ---
 Write-Host "Removing path-scoped rules..."
 $scopedRules = @(
