@@ -8,9 +8,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, MAX_BACKUPS } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_BACKUPS } = require('./utils.cjs');
 
-const stateDir = path.join(process.cwd(), '.claude', 'state');
+const stateDir = path.join(getProjectRoot(), '.claude', 'state');
 const backupDir = path.join(stateDir, 'backups');
 
 // Ensure backup directory exists
@@ -34,12 +34,10 @@ const backupBundle = {};
 for (const file of filesToBackup) {
     const sourcePath = path.join(stateDir, file);
     if (fs.existsSync(sourcePath)) {
-        try {
-            const content = fs.readFileSync(sourcePath, 'utf8');
-            backupBundle[file] = JSON.parse(content);
+        const data = loadJsonFile(sourcePath, null);
+        if (data !== null) {
+            backupBundle[file] = data;
             backedUp.push(file);
-        } catch (e) {
-            // Skip files that can't be read/parsed
         }
     }
 }

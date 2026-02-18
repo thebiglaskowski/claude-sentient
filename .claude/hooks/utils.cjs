@@ -64,8 +64,11 @@ const MAX_BACKUPS = 10;
 const MAX_AGENT_HISTORY = 50;
 
 // Constants used by individual hooks (centralized here for single source of truth)
-const MAX_FILES_PER_TASK = 20;         // task-completed.js: max files per teammate task
-const LARGE_FILE_THRESHOLD = 100000;   // file-validator.js: 100KB threshold for warnings
+const MAX_FILES_PER_TASK = 20;         // task-completed.cjs: max files per teammate task
+const LARGE_FILE_THRESHOLD = 100000;   // file-validator.cjs: 100KB threshold for warnings
+const MAX_ACTIVE_AGENTS = 50;          // agent-tracker.cjs: cap on tracked agents
+const MAX_ARCHIVES = 100;              // session-end.cjs: cap on session archives
+const MAX_LOG_SIZE = 1048576;          // utils.cjs: 1MB log rotation threshold
 
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
@@ -221,6 +224,15 @@ function logMessage(message, level = 'INFO') {
     const safeMessage = redactSecrets(message);
     const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
+        // Rotate log if it exceeds size limit
+        if (fs.existsSync(logFile)) {
+            const stats = fs.statSync(logFile);
+            if (stats.size > MAX_LOG_SIZE) {
+                const rotatedPath = logFile + '.1';
+                try { fs.unlinkSync(rotatedPath); } catch (_) {}
+                fs.renameSync(logFile, rotatedPath);
+            }
+        }
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
         // Fallback to stderr so log failures are visible during debugging
@@ -254,7 +266,6 @@ function loadState(filename, defaultValue = {}) {
  * @returns {boolean} True if successful
  */
 function saveState(filename, data) {
-    ensureStateDir();
     return saveJsonFile(getStateFilePath(filename), data);
 }
 
@@ -278,4 +289,7 @@ module.exports = {
     getProjectRoot,
     MAX_FILES_PER_TASK,
     LARGE_FILE_THRESHOLD,
+    MAX_ACTIVE_AGENTS,
+    MAX_ARCHIVES,
+    MAX_LOG_SIZE,
 };

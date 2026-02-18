@@ -89,14 +89,6 @@ cp "$TEMP_DIR"/schemas/*.json schemas/
 cp "$TEMP_DIR"/schemas/__tests__/*.js schemas/__tests__/
 echo "  Installed JSON schemas + tests"
 
-echo "Installing dashboard..."
-mkdir -p dashboard/__tests__
-cp "$TEMP_DIR"/dashboard/server.cjs dashboard/
-cp "$TEMP_DIR"/dashboard/index.html dashboard/
-cp "$TEMP_DIR"/dashboard/CLAUDE.md dashboard/
-cp "$TEMP_DIR"/dashboard/__tests__/*.js dashboard/__tests__/
-echo "  Installed dashboard server + tests"
-
 echo "Installing settings..."
 if [ ! -f ".claude/settings.json" ]; then
     cp "$TEMP_DIR"/.claude/settings.json .claude/settings.json
@@ -184,8 +176,6 @@ echo "  agents/*.yaml                  (6 agent roles)"
 echo "  agents/__tests__/              (108 agent tests)"
 echo "  schemas/*.json                 (9 JSON schemas)"
 echo "  schemas/__tests__/             (166 schema tests)"
-echo "  dashboard/                     (real-time web dashboard)"
-echo "  dashboard/__tests__/           (38 dashboard tests)"
 echo "  rules/*.md                     (15 topic rules)"
 echo "  templates/*.md                 (4 templates)"
 echo "  test-utils.js                  (shared test infrastructure)"

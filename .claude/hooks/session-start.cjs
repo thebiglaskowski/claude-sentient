@@ -18,35 +18,24 @@ const { ensureStateDir, saveState, logMessage } = require('./utils.cjs');
 // Ensure state directory exists
 ensureStateDir();
 
-// Get git branch if available
-let gitBranch = 'unknown';
-try {
-    // First check if we're in a git repo
-    execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-
-    // Check if HEAD exists (repo has at least one commit)
-    try {
-        execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-    } catch (e) {
-        // Git repo exists but no commits yet
-        gitBranch = 'no-commits';
-    }
-} catch (e) {
-    // Not a git repo or git not available
-    gitBranch = 'not-a-repo';
-}
-
-// Get git status summary
+// Get git branch and status (2 subprocess calls instead of 4)
+let gitBranch = 'not-a-repo';
 let gitStatus = 'unknown';
 try {
+    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
     const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
     gitStatus = status ? 'dirty' : 'clean';
 } catch (e) {
-    // Not a git repo
+    // Check if we're in a git repo with no commits
+    try {
+        execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+        gitBranch = 'no-commits';
+    } catch (_) {
+        // Not a git repo
+    }
 }
 
-// Root-level profile detection by marker files
+// Root-level profile detection by marker files (all 9 profiles)
 function detectRootProfile(cwd) {
     if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py'))) {
         return 'python';
@@ -54,6 +43,13 @@ function detectRootProfile(cwd) {
     if (fs.existsSync(path.join(cwd, 'tsconfig.json'))) return 'typescript';
     if (fs.existsSync(path.join(cwd, 'go.mod'))) return 'go';
     if (fs.existsSync(path.join(cwd, 'Cargo.toml'))) return 'rust';
+    if (fs.existsSync(path.join(cwd, 'pom.xml')) || fs.existsSync(path.join(cwd, 'build.gradle'))) {
+        return 'java';
+    }
+    if (fs.existsSync(path.join(cwd, 'CMakeLists.txt')) || fs.existsSync(path.join(cwd, 'Makefile'))) {
+        return 'cpp';
+    }
+    if (fs.existsSync(path.join(cwd, 'Gemfile'))) return 'ruby';
     return null;
 }
 
@@ -100,12 +96,25 @@ function detectFromPackageJson(cwd) {
     return 'javascript';
 }
 
+// Detect shell profile by scanning for shell scripts
+function detectShellProfile(cwd) {
+    try {
+        const files = fs.readdirSync(cwd);
+        const shellFiles = files.filter(f => f.endsWith('.sh') || f.endsWith('.ps1'));
+        if (shellFiles.length >= 3) return 'shell';
+    } catch (e) {
+        // Ignore read errors
+    }
+    return null;
+}
+
 // Detect profile from files (supports monorepos)
 function detectProfile() {
     const cwd = process.cwd();
     return detectRootProfile(cwd)
         || detectMonorepoProfile(cwd)
         || detectFromPackageJson(cwd)
+        || detectShellProfile(cwd)
         || 'general';
 }
 

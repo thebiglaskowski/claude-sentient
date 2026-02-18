@@ -6,7 +6,9 @@
  * Tracks agent metadata for synthesis and cost allocation.
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils.cjs');
+const fs = require('fs');
+const path = require('path');
+const { parseHookInput, loadState, saveState, logMessage, MAX_ACTIVE_AGENTS } = require('./utils.cjs');
 
 // Parse input from hook
 const parsed = parseHookInput();
@@ -36,50 +38,32 @@ let rulesLoaded = [];
 let expertise = [];
 
 try {
-    const fs = require('fs');
-    const path = require('path');
     const agentsDir = path.resolve(__dirname, '..', '..', 'agents');
+    if (!fs.existsSync(agentsDir)) throw new Error('no agents dir');
 
-    if (fs.existsSync(agentsDir)) {
-        const agentFiles = fs.readdirSync(agentsDir)
-            .filter(f => f.endsWith('.yaml'));
+    const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
+    const searchText = (description + ' ' + agentType).toLowerCase();
 
-        // Try to match agent role from description or type
-        const searchText = (description + ' ' + agentType).toLowerCase();
+    for (const file of agentFiles) {
+        const roleName = file.replace('.yaml', '');
+        if (!searchText.includes(roleName)) continue;
 
-        for (const file of agentFiles) {
-            const roleName = file.replace('.yaml', '');
-            if (searchText.includes(roleName)) {
-                const yamlPath = path.join(agentsDir, file);
-                const content = fs.readFileSync(yamlPath, 'utf8');
+        agentRole = roleName;
+        const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
+        let currentSection = null;
 
-                agentRole = roleName;
-
-                // Extract rules_to_load (simple line-based YAML parsing)
-                const lines = content.split('\n');
-                let inRules = false;
-                let inExpertise = false;
-
-                for (const line of lines) {
-                    // Detect top-level keys
-                    if (/^[a-z]/.test(line)) {
-                        inRules = line.startsWith('rules_to_load:');
-                        inExpertise = line.startsWith('expertise:');
-                        continue;
-                    }
-                    if (inRules) {
-                        const match = line.match(/^\s+-\s+(.+)/);
-                        if (match) rulesLoaded.push(match[1].trim());
-                    }
-                    if (inExpertise) {
-                        const match = line.match(/^\s+-\s+(.+)/);
-                        if (match) expertise.push(match[1].trim());
-                    }
-                }
-
-                break; // Use first match
+        for (const line of content.split('\n')) {
+            if (/^[a-z]/.test(line)) {
+                currentSection = line.startsWith('rules_to_load:') ? 'rules'
+                    : line.startsWith('expertise:') ? 'expertise' : null;
+                continue;
             }
+            const match = line.match(/^\s+-\s+(.+)/);
+            if (!match) continue;
+            if (currentSection === 'rules') rulesLoaded.push(match[1].trim());
+            if (currentSection === 'expertise') expertise.push(match[1].trim());
         }
+        break;
     }
 } catch {
     // Agent definition detection is best-effort
@@ -90,6 +74,19 @@ if (agentRole) {
     activeAgents[agentId].agentRole = agentRole;
     activeAgents[agentId].rulesLoaded = rulesLoaded;
     activeAgents[agentId].expertise = expertise;
+}
+
+// Prune oldest agents if exceeding cap
+const agentKeys = Object.keys(activeAgents);
+if (agentKeys.length > MAX_ACTIVE_AGENTS) {
+    const sorted = agentKeys.sort((a, b) => {
+        const ta = activeAgents[a].startTime || '';
+        const tb = activeAgents[b].startTime || '';
+        return ta.localeCompare(tb);
+    });
+    for (let i = 0; i < sorted.length - MAX_ACTIVE_AGENTS; i++) {
+        delete activeAgents[sorted[i]];
+    }
 }
 
 saveState('active_agents.json', activeAgents);

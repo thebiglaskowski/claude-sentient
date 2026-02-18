@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-17
+> **Last Updated:** 2026-02-18
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.2.3
+> **Version:** 1.3.0
 
 ---
 
@@ -23,8 +23,7 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Dashboard           [████████████████████] 100% ✓ (real-time web UI)
-Testing             [████████████████████] 100% ✓ (758+ total across 8 suites)
+Testing             [████████████████████] 100% ✓ (727 total across 6 suites)
 ```
 
 ---
@@ -122,17 +121,14 @@ Testing             [███████████████████�
 | Commands | `commands/cs-*.md` | ✓ 12 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
-| Hooks | `.claude/hooks/*.js` | ✓ 12 created + utils.js |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 90+ tests |
-| Profile Tests | `profiles/__tests__/` | ✓ 220+ tests |
-| Command Tests | `.claude/commands/__tests__/` | ✓ 60+ tests |
-| Agent Tests | `agents/__tests__/` | ✓ 30+ tests |
-| Install Tests | `tests/` | ✓ 14 tests |
-| Tools Tests | `tools/` | ✓ 11 tests |
-| TS SDK Tests | `sdk/typescript/src/` | ✓ 17 tests |
+| Hooks | `.claude/hooks/*.cjs` | ✓ 12 created + utils.cjs |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 101 tests |
+| Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
+| Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
+| Agent Tests | `agents/__tests__/` | ✓ 108 tests |
+| Schema Tests | `schemas/__tests__/` | ✓ 166 tests |
+| Integration Tests | `integration/__tests__/` | ✓ 30 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
-| Validators | `sdk/python/claude_sentient/validators.py` | ✓ JSON schema validation |
-| Shared Config | `shared/*.json` | ✓ Centralized patterns |
 
 ---
 
@@ -144,13 +140,12 @@ Testing             [███████████████████�
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 90+ | 90+ ✓ |
-| Profile Tests | 220+ | 220+ ✓ |
-| Command Tests | 60+ | 60+ ✓ |
-| Agent Tests | 30+ | 30+ ✓ |
-| Install Tests | 14 | 14 ✓ |
-| Tools Tests | 11 | 11 ✓ |
-| TS Orchestrator Tests | 17 | 17 ✓ |
+| Hook Tests | 101 | 101 ✓ |
+| Profile Tests | 242 | 242 ✓ |
+| Command Tests | 81 | 81 ✓ |
+| Agent Tests | 108 | 108 ✓ |
+| Schema Tests | 166 | 166 ✓ |
+| Integration Tests | 29 | 29 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 | GitHub tools integrated | 13 | 13 ✓ |
@@ -160,16 +155,20 @@ Testing             [███████████████████�
 
 ## Recent Activity
 
-### 2026-02-17 (Session 17)
-- **Real-time Web Dashboard (v1.2.3):**
-  - Created `dashboard/server.cjs` — zero-dependency Node.js HTTP server with SSE + fs.watch
-  - Created `dashboard/index.html` — single-file frontend with 8 panels, dark terminal theme
-  - Created `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP, SSE, frontend)
-  - Created `dashboard/CLAUDE.md` — nested context documentation
-  - Server reads hook state files from `.claude/state/` and streams updates via Server-Sent Events
-  - Panels: Session, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, Session History
-  - Launch: `node dashboard/server.cjs` (port 3777, configurable via `CS_DASHBOARD_PORT`)
-  - Updated README.md, CHANGELOG.md, STATUS.md
+### 2026-02-18 (Session 18)
+- **v1.3.0 — Dashboard & SDK Removal + Quality Hardening:**
+  - Removed `dashboard/`, `sdk/`, `tools/` directories (no longer part of project)
+  - Removed stub directories: `gates/`, `skills/`, `patterns/`, `archive/`, `docs/`, `phases/`
+  - Fixed `generate-checksums.sh`: *.js → *.cjs glob, version bump
+  - Wired `validateFilePath()` into `file-validator.cjs` (was defined but unused)
+  - Fixed `session-end.cjs` and `pre-compact.cjs`: `process.cwd()` → `getProjectRoot()`
+  - Consolidated `session-start.cjs` git detection: 4 subprocesses → 2
+  - Reduced `agent-tracker.cjs` nesting from 5 to 3 levels
+  - Removed redundant `ensureStateDir()` call in `utils.cjs`
+  - Fixed trivially-true test assertions in `test-hooks.js`
+  - Updated install/uninstall scripts (bash + PowerShell)
+  - Updated all documentation: README, CLAUDE.md, STATUS, CHANGELOG, DECISIONS, ISSUES_FOUND
+  - Fixed all .js → .cjs references in hooks README
 
 ### 2026-02-10 (Session 15)
 - **Assessment Remediation (v1.2.0):**

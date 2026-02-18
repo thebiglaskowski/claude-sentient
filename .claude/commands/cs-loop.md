@@ -59,7 +59,7 @@ Models are automatically selected by phase for cost optimization:
 **Cost tracking:** Each phase tracks cost for budget management:
 - Total session cost displayed at end
 - Per-phase breakdown available in `/cs-status`
-- Budget limit can be set: `ClaudeSentient(max_budget_usd=5.0)`
+- Budget limit can be configured per session
 
 **Background task timeouts:**
 | Task Type | Timeout | Action on Timeout |

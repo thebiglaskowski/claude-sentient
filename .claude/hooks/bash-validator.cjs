@@ -10,10 +10,10 @@ const { parseHookInput, logMessage } = require('./utils.cjs');
 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
-    // Destructive file operations
-    { pattern: /rm\s+-rf\s+[\/~]/, reason: 'Recursive delete from root or home' },
-    { pattern: /rm\s+-rf\s+\*/, reason: 'Recursive delete all files' },
-    { pattern: /rm\s+-rf\s+\./, reason: 'Recursive delete current directory' },
+    // Destructive file operations (including -- flag bypass)
+    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?[\/~]/, reason: 'Recursive delete from root or home' },
+    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\*/, reason: 'Recursive delete all files' },
+    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\./, reason: 'Recursive delete current directory' },
 
     // Disk operations
     { pattern: />\s*\/dev\/sd/, reason: 'Direct write to disk device' },
@@ -35,9 +35,9 @@ const DANGEROUS_PATTERNS = [
     { pattern: /history\s+-c/, reason: 'Clear command history' },
     { pattern: /shred.*\.bash_history/, reason: 'Shred bash history' },
 
-    // Supply-chain attacks — piping remote scripts to shell
-    { pattern: /curl.*\|\s*(sh|bash|zsh)/, reason: 'Piping curl to shell' },
-    { pattern: /wget.*\|\s*(sh|bash|zsh)/, reason: 'Piping wget to shell' },
+    // Supply-chain attacks — piping remote scripts to interpreters
+    { pattern: /curl.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping curl to interpreter' },
+    { pattern: /wget.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping wget to interpreter' },
 
     // Encoded command injection
     { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' },

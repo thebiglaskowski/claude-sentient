@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 1.2.2
+> **Version:** 1.3.0
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -125,7 +125,7 @@ When a gate fails, the VERIFY phase runs an auto-fix sub-loop (max 3 attempts) b
 | Agent Teams | Team lead + teammates (experimental) |
 | Memory | `.claude/rules/*.md` + MCP memory |
 | Commands | `commands/*.md` + `Skill` tool |
-| Hooks | `.claude/hooks/*.js` (13 hooks) |
+| Hooks | `.claude/hooks/*.cjs` (12 hooks + utils) |
 | MCP Servers | context7, github, memory, filesystem, puppeteer |
 | Web Tools | `WebSearch`, `WebFetch` |
 | Vision | Screenshot analysis |
@@ -255,7 +255,6 @@ Detailed documentation lives in nested CLAUDE.md files that load only when neede
 
 | Location | Content | When Loaded |
 |----------|---------|-------------|
-| `sdk/CLAUDE.md` | SDK reference, CLI vs SDK, installation, API usage | Editing SDK code |
 | `.claude/hooks/CLAUDE.md` | All 13 hooks, configuration, security patterns, state files | Editing hooks |
 | `profiles/CLAUDE.md` | Profile detection, model routing, gate structure, conventions | Editing profiles |
 | `.claude/commands/CLAUDE.md` | Command structure, documentation policy, rule auto-loading | Editing commands |

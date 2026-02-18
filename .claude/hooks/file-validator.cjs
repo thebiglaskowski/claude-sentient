@@ -7,8 +7,9 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
-const { parseHookInput, logMessage, getProjectRoot, LARGE_FILE_THRESHOLD } = require('./utils.cjs');
+const { parseHookInput, logMessage, getProjectRoot, validateFilePath, LARGE_FILE_THRESHOLD } = require('./utils.cjs');
 
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
@@ -26,10 +27,11 @@ const PROTECTED_PATHS = [
     /\.aws\/credentials$/,
     /\.env\.production$/,
 
-    // Git internals
+    // Git internals and config (can contain credentials)
     /\.git\/objects\//,
     /\.git\/refs\//,
-    /\.git\/HEAD$/
+    /\.git\/HEAD$/,
+    /\.git\/config$/
 ];
 
 // Files that need confirmation (warn but allow)
@@ -50,6 +52,14 @@ const SENSITIVE_FILES = [
 const parsed = parseHookInput();
 const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
 const toolName = parsed.tool_name || 'unknown';
+
+// Validate path for null bytes, control chars, excessive length
+const pathError = validateFilePath(filePath);
+if (pathError) {
+    console.log(JSON.stringify({ decision: 'block', reason: `BLOCKED: ${pathError}`, path: filePath }));
+    logMessage(`BLOCKED ${toolName}: ${pathError} - ${filePath}`, 'BLOCKED');
+    process.exit(0);
+}
 
 // Resolve to absolute path and check for symlinks
 let resolvedPath = filePath;
@@ -81,8 +91,8 @@ const projectRoot = getProjectRoot();
 const absolutePath = path.resolve(resolvedPath);
 if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
     !absolutePath.startsWith('/tmp') &&
-    !absolutePath.startsWith(require('os').tmpdir()) &&
-    !absolutePath.startsWith(path.join(require('os').homedir(), '.claude'))) {
+    !absolutePath.startsWith(os.tmpdir()) &&
+    !absolutePath.startsWith(path.join(os.homedir(), '.claude'))) {
     const output = {
         decision: 'block',
         reason: 'BLOCKED: Cannot modify files outside project root',

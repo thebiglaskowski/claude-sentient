@@ -399,7 +399,7 @@ This applies to both claude-sentient itself and any project using claude-sentien
 ### DEC-012: Claude Agent SDK Integration
 
 **Date:** 2026-02-01
-**Status:** Accepted
+**Status:** Superseded (removed in v1.3.0 — SDK/dashboard stripped from project)
 
 **Context:**
 Claude Sentient was originally designed as a CLI-first orchestration layer using slash commands. However, users needed:

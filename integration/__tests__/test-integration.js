@@ -517,11 +517,6 @@ suite('Documentation consistency', () => {
             `Missing nested CLAUDE.md files: ${missing.join(', ')}`);
     });
 
-    test('sdk/CLAUDE.md exists for SDK documentation', () => {
-        assert.ok(fileExists('sdk/CLAUDE.md'),
-            'sdk/CLAUDE.md should exist for SDK context');
-    });
-
     test('CLAUDE.md commands table count matches actual command files', () => {
         const rows = parseMarkdownTableRows(claudeMd, /^\|\s*Command\s*\|\s*Purpose\s*\|/);
         const commandFiles = fs.readdirSync(path.join(ROOT, '.claude/commands'))

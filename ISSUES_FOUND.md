@@ -36,25 +36,7 @@
 
 ---
 
-### 4. Python SDK: `files_changed` vs `file_changes` Mismatch (FIXED)
-**File:** `sdk/python/claude_sentient/hooks.py`
-
-**Problem:** Hooks referenced `state.files_changed` but `SessionState` uses `file_changes`.
-
-**Fix applied:** Updated all references to use correct attribute name `file_changes`.
-
----
-
-### 5. Python SDK: Test Expectations Wrong for HookResult (FIXED)
-**File:** `sdk/python/tests/test_hooks.py`
-
-**Problem:** Tests expected `{}` but hooks now return `HookResult` objects.
-
-**Fix applied:** Updated tests to use `is_allow_result()` helper function.
-
----
-
-### 6. Git Branch Detection for Fresh Repos (FIXED)
+### 4. Git Branch Detection for Fresh Repos (FIXED)
 **File:** `.claude/hooks/session-start.js:22-36`
 
 **Problem:** For new repos with no commits, `git rev-parse --abbrev-ref HEAD` fails and returns "unknown".
@@ -95,12 +77,6 @@
 | /cs-mcp | ✅ Present | MCP server management |
 | /cs-review | ✅ Present | PR review |
 
-### SDK Tests ✅
-| Suite | Tests | Status |
-|-------|-------|--------|
-| Python SDK | 261 | ✅ All passed |
-| TypeScript SDK | 106 | ✅ All passed |
-
 ### Quality Gates on Test Project
 | Gate | Tool | Status |
 |------|------|--------|
@@ -139,8 +115,7 @@ The test project at `C:\scripts\cs-test-project` was created with intentional is
 
 1. **Run /cs-loop on test project** - Test autonomous fixing
 2. **Run /cs-plan** - Test planning mode with user approval
-3. **Test session resumption** - Resume SDK session across restarts
-4. **Test MCP server integration** - Context7, GitHub, Memory
+3. **Test MCP server integration** - Context7, GitHub, Memory
 
 ---
 
@@ -150,8 +125,6 @@ Claude Sentient exhaustive testing is **complete**:
 
 - ✅ All 10 hooks implemented and working
 - ✅ All 9 commands validated
-- ✅ Python SDK: 261 tests passing
-- ✅ TypeScript SDK: 106 tests passing
 - ✅ Profile detection: Handles monorepos
 - ✅ Security validation: Blocks dangerous commands and paths
 - ✅ Quality gates: Configured for all supported languages

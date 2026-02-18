@@ -6,26 +6,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [1.2.3] — 2026-02-17
+## [1.3.0] — 2026-02-18
 
-### Added
-- **Real-time web dashboard** (`dashboard/`) — Zero-dependency Node.js server that visualizes hook state data
-  - 8 panels: Session, Active Agents, Agent History, File Activity, Team Status, Event Timeline, Prompt Activity, Session History
-  - Server-Sent Events for real-time streaming with 100ms debounce
-  - Dark terminal theme with amber accent, JetBrains Mono font, scanline overlay
-  - Live duration counters for session and running agents
-  - Incremental log reading (tracks file size, reads only new bytes)
-  - Responsive CSS Grid layout (3-col / 2-col / 1-col)
-  - `dashboard/server.cjs` — HTTP server + SSE + `fs.watch` (zero dependencies)
-  - `dashboard/index.html` — Single-file frontend (HTML + CSS + JS, no build step)
-  - `dashboard/CLAUDE.md` — Nested context documentation
-  - `dashboard/__tests__/test-dashboard.js` — 38 tests (log parser, state reader, HTTP routes, SSE, frontend structure)
-- Launch: `node dashboard/server.cjs` (default port 3777, configurable via `CS_DASHBOARD_PORT`)
+### Removed
+- **Dashboard** (`dashboard/`) — Real-time web dashboard removed to reduce project scope
+- **Python SDK** (`sdk/python/`) — SDK removed; Claude Sentient is CLI-only
+- **TypeScript SDK** (`sdk/typescript/`) — SDK removed; Claude Sentient is CLI-only
+- **Tools** (`tools/`) — Standalone utility scripts removed (functionality covered by hooks)
+- **Stub directories** — `gates/`, `skills/`, `patterns/`, `archive/`, `docs/`, `phases/` removed (empty/placeholder)
+- SDK CLAUDE.md from nested context architecture
+- Dashboard and SDK references from all documentation and install/uninstall scripts
+
+### Fixed
+- **Security: `generate-checksums.sh`** — Hook file glob changed from `*.js` to `*.cjs` (hooks weren't being checksummed after .js→.cjs rename)
+- **Security: `file-validator.cjs`** — Wired `validateFilePath()` into the validation flow (was defined in utils.cjs but never called)
+- **Code quality: `session-start.cjs`** — Consolidated 4 git subprocess calls into 2
+- **Code quality: `session-end.cjs`** — Changed `process.cwd()` to `getProjectRoot()` for consistency
+- **Code quality: `pre-compact.cjs`** — Changed `process.cwd()` to `getProjectRoot()` for consistency
+- **Code quality: `utils.cjs`** — Removed redundant `ensureStateDir()` call in `saveState()` (already called by `saveJsonFile`)
+- **Code quality: `agent-tracker.cjs`** — Reduced nesting from 5 to 3 levels, hoisted requires to top of file
+- **Tests: `test-hooks.js`** — Fixed 3 trivially-true assertions (`result || true` → proper JSON validation)
+- **Docs: `.claude/hooks/README.md`** — Fixed all `.js` references to `.cjs`, removed phantom `cost_tracking.json`
 
 ### Changed
-- Total test count: 720+ → 758+ (dashboard: 38 new tests)
-- README.md: Added dashboard workflow, test section, project structure, documentation links
-- STATUS.md: Updated metrics and recent activity
+- DEC-012 (Agent SDK Integration) marked as Superseded in DECISIONS.md
+- Total test count: 727 across 6 core suites (removed dashboard, SDK, tools, install test suites)
+- Version bump: 1.2.2 → 1.3.0
 
 ---
 
@@ -392,7 +398,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.2.3 | 2026-02-17 | Real-time web dashboard, 38 new tests, 758+ total |
+| 1.3.0 | 2026-02-18 | Dashboard/SDK removal, security & quality hardening, 727 tests |
 | 1.2.1 | 2026-02-14 | Cognitive coherence, integration tests, schema validation, security hardening, installer checksums, 716+ tests |
 | 1.2.0 | 2026-02-10 | Security fixes, schema standardization, Java/security agent fixes |
 | 1.1.0 | 2026-02-10 | Path-scoped rules, @imports, --scope personal, native memory integration |
