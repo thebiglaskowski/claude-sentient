@@ -6,7 +6,7 @@
  * Synthesizes results and updates cost tracking.
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_RESULT_LENGTH, MAX_AGENT_HISTORY } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_RESULT_LENGTH, MAX_AGENT_HISTORY } = require('./utils.cjs');
 
 // Parse input from hook
 const parsed = parseHookInput();

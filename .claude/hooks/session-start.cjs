@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { ensureStateDir, saveState, logMessage } = require('./utils');
+const { ensureStateDir, saveState, logMessage } = require('./utils.cjs');
 
 // Ensure state directory exists
 ensureStateDir();

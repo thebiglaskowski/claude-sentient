@@ -19,7 +19,7 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK } = require('./utils.cjs');
 
 function main() {
     const input = parseHookInput();

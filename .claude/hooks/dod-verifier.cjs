@@ -8,7 +8,7 @@
 
 const path = require('path');
 const { execSync } = require('child_process');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath } = require('./utils');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath } = require('./utils.cjs');
 
 // Log session end
 logMessage('Session ended');

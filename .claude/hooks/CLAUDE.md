@@ -6,20 +6,20 @@
 
 | Script | Event | Purpose |
 |--------|-------|---------|
-| `session-start.js` | SessionStart | Initialize session, detect profile |
-| `session-end.js` | SessionEnd | Archive session, cleanup state |
-| `context-injector.js` | UserPromptSubmit | Detect topics, inject context |
-| `bash-validator.js` | PreToolUse (Bash) | Block dangerous commands |
-| `file-validator.js` | PreToolUse (Write/Edit) | Validate protected paths |
-| `post-edit.js` | PostToolUse (Write/Edit) | Track changes, suggest lint |
-| `agent-tracker.js` | SubagentStart | Track agent spawning |
-| `agent-synthesizer.js` | SubagentStop | Synthesize agent results |
-| `pre-compact.js` | PreCompact | Backup state before compaction |
-| `dod-verifier.js` | Stop | Verify DoD, save final state |
-| `teammate-idle.js` | TeammateIdle | Quality check before teammate goes idle |
-| `task-completed.js` | TaskCompleted | Validate deliverables, file ownership |
+| `session-start.cjs` | SessionStart | Initialize session, detect profile |
+| `session-end.cjs` | SessionEnd | Archive session, cleanup state |
+| `context-injector.cjs` | UserPromptSubmit | Detect topics, inject context |
+| `bash-validator.cjs` | PreToolUse (Bash) | Block dangerous commands |
+| `file-validator.cjs` | PreToolUse (Write/Edit) | Validate protected paths |
+| `post-edit.cjs` | PostToolUse (Write/Edit) | Track changes, suggest lint |
+| `agent-tracker.cjs` | SubagentStart | Track agent spawning |
+| `agent-synthesizer.cjs` | SubagentStop | Synthesize agent results |
+| `pre-compact.cjs` | PreCompact | Backup state before compaction |
+| `dod-verifier.cjs` | Stop | Verify DoD, save final state |
+| `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
+| `task-completed.cjs` | TaskCompleted | Validate deliverables, file ownership |
 
-All hooks use shared `utils.js` for JSON I/O, state management, and logging.
+All hooks use shared `utils.cjs` for JSON I/O, state management, and logging.
 
 ---
 
@@ -30,16 +30,16 @@ Hooks are configured in `.claude/settings.json`:
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-start.js", "timeout": 5000 }] }],
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/session-start.cjs", "timeout": 5000 }] }],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node .claude/hooks/bash-validator.js" }] },
-      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/file-validator.js" }] }
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "node .claude/hooks/bash-validator.cjs" }] },
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "node .claude/hooks/file-validator.cjs" }] }
     ]
   }
 }
 ```
 
-> Hook commands use simple relative paths. Claude Code runs hooks from the project root directory, so `.claude/hooks/` resolves correctly. Each hook uses `getProjectRoot()` from `utils.js` internally for any file operations that need the project root path.
+> Hook commands use simple relative paths. Claude Code runs hooks from the project root directory, so `.claude/hooks/` resolves correctly. Each hook uses `getProjectRoot()` from `utils.cjs` internally for any file operations that need the project root path.
 >
 > **Important**: Do NOT use shell substitutions like `$(...)` in hook commands — Claude Code passes commands through `cmd.exe` on Windows, which does not interpret bash syntax. Keep commands as plain `node <path>` invocations.
 
@@ -82,12 +82,12 @@ Hooks read/write to `.claude/state/`:
 
 ## Agent Teams Hooks
 
-**TeammateIdle** (`teammate-idle.js`):
+**TeammateIdle** (`teammate-idle.cjs`):
 - Checks if teammate has completed any tasks before going idle
 - Exit code 0: allow idle. Exit code 2: send feedback (keep working)
 - Tracks idle count per teammate
 
-**TaskCompleted** (`task-completed.js`):
+**TaskCompleted** (`task-completed.cjs`):
 - Validates file count per task (max 20 files)
 - Detects file ownership conflicts between teammates
 - Maintains file ownership map to prevent overwrites
@@ -117,7 +117,7 @@ console.log(JSON.stringify({ decision: 'allow', warnings: ['Warning'] }));
 
 ---
 
-## Shared Utilities (`utils.js`)
+## Shared Utilities (`utils.cjs`)
 
 | Function | Purpose |
 |----------|---------|

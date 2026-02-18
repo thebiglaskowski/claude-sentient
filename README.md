@@ -343,7 +343,7 @@ See [`CLAUDE.md`](CLAUDE.md#cli-vs-sdk-two-ways-to-use-claude-sentient) for comp
 your-project/
 ├── .claude/
 │   ├── commands/cs-*.md    # 12 slash commands
-│   ├── hooks/*.js          # 13 hook scripts (security, teams, tracking)
+│   ├── hooks/*.cjs         # 13 hook scripts (security, teams, tracking)
 │   ├── settings.json       # Hook + team configuration
 │   └── rules/*.md          # Path-scoped rules + learnings
 ├── profiles/*.yaml          # 9 language profiles + schema

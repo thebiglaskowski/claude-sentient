@@ -101,7 +101,7 @@ Remove-FileItem ".claude/commands/CLAUDE.md"
 
 # --- Hooks ---
 Write-Host "Removing hooks..."
-Get-ChildItem ".claude/hooks/*.js" -ErrorAction SilentlyContinue | ForEach-Object {
+Get-ChildItem ".claude/hooks/*.cjs" -ErrorAction SilentlyContinue | ForEach-Object {
     Remove-FileItem $_.FullName
 }
 Remove-FileItem ".claude/hooks/README.md"

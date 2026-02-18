@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { parseHookInput, logMessage, getProjectRoot, LARGE_FILE_THRESHOLD } = require('./utils');
+const { parseHookInput, logMessage, getProjectRoot, LARGE_FILE_THRESHOLD } = require('./utils.cjs');
 
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [

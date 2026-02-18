@@ -6,7 +6,7 @@
  * Blocks dangerous commands that could harm the system.
  */
 
-const { parseHookInput, logMessage } = require('./utils');
+const { parseHookInput, logMessage } = require('./utils.cjs');
 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [

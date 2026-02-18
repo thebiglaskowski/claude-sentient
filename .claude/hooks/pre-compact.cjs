@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, MAX_BACKUPS } = require('./utils');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, MAX_BACKUPS } = require('./utils.cjs');
 
 const stateDir = path.join(process.cwd(), '.claude', 'state');
 const backupDir = path.join(stateDir, 'backups');

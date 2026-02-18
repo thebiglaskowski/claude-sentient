@@ -115,7 +115,7 @@ remove_file ".claude/commands/CLAUDE.md"
 
 # --- Hooks ---
 echo "Removing hooks..."
-for f in .claude/hooks/*.js; do
+for f in .claude/hooks/*.cjs; do
     [ -f "$f" ] && remove_file "$f"
 done
 remove_file ".claude/hooks/README.md"

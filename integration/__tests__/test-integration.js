@@ -224,8 +224,8 @@ suite('Hook chain state flow', () => {
 
     // Ensure .claude/state exists in temp dir for hooks that write state
     fs.mkdirSync(path.join(tmpDir, '.claude', 'state'), { recursive: true });
-    // Copy utils.js so hooks can require('./utils')
-    fs.copyFileSync(path.join(hooksDir, 'utils.js'), path.join(tmpDir, 'utils.js'));
+    // Copy utils.cjs so hooks can require('./utils.cjs')
+    fs.copyFileSync(path.join(hooksDir, 'utils.cjs'), path.join(tmpDir, 'utils.cjs'));
 
     /** Run a hook in the temp directory and return parsed JSON output */
     function runHook(hookName, input = {}) {
@@ -248,8 +248,8 @@ suite('Hook chain state flow', () => {
         return JSON.parse(lines[lines.length - 1]);
     }
 
-    test('session-start.js produces valid JSON with profile field', () => {
-        const output = runHook('session-start.js');
+    test('session-start.cjs produces valid JSON with profile field', () => {
+        const output = runHook('session-start.cjs');
         assert.ok(output, 'session-start should produce output');
         assert.strictEqual(typeof output, 'object', 'Output should be an object');
         assert.ok('context' in output || 'profile' in output,
@@ -261,7 +261,7 @@ suite('Hook chain state flow', () => {
         }
     });
 
-    test('session-start.js creates state file readable by other hooks', () => {
+    test('session-start.cjs creates state file readable by other hooks', () => {
         // session-start writes session_start.json to .claude/state/
         const stateFile = path.join(tmpDir, '.claude', 'state', 'session_start.json');
         assert.ok(fs.existsSync(stateFile),
@@ -274,7 +274,7 @@ suite('Hook chain state flow', () => {
     });
 
     test('post-edit.js produces valid JSON output with mock file path', () => {
-        const output = runHook('post-edit.js', {
+        const output = runHook('post-edit.cjs', {
             tool_name: 'Write',
             tool_input: { file_path: '/tmp/test-file.js' },
             tool_result: { success: true },
@@ -287,7 +287,7 @@ suite('Hook chain state flow', () => {
     });
 
     test('post-edit.js returns tracked:false for failed operations', () => {
-        const output = runHook('post-edit.js', {
+        const output = runHook('post-edit.cjs', {
             tool_name: 'Write',
             tool_input: { file_path: '/tmp/test-file.js' },
             tool_result: { success: false },
@@ -297,7 +297,7 @@ suite('Hook chain state flow', () => {
     });
 
     test('context-injector.js produces valid JSON output with detected topics', () => {
-        const output = runHook('context-injector.js', {
+        const output = runHook('context-injector.cjs', {
             prompt: 'Fix the authentication bug in the login API endpoint',
         });
 
@@ -310,7 +310,7 @@ suite('Hook chain state flow', () => {
     });
 
     test('context-injector.js returns empty topics for generic prompt', () => {
-        const output = runHook('context-injector.js', {
+        const output = runHook('context-injector.cjs', {
             prompt: 'hello world',
         });
 
@@ -413,8 +413,8 @@ suite('Install/uninstall script parity', () => {
         // Verify that the most important installed file patterns actually exist
         const expectedPaths = [
             { glob: '.claude/commands/cs-loop.md', desc: 'commands' },
-            { glob: '.claude/hooks/session-start.js', desc: 'hooks' },
-            { glob: '.claude/hooks/utils.js', desc: 'hook utilities' },
+            { glob: '.claude/hooks/session-start.cjs', desc: 'hooks' },
+            { glob: '.claude/hooks/utils.cjs', desc: 'hook utilities' },
             { glob: 'profiles/python.yaml', desc: 'profiles' },
             { glob: 'profiles/typescript.yaml', desc: 'profiles' },
             { glob: 'agents/backend.yaml', desc: 'agents' },

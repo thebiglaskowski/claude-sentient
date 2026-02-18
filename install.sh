@@ -71,7 +71,7 @@ cp "$TEMP_DIR"/templates/settings.json templates/ 2>/dev/null || true
 
 echo "Installing hooks..."
 mkdir -p .claude/hooks/__tests__
-cp "$TEMP_DIR"/.claude/hooks/*.js .claude/hooks/
+cp "$TEMP_DIR"/.claude/hooks/*.cjs .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/README.md .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/__tests__/*.js .claude/hooks/__tests__/
 echo "  Installed hook scripts + tests"
@@ -175,7 +175,7 @@ echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
 echo "  .claude/commands/cs-*.md       (12 commands)"
-echo "  .claude/hooks/*.js             (13 hook scripts)"
+echo "  .claude/hooks/*.cjs             (13 hook scripts)"
 echo "  .claude/hooks/__tests__/       (93 hook tests)"
 echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"

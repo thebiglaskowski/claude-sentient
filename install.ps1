@@ -91,7 +91,7 @@ Copy-Item "$TempDir/templates/settings.json" -Destination "templates/" -Force -E
 
 Write-Host "Installing hooks..."
 New-Item -ItemType Directory -Force -Path ".claude/hooks/__tests__" | Out-Null
-Copy-Item "$TempDir/.claude/hooks/*.js" -Destination ".claude/hooks/" -Force
+Copy-Item "$TempDir/.claude/hooks/*.cjs" -Destination ".claude/hooks/" -Force
 Copy-Item "$TempDir/.claude/hooks/README.md" -Destination ".claude/hooks/" -Force
 Copy-Item "$TempDir/.claude/hooks/__tests__/*.js" -Destination ".claude/hooks/__tests__/" -Force
 Write-Host "  Installed hook scripts + tests"
@@ -208,7 +208,7 @@ Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md       (12 commands)'
-Write-Host '  .claude/hooks/*.js             (13 hook scripts)'
+Write-Host '  .claude/hooks/*.cjs             (13 hook scripts)'
 Write-Host '  .claude/hooks/__tests__/       (93 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'

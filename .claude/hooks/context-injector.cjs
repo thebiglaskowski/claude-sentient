@@ -6,7 +6,7 @@
  * Injects relevant context based on prompt content.
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_PROMPT_HISTORY } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_PROMPT_HISTORY } = require('./utils.cjs');
 
 // Log the prompt submission
 logMessage('Prompt received');

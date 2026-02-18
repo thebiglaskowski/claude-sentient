@@ -7,7 +7,7 @@
  */
 
 const path = require('path');
-const { parseHookInput, loadState, saveState, logMessage, MAX_FILE_CHANGES } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILE_CHANGES } = require('./utils.cjs');
 
 // Parse input from hook
 const parsed = parseHookInput();

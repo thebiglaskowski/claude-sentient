@@ -6,7 +6,7 @@
  * Tracks agent metadata for synthesis and cost allocation.
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage } = require('./utils.cjs');
 
 // Parse input from hook
 const parsed = parseHookInput();

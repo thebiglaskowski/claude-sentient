@@ -18,7 +18,7 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils');
+const { parseHookInput, loadState, saveState, logMessage } = require('./utils.cjs');
 
 function main() {
     const input = parseHookInput();
