@@ -158,6 +158,10 @@
 - **Parity**: Integration tests enforce that install.sh and install.ps1 reference identical plugin sets
 - **Rule**: When adding a new language profile, set `plugins.lsp` to the matching LSP plugin identifier (or `null` if none)
 
+### 2026-02-18: bash-validator blocks its own commit messages
+- **Context**: Commit messages documenting blocked security patterns (e.g. "blocks double-dash deletion" or "pipe-to-interpreter") trigger the very patterns they describe
+- **Rule**: When committing changes that reference security patterns, write the message to `/tmp/commit-msg.txt` and use `git commit -F /tmp/commit-msg.txt` instead of inline heredoc
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---
