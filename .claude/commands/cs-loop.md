@@ -37,7 +37,7 @@ Models are automatically selected by phase for cost optimization:
 |-------|-------|-----------|
 | INIT | haiku | Fast context loading |
 | UNDERSTAND | sonnet | Standard analysis |
-| PLAN | sonnet/opus | opus for "architecture"/"security" keywords |
+| PLAN | sonnet/opus | opus for "security" keywords |
 | EXECUTE | sonnet | Code generation |
 | VERIFY | sonnet | Quality checks |
 | COMMIT | haiku | Simple git operations |
@@ -45,7 +45,6 @@ Models are automatically selected by phase for cost optimization:
 
 **Override triggers:**
 - Task contains "security", "auth", "vulnerability" → opus for PLAN and VERIFY
-- Task contains "architecture", "refactor" → opus for PLAN
 - Use `--model opus` flag to force opus for entire loop
 </model_routing>
 

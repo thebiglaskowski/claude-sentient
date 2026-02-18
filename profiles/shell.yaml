@@ -8,9 +8,9 @@ description: "Shell and PowerShell projects using shellcheck and PSScriptAnalyze
 # Model routing configuration
 models:
   default: sonnet
-  planning: opus
+  planning: sonnet    # Sonnet 4.6 handles architecture decisions well
   exploration: haiku
-  security: opus
+  security: opus      # Use opus for security audits
   by_phase:
     init: haiku
     understand: sonnet

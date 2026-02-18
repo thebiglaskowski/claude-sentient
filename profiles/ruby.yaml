@@ -8,13 +8,13 @@ description: "Ruby projects using RuboCop for linting and RSpec for testing"
 # Model routing configuration
 models:
   default: sonnet
-  planning: opus      # Use opus for architecture decisions
+  planning: sonnet    # Sonnet 4.6 handles architecture decisions well
   exploration: haiku  # Use haiku for fast codebase exploration
   security: opus      # Use opus for security audits
   by_phase:
     init: haiku
     understand: sonnet
-    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    plan: sonnet      # Upgrade to opus for "security" keywords
     execute: sonnet
     verify: sonnet
     commit: haiku

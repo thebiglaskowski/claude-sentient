@@ -1,7 +1,7 @@
 # Anthropic Prompt Patterns
 
 > Tested prompt patterns from Anthropic's official documentation and prompt library.
-> These patterns are optimized for Claude 4.x models (Opus 4.5, Sonnet 4.5, Haiku 4.5).
+> These patterns are optimized for Claude 4.x models (Opus 4.6, Sonnet 4.6, Haiku 4.5).
 
 ---
 

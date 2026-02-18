@@ -144,7 +144,7 @@
   "sentient": {
     "models": {
       "default": "sonnet",
-      "planning": "opus",
+      "planning": "sonnet",
       "exploration": "haiku",
       "security": "opus"
     },
