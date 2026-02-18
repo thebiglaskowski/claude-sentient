@@ -71,7 +71,7 @@ Write-Host ""
 # Detect installation
 if (-not (Test-Path ".claude/commands/cs-loop.md")) {
     Write-Host "Claude Sentient does not appear to be installed in this directory."
-    exit 0
+    return
 }
 
 if ($DryRun) {
@@ -84,7 +84,7 @@ if (-not $DryRun) {
     $response = Read-Host "Remove Claude Sentient from this project? (y/N)"
     if ($response -notmatch "^[Yy]$") {
         Write-Host "Aborted."
-        exit 0
+        return
     }
     Write-Host ""
 }

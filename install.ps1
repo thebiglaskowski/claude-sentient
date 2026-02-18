@@ -32,7 +32,7 @@ if ((Test-Path ".claude/commands") -and (Test-Path ".claude/commands/cs-loop.md"
     $response = Read-Host "Reinstall/update? (y/N)"
     if ($response -notmatch "^[Yy]$") {
         Write-Host "Aborted."
-        exit 0
+        return
     }
 }
 
