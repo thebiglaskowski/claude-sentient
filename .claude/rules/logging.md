@@ -65,6 +65,3 @@ logger.error('Payment failed', {
 - [ ] No secrets in logs
 - [ ] Errors include context
 - [ ] Alerts on ERROR level
-
-## Full Reference
-`reference/v1/template/.claude/rules/logging.md`

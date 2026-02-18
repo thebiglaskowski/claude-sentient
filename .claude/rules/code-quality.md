@@ -78,6 +78,3 @@ createUser(data, { sendEmail: true, validate: false });
 - [ ] No magic numbers
 - [ ] No console.log or debug code
 - [ ] No commented-out code
-
-## Full Reference
-`reference/v1/template/.claude/rules/code-quality.md`

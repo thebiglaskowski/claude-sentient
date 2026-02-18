@@ -60,7 +60,3 @@ Rules auto-load during `/cs-loop`. For manual loading:
 ```
 Load @rules/security for this review
 ```
-
-## Full Reference
-
-Complete rules with examples: `reference/v1/template/.claude/rules/`

@@ -19,7 +19,7 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK } = require('./utils.cjs');
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK, MAX_COMPLETED_TASKS, MAX_FILE_OWNERSHIP } = require('./utils.cjs');
 
 function main() {
     const input = parseHookInput();
@@ -74,6 +74,20 @@ function main() {
         timestamp: new Date().toISOString(),
         had_issues: issues.length > 0
     });
+
+    // Prune oldest completed tasks if exceeding cap
+    if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
+        teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
+    }
+
+    // Prune oldest file ownership entries if exceeding cap
+    const ownershipKeys = Object.keys(teamState.file_ownership);
+    if (ownershipKeys.length > MAX_FILE_OWNERSHIP) {
+        const toRemove = ownershipKeys.slice(0, ownershipKeys.length - MAX_FILE_OWNERSHIP);
+        for (const key of toRemove) {
+            delete teamState.file_ownership[key];
+        }
+    }
 
     saveState('team-state.json', teamState);
 

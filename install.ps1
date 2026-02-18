@@ -201,7 +201,7 @@ Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md       (12 commands)'
 Write-Host '  .claude/hooks/*.cjs             (13 hook scripts)'
-Write-Host '  .claude/hooks/__tests__/       (93 hook tests)'
+Write-Host '  .claude/hooks/__tests__/       (101 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'

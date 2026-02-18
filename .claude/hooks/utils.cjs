@@ -69,6 +69,8 @@ const LARGE_FILE_THRESHOLD = 100000;   // file-validator.cjs: 100KB threshold fo
 const MAX_ACTIVE_AGENTS = 50;          // agent-tracker.cjs: cap on tracked agents
 const MAX_ARCHIVES = 100;              // session-end.cjs: cap on session archives
 const MAX_LOG_SIZE = 1048576;          // utils.cjs: 1MB log rotation threshold
+const MAX_COMPLETED_TASKS = 100;       // task-completed.cjs: cap on completed task history
+const MAX_FILE_OWNERSHIP = 200;        // task-completed.cjs: cap on file ownership entries
 
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
@@ -89,15 +91,20 @@ const SECRET_PATTERNS = [
     /-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----/g, // Private key headers
 ];
 
+// Cached state directory path (verified once per process)
+let _cachedStateDir = null;
+
 /**
  * Ensure the .claude/state directory exists
  * @returns {string} Path to the state directory
  */
 function ensureStateDir() {
+    if (_cachedStateDir) return _cachedStateDir;
     const stateDir = path.join(getProjectRoot(), '.claude', 'state');
     if (!fs.existsSync(stateDir)) {
         fs.mkdirSync(stateDir, { recursive: true });
     }
+    _cachedStateDir = stateDir;
     return stateDir;
 }
 
@@ -109,7 +116,7 @@ function parseHookInput() {
     try {
         const input = process.env.HOOK_INPUT;
         if (input) {
-            return JSON.parse(input);
+            return sanitizeJson(JSON.parse(input));
         }
     } catch (e) {
         // Fall through to stdin
@@ -117,7 +124,7 @@ function parseHookInput() {
 
     try {
         const stdin = fs.readFileSync(0, 'utf8');
-        return JSON.parse(stdin);
+        return sanitizeJson(JSON.parse(stdin));
     } catch (e) {
         return {};
     }
@@ -208,7 +215,8 @@ function validateFilePath(filePath) {
     if (!filePath || typeof filePath !== 'string') return 'Empty or non-string path';
     if (filePath.length > 4096) return 'Path too long (max 4096 chars)';
     if (filePath.includes('\0')) return 'Path contains null byte';
-    if (/[\x00-\x1f]/.test(filePath) && !/[\t\n\r]/.test(filePath)) return 'Path contains control characters';
+    if (/[\n\r]/.test(filePath)) return 'Path contains newline characters';
+    if (/[\x00-\x1f]/.test(filePath) && !/[\t]/.test(filePath)) return 'Path contains control characters';
     return null;
 }
 
@@ -292,4 +300,6 @@ module.exports = {
     MAX_ACTIVE_AGENTS,
     MAX_ARCHIVES,
     MAX_LOG_SIZE,
+    MAX_COMPLETED_TASKS,
+    MAX_FILE_OWNERSHIP,
 };

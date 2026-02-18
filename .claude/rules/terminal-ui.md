@@ -72,6 +72,3 @@ paths:
 - [ ] Clear suggestions for fixes
 - [ ] Confirmation for destructive actions
 - [ ] Respect NO_COLOR env
-
-## Full Reference
-`reference/v1/template/.claude/rules/terminal-ui.md`

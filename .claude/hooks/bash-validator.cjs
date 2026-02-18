@@ -87,6 +87,9 @@ function normalizeCommand(cmd) {
     // Normalize backslash continuations: r\m → rm
     normalized = normalized.replace(/\\(?=\w)/g, '');
 
+    // Strip backtick command substitution: `rm -rf /` → rm -rf /
+    normalized = normalized.replace(/`([^`]*)`/g, '$1');
+
     return normalized;
 }
 

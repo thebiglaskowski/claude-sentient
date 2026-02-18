@@ -90,7 +90,6 @@ const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
 const projectRoot = getProjectRoot();
 const absolutePath = path.resolve(resolvedPath);
 if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
-    !absolutePath.startsWith('/tmp') &&
     !absolutePath.startsWith(os.tmpdir()) &&
     !absolutePath.startsWith(path.join(os.homedir(), '.claude'))) {
     const output = {
