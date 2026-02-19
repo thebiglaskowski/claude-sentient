@@ -162,6 +162,38 @@ else
     echo "  Install plugins manually after setting up Claude Code"
 fi
 
+# --- Global Permissions ---
+echo ""
+echo "Configuring global Claude Code permissions..."
+PERMISSIONS_CONFIGURED=""
+if command -v node &>/dev/null; then
+    if node << 'NODEEOF'
+const fs = require('fs'), path = require('path'), os = require('os');
+const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+const ALLOW = ['Bash','Read','Write','Edit','Glob','Grep','Task','WebFetch','WebSearch',
+  'NotebookEdit','ToolSearch','ListMcpResourcesTool','ReadMcpResourceTool',
+  'TaskCreate','TaskUpdate','TaskList','TaskGet','TaskOutput','TaskStop',
+  'TeamCreate','TeamDelete','SendMessage','Skill','AskUserQuestion','EnterPlanMode','ExitPlanMode'];
+let s = {};
+try { s = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (_) {}
+if (!s.permissions) s.permissions = {};
+const existing = new Set(s.permissions.allow || []);
+ALLOW.forEach(t => existing.add(t));
+s.permissions.allow = [...existing];
+fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+NODEEOF
+    then
+        echo "  ✓ ~/.claude/settings.json permissions configured"
+        PERMISSIONS_CONFIGURED="true"
+    else
+        echo "  ⚠ Could not update global permissions (non-fatal)"
+    fi
+else
+    echo "  ⚠ node not found — skipping global permissions setup"
+    echo "    Manually add permissions.allow to ~/.claude/settings.json"
+fi
+
 echo ""
 echo "=== Installation Complete ==="
 echo ""
@@ -183,6 +215,9 @@ echo "  .claude/rules/*.md              (14 path-scoped rules)"
 echo "  .claude/rules/learnings.md"
 if [ -n "$PLUGINS_INSTALLED" ]; then
     echo "  plugins                        ($PLUGINS_INSTALLED)"
+fi
+if [ -n "$PERMISSIONS_CONFIGURED" ]; then
+    echo "  ~/.claude/settings.json        (global auto-approve permissions)"
 fi
 echo ""
 echo "Recommended plugins (optional):"

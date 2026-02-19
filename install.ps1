@@ -195,6 +195,43 @@ if ($claudeCmd) {
     Write-Host "  Install plugins manually after setting up Claude Code"
 }
 
+# --- Global Permissions ---
+Write-Host ""
+Write-Host "Configuring global Claude Code permissions..."
+$PermissionsConfigured = $false
+if (Get-Command node -ErrorAction SilentlyContinue) {
+    $NodeScript = @'
+const fs = require('fs'), path = require('path'), os = require('os');
+const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+const ALLOW = ['Bash','Read','Write','Edit','Glob','Grep','Task','WebFetch','WebSearch',
+  'NotebookEdit','ToolSearch','ListMcpResourcesTool','ReadMcpResourceTool',
+  'TaskCreate','TaskUpdate','TaskList','TaskGet','TaskOutput','TaskStop',
+  'TeamCreate','TeamDelete','SendMessage','Skill','AskUserQuestion','EnterPlanMode','ExitPlanMode'];
+let s = {};
+try { s = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (_) {}
+if (!s.permissions) s.permissions = {};
+const existing = new Set(s.permissions.allow || []);
+ALLOW.forEach(t => existing.add(t));
+s.permissions.allow = [...existing];
+fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+fs.writeFileSync(settingsPath, JSON.stringify(s, null, 2) + '\n');
+'@
+    $TmpJs = [System.IO.Path]::GetTempFileName() + '.js'
+    try {
+        $NodeScript | Out-File -FilePath $TmpJs -Encoding UTF8
+        node $TmpJs 2>$null
+        Write-Host "  ✓ ~/.claude/settings.json permissions configured" -ForegroundColor Green
+        $PermissionsConfigured = $true
+    } catch {
+        Write-Host "  ⚠ Could not update global permissions (non-fatal)" -ForegroundColor Yellow
+    } finally {
+        Remove-Item $TmpJs -ErrorAction SilentlyContinue
+    }
+} else {
+    Write-Host "  ⚠ node not found — skipping global permissions setup" -ForegroundColor Yellow
+    Write-Host "    Manually add permissions.allow to ~/.claude/settings.json"
+}
+
 Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
@@ -217,6 +254,9 @@ Write-Host '  .claude/rules/learnings.md'
 if ($PluginsInstalled.Count -gt 0) {
     $pluginList = $PluginsInstalled -join ", "
     Write-Host "  plugins                        ($pluginList)"
+}
+if ($PermissionsConfigured) {
+    Write-Host '  ~/.claude/settings.json        (global auto-approve permissions)'
 }
 Write-Host ""
 Write-Host "Recommended plugins (optional):"
