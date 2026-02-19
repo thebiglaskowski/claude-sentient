@@ -74,6 +74,8 @@ const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in
 const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
 const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
 const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length
+const MAX_INPUT_SIZE = 1048576;       // parseHookInput: max HOOK_INPUT size (1MB)
+const MAX_SANITIZE_DEPTH = 50;        // sanitizeJson: max recursion depth
 const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
 const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate log messages
 
@@ -124,6 +126,10 @@ function parseHookInput() {
     try {
         const input = process.env.HOOK_INPUT;
         if (input) {
+            if (input.length > MAX_INPUT_SIZE) {
+                logMessage(`HOOK_INPUT too large (${input.length} bytes, max ${MAX_INPUT_SIZE})`, 'WARNING');
+                return {};
+            }
             return sanitizeJson(JSON.parse(input));
         }
     } catch (e) {
@@ -132,6 +138,10 @@ function parseHookInput() {
 
     try {
         const stdin = fs.readFileSync(0, 'utf8');
+        if (stdin.length > MAX_INPUT_SIZE) {
+            logMessage(`stdin input too large (${stdin.length} bytes, max ${MAX_INPUT_SIZE})`, 'WARNING');
+            return {};
+        }
         return sanitizeJson(JSON.parse(stdin));
     } catch (e) {
         return {};
@@ -144,19 +154,20 @@ function parseHookInput() {
  * @param {*} obj - Parsed JSON value
  * @returns {*} Sanitized value
  */
-function sanitizeJson(obj) {
+function sanitizeJson(obj, depth = 0) {
+    if (depth > MAX_SANITIZE_DEPTH) return obj;
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
     if (Array.isArray(obj)) {
-        return obj.map(sanitizeJson);
+        return obj.map(item => sanitizeJson(item, depth + 1));
     }
     const clean = Object.create(null);
     for (const [key, value] of Object.entries(obj)) {
         if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
             continue; // Skip dangerous keys
         }
-        clean[key] = sanitizeJson(value);
+        clean[key] = sanitizeJson(value, depth + 1);
     }
     return clean;
 }
@@ -337,5 +348,7 @@ module.exports = {
     MAX_PATH_LENGTH,
     MAX_GATE_HISTORY,
     MAX_GATE_LOG_TRUNCATE,
+    MAX_INPUT_SIZE,
+    MAX_SANITIZE_DEPTH,
     GIT_EXEC_OPTIONS,
 };

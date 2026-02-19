@@ -57,7 +57,8 @@ function main() {
 
     const teamState = loadState('team-state.json', {
         teammates: {},
-        quality_checks: []
+        completed_tasks: [],
+        file_ownership: {}
     });
 
     recordIdleEvent(teamState, teammateName, input.tasks_completed);

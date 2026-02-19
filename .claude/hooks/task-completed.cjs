@@ -45,6 +45,9 @@ function checkOwnershipConflicts(filesChanged, fileOwnership, teammateName) {
 }
 
 function pruneTeamState(teamState) {
+    if (!teamState.completed_tasks) teamState.completed_tasks = [];
+    if (!teamState.file_ownership) teamState.file_ownership = {};
+
     if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
         teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
     }
