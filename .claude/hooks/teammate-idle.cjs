@@ -18,7 +18,7 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage } = require('./utils.cjs');
+const { parseHookInput, loadState, saveState, logMessage, MAX_TEAMMATES } = require('./utils.cjs');
 
 function main() {
     const input = parseHookInput();
@@ -44,6 +44,15 @@ function main() {
 
     if (input.tasks_completed) {
         teamState.teammates[teammateName].tasks_completed = input.tasks_completed;
+    }
+
+    // Prune oldest teammates if exceeding cap
+    const teammateKeys = Object.keys(teamState.teammates);
+    if (teammateKeys.length > MAX_TEAMMATES) {
+        const toRemove = teammateKeys.slice(0, teammateKeys.length - MAX_TEAMMATES);
+        for (const key of toRemove) {
+            delete teamState.teammates[key];
+        }
     }
 
     // Check if teammate has completed any tasks

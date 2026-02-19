@@ -21,6 +21,43 @@
 
 const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK, MAX_COMPLETED_TASKS, MAX_FILE_OWNERSHIP } = require('./utils.cjs');
 
+function checkFileCount(filesChanged) {
+    if (filesChanged.length > MAX_FILES_PER_TASK) {
+        return `Task modified ${filesChanged.length} files (max ${MAX_FILES_PER_TASK}). ` +
+            `This may indicate scope creep. Review changes and split if needed.`;
+    }
+    return null;
+}
+
+function checkOwnershipConflicts(filesChanged, fileOwnership, teammateName) {
+    const conflicts = [];
+    for (const file of filesChanged) {
+        const owner = fileOwnership[file];
+        if (owner && owner !== teammateName) {
+            conflicts.push(
+                `File conflict: ${file} is owned by teammate "${owner}" ` +
+                `but was modified by "${teammateName}". ` +
+                `Coordinate with ${owner} to avoid overwrites.`
+            );
+        }
+    }
+    return conflicts;
+}
+
+function pruneTeamState(teamState) {
+    if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
+        teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
+    }
+
+    const ownershipKeys = Object.keys(teamState.file_ownership);
+    if (ownershipKeys.length > MAX_FILE_OWNERSHIP) {
+        const toRemove = ownershipKeys.slice(0, ownershipKeys.length - MAX_FILE_OWNERSHIP);
+        for (const key of toRemove) {
+            delete teamState.file_ownership[key];
+        }
+    }
+}
+
 function main() {
     const input = parseHookInput();
     const taskId = input.task_id || 'unknown';
@@ -28,7 +65,6 @@ function main() {
     const teammateName = input.teammate_name || 'unknown';
     const filesChanged = input.files_changed || [];
 
-    // Load team state
     const teamState = loadState('team-state.json', {
         teammates: {},
         completed_tasks: [],
@@ -37,25 +73,11 @@ function main() {
 
     const issues = [];
 
-    // Check 1: File count sanity check
-    if (filesChanged.length > MAX_FILES_PER_TASK) {
-        issues.push(
-            `Task modified ${filesChanged.length} files (max ${MAX_FILES_PER_TASK}). ` +
-            `This may indicate scope creep. Review changes and split if needed.`
-        );
-    }
+    const fileCountIssue = checkFileCount(filesChanged);
+    if (fileCountIssue) issues.push(fileCountIssue);
 
-    // Check 2: File ownership conflicts
-    for (const file of filesChanged) {
-        const owner = teamState.file_ownership[file];
-        if (owner && owner !== teammateName) {
-            issues.push(
-                `File conflict: ${file} is owned by teammate "${owner}" ` +
-                `but was modified by "${teammateName}". ` +
-                `Coordinate with ${owner} to avoid overwrites.`
-            );
-        }
-    }
+    const conflicts = checkOwnershipConflicts(filesChanged, teamState.file_ownership, teammateName);
+    issues.push(...conflicts);
 
     // Register file ownership for this teammate
     for (const file of filesChanged) {
@@ -75,20 +97,7 @@ function main() {
         had_issues: issues.length > 0
     });
 
-    // Prune oldest completed tasks if exceeding cap
-    if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
-        teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
-    }
-
-    // Prune oldest file ownership entries if exceeding cap
-    const ownershipKeys = Object.keys(teamState.file_ownership);
-    if (ownershipKeys.length > MAX_FILE_OWNERSHIP) {
-        const toRemove = ownershipKeys.slice(0, ownershipKeys.length - MAX_FILE_OWNERSHIP);
-        for (const key of toRemove) {
-            delete teamState.file_ownership[key];
-        }
-    }
-
+    pruneTeamState(teamState);
     saveState('team-state.json', teamState);
 
     if (issues.length > 0) {

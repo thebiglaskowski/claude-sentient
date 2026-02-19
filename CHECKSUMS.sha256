@@ -1,5 +1,5 @@
 # Claude Sentient v1.3.0 — File Checksums
-# Generated: 2026-02-18T16:21:51Z
+# Generated: 2026-02-19T02:41:57Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
 b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
@@ -17,17 +17,17 @@ e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/comman
 5c2166d36073a735f154b478d9d8fe2fbc7a10b3a52a779eaa46eb21114f89ab  .claude/hooks/README.md
 8afe087068bfa4b815dc0ae2766e2de4da053598f1563edabc004ae5efa4859c  .claude/hooks/agent-synthesizer.cjs
 7e681b54ae59b10488479d1254715b9a603cd8ac3800ddaaaf6d3310e48e3d7c  .claude/hooks/agent-tracker.cjs
-77daefc6e5b35c3d59c3bf669f07a841b6436e0fb102a536bf1ae0c05514250b  .claude/hooks/bash-validator.cjs
+5f61c098ccb3e236e3a6b0ff58b698484aaf77009f690d4c511884f377f84f7d  .claude/hooks/bash-validator.cjs
 b765e6e34f0912b6cc5bbf003494682425e93673a90d838ca349997f88ec8cf9  .claude/hooks/context-injector.cjs
 1c39c9d7f328ce85a7e5afe4469634454d6cd37c154e30b2f0eb2134513530ee  .claude/hooks/dod-verifier.cjs
-4db952a158c6e9d4ef1e0984fb2b5cec6a05d739be730619b51b4ac2afccf8fe  .claude/hooks/file-validator.cjs
+af6e0d47f5c188da32011ca3e61e862e00823572e78776254af5bb616c1f8b84  .claude/hooks/file-validator.cjs
 ecb2ce36e6f262f4e0d49ae470ea5df8952c66f5484c58ac665031df2e717e1d  .claude/hooks/post-edit.cjs
-143bce18f9107ec008f32fad6611153382900a88eb63c119386e65f1574e2121  .claude/hooks/pre-compact.cjs
-35b52b64f949c7350c281cf56f8c14835213bca192ffc52a2b28997398feecf4  .claude/hooks/session-end.cjs
+8277b36532ba25a03263253b0d3f8f6b26dc9969bb8cfe53b5b98ffc944ed952  .claude/hooks/pre-compact.cjs
+1af9b64bfd8347d9705ed65f9647e0f95eba7af5a21e6dad15574acb49629799  .claude/hooks/session-end.cjs
 68f64f739387e13987c63277cd0845fb7979109c8e760164179b2330ef8c1a5e  .claude/hooks/session-start.cjs
-57044a757038300d83983ad5a96ae8c17a7873539c118e78f1c88a8e5ad877f9  .claude/hooks/task-completed.cjs
-b1f29990de397b144ac8b00ddc31eae705877b2146816444d04577cf0634fa22  .claude/hooks/teammate-idle.cjs
-78e6ed4851b0473e198bd4fb388873c28f1c8c4927fd932789af3c7ac41112c3  .claude/hooks/utils.cjs
+acb37c8d9b6387c98fe44a0d1d89ed406ece00b5f7252d0e40b4f33a9692b716  .claude/hooks/task-completed.cjs
+ed5f4d2f3e91898c9087fc1a90520351d54458c11c8b2f24807320c6617df6aa  .claude/hooks/teammate-idle.cjs
+429c3806be4ca697c258d6066a9b4335eff1b8af8e5421b05612547f9af16a86  .claude/hooks/utils.cjs
 c52c2b5911810bafd9d79052198a3aa0bd94537a97720ea05694aaf7653b9ca8  profiles/CLAUDE.md
 3d45b7fdab946613d1836635812f0fbb4f0a9de83a9b7140481f1ca54b0f2924  profiles/_profile.schema.yaml
 15044283c6124d36017ca16a8bd39dd7967bf61d950b768fbe37ecc83abeb29b  profiles/cpp.yaml

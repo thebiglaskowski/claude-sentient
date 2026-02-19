@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_BACKUPS } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_BACKUPS, pruneDirectory } = require('./utils.cjs');
 
 const stateDir = path.join(getProjectRoot(), '.claude', 'state');
 const backupDir = path.join(stateDir, 'backups');
@@ -51,18 +51,7 @@ if (backedUp.length > 0) {
     });
 
     // Clean up old backups (keep last N)
-    const backups = fs.readdirSync(backupDir)
-        .filter(f => f.startsWith('pre-compact-'))
-        .sort()
-        .reverse();
-
-    for (let i = MAX_BACKUPS; i < backups.length; i++) {
-        try {
-            fs.unlinkSync(path.join(backupDir, backups[i]));
-        } catch (e) {
-            // Ignore cleanup errors
-        }
-    }
+    pruneDirectory(backupDir, MAX_BACKUPS, 'pre-compact-');
 }
 
 // Generate compact context summary for cs-loop recovery

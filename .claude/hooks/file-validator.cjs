@@ -38,6 +38,7 @@ const PROTECTED_PATHS = [
 const SENSITIVE_FILES = [
     /\.env$/,
     /\.env\.local$/,
+    /\.env\.staging$/,
     /secrets?\./i,
     /credentials?\./i,
     /password/i,
@@ -45,7 +46,9 @@ const SENSITIVE_FILES = [
     /\.pem$/,
     /\.key$/,
     /id_rsa/,
-    /id_ed25519/
+    /id_ed25519/,
+    /\.netrc$/,
+    /\.npmrc$/
 ];
 
 // Parse input from hook

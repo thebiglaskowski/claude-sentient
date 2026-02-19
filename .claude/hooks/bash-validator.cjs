@@ -6,7 +6,7 @@
  * Blocks dangerous commands that could harm the system.
  */
 
-const { parseHookInput, logMessage } = require('./utils.cjs');
+const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH } = require('./utils.cjs');
 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
@@ -90,6 +90,9 @@ function normalizeCommand(cmd) {
     // Strip backtick command substitution: `rm -rf /` → rm -rf /
     normalized = normalized.replace(/`([^`]*)`/g, '$1');
 
+    // Strip $(...) command substitution: $(rm -rf /) → rm -rf /
+    normalized = normalized.replace(/\$\(([^)]*)\)/g, '$1');
+
     return normalized;
 }
 
@@ -107,7 +110,7 @@ for (const { pattern, reason } of DANGEROUS_PATTERNS) {
             decision: 'block',
             reason: `BLOCKED: ${reason}`,
             pattern: pattern.toString(),
-            command: command.substring(0, 500)
+            command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH)
         };
         console.log(JSON.stringify(output));
 

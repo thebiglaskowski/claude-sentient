@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory } = require('./utils.cjs');
 
 const stateDir = path.join(getProjectRoot(), '.claude', 'state');
 const archiveDir = path.join(stateDir, 'archive');
@@ -47,15 +47,7 @@ const archiveFile = path.join(archiveDir, `${sessionInfo.id || 'session'}.json`)
 saveJsonFile(archiveFile, sessionEnd);
 
 // Prune old archives if exceeding cap
-try {
-    const archives = fs.readdirSync(archiveDir)
-        .filter(f => f.endsWith('.json'))
-        .sort()
-        .reverse();
-    for (let i = MAX_ARCHIVES; i < archives.length; i++) {
-        try { fs.unlinkSync(path.join(archiveDir, archives[i])); } catch (_) {}
-    }
-} catch (_) {}
+pruneDirectory(archiveDir, MAX_ARCHIVES);
 
 // Clean up current session files
 const sessionFile = getStateFilePath('session_start.json');

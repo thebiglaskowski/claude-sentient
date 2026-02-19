@@ -71,6 +71,8 @@ const MAX_ARCHIVES = 100;              // session-end.cjs: cap on session archiv
 const MAX_LOG_SIZE = 1048576;          // utils.cjs: 1MB log rotation threshold
 const MAX_COMPLETED_TASKS = 100;       // task-completed.cjs: cap on completed task history
 const MAX_FILE_OWNERSHIP = 200;        // task-completed.cjs: cap on file ownership entries
+const MAX_TEAMMATES = 50;              // teammate-idle.cjs: cap on tracked teammates
+const MAX_LOGGED_COMMAND_LENGTH = 500; // bash-validator.cjs: truncation for logged commands
 
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
@@ -216,7 +218,7 @@ function validateFilePath(filePath) {
     if (filePath.length > 4096) return 'Path too long (max 4096 chars)';
     if (filePath.includes('\0')) return 'Path contains null byte';
     if (/[\n\r]/.test(filePath)) return 'Path contains newline characters';
-    if (/[\x00-\x1f]/.test(filePath) && !/[\t]/.test(filePath)) return 'Path contains control characters';
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(filePath)) return 'Path contains control characters';
     return null;
 }
 
@@ -246,6 +248,24 @@ function logMessage(message, level = 'INFO') {
         // Fallback to stderr so log failures are visible during debugging
         process.stderr.write(`[cs] log write failed: ${e.message}\n`);
     }
+}
+
+/**
+ * Prune old files in a directory, keeping only the newest N.
+ * @param {string} dir - Directory to prune
+ * @param {number} maxFiles - Maximum files to keep
+ * @param {string} [prefix] - Optional filename prefix filter (default: .json suffix)
+ */
+function pruneDirectory(dir, maxFiles, prefix) {
+    try {
+        const files = fs.readdirSync(dir)
+            .filter(f => prefix ? f.startsWith(prefix) : f.endsWith('.json'))
+            .sort()
+            .reverse();
+        for (let i = maxFiles; i < files.length; i++) {
+            try { fs.unlinkSync(path.join(dir, files[i])); } catch (_) {}
+        }
+    } catch (_) {}
 }
 
 /**
@@ -289,6 +309,7 @@ module.exports = {
     sanitizeJson,
     redactSecrets,
     validateFilePath,
+    pruneDirectory,
     MAX_PROMPT_HISTORY,
     MAX_FILE_CHANGES,
     MAX_RESULT_LENGTH,
@@ -302,4 +323,6 @@ module.exports = {
     MAX_LOG_SIZE,
     MAX_COMPLETED_TASKS,
     MAX_FILE_OWNERSHIP,
+    MAX_TEAMMATES,
+    MAX_LOGGED_COMMAND_LENGTH,
 };

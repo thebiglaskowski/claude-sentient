@@ -84,6 +84,15 @@ suite('utils.js — shared utilities', () => {
         assert.strictEqual(utils.MAX_RESULT_LENGTH, 500);
         assert.strictEqual(utils.MAX_BACKUPS, 10);
         assert.strictEqual(utils.MAX_AGENT_HISTORY, 50);
+        assert.strictEqual(utils.MAX_FILES_PER_TASK, 20);
+        assert.strictEqual(utils.LARGE_FILE_THRESHOLD, 100000);
+        assert.strictEqual(utils.MAX_ACTIVE_AGENTS, 50);
+        assert.strictEqual(utils.MAX_ARCHIVES, 100);
+        assert.strictEqual(utils.MAX_LOG_SIZE, 1048576);
+        assert.strictEqual(utils.MAX_COMPLETED_TASKS, 100);
+        assert.strictEqual(utils.MAX_FILE_OWNERSHIP, 200);
+        assert.strictEqual(utils.MAX_TEAMMATES, 50);
+        assert.strictEqual(utils.MAX_LOGGED_COMMAND_LENGTH, 500);
     });
 
     test('loadJsonFile returns default for missing file', () => {
@@ -403,6 +412,33 @@ suite('file-validator.js — protected path enforcement', () => {
             tool_name: 'Write'
         });
         assert.strictEqual(result.decision, 'block');
+    });
+
+    test('warns on .env.staging files', () => {
+        const result = runHook('file-validator.cjs', {
+            tool_input: { file_path: path.join(tmpDir, '.env.staging') },
+            tool_name: 'Write'
+        });
+        assert.strictEqual(result.decision, 'allow');
+        assert.ok(result.warnings && result.warnings.length > 0);
+    });
+
+    test('warns on .netrc files', () => {
+        const result = runHook('file-validator.cjs', {
+            tool_input: { file_path: path.join(tmpDir, '.netrc') },
+            tool_name: 'Write'
+        });
+        assert.strictEqual(result.decision, 'allow');
+        assert.ok(result.warnings && result.warnings.length > 0);
+    });
+
+    test('warns on .npmrc files', () => {
+        const result = runHook('file-validator.cjs', {
+            tool_input: { file_path: path.join(tmpDir, '.npmrc') },
+            tool_name: 'Write'
+        });
+        assert.strictEqual(result.decision, 'allow');
+        assert.ok(result.warnings && result.warnings.length > 0);
     });
 });
 
@@ -992,6 +1028,107 @@ suite('utils.js — security enhancements', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// utils.js — validateFilePath tests
+// ─────────────────────────────────────────────────────────────
+suite('utils.js — validateFilePath', () => {
+    const utils = require('../utils.cjs');
+
+    test('returns null for valid paths', () => {
+        assert.strictEqual(utils.validateFilePath('/home/user/file.txt'), null);
+        assert.strictEqual(utils.validateFilePath('src/index.ts'), null);
+    });
+
+    test('rejects empty or non-string paths', () => {
+        assert.ok(utils.validateFilePath('') !== null);
+        assert.ok(utils.validateFilePath(null) !== null);
+        assert.ok(utils.validateFilePath(123) !== null);
+    });
+
+    test('rejects paths with null byte', () => {
+        assert.ok(utils.validateFilePath('/tmp/test\0.txt') !== null);
+    });
+
+    test('rejects paths with newlines', () => {
+        assert.ok(utils.validateFilePath('/tmp/test\nfile') !== null);
+        assert.ok(utils.validateFilePath('/tmp/test\rfile') !== null);
+    });
+
+    test('rejects paths with control characters', () => {
+        assert.ok(utils.validateFilePath('/tmp/test\x01file') !== null);
+        assert.ok(utils.validateFilePath('/tmp/test\x1ffile') !== null);
+    });
+
+    test('rejects path with tab AND control char (fixed bug)', () => {
+        // This was the bug: tab + control char previously passed
+        assert.ok(utils.validateFilePath('/tmp/test\t\x01file') !== null);
+    });
+
+    test('allows paths with tab characters', () => {
+        assert.strictEqual(utils.validateFilePath('/tmp/test\tfile'), null);
+    });
+
+    test('rejects paths exceeding max length', () => {
+        const longPath = '/tmp/' + 'a'.repeat(4100);
+        assert.ok(utils.validateFilePath(longPath) !== null);
+    });
+
+    test('exports validateFilePath', () => {
+        assert.strictEqual(typeof utils.validateFilePath, 'function');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// utils.js — pruneDirectory tests
+// ─────────────────────────────────────────────────────────────
+suite('utils.js — pruneDirectory', () => {
+    const utils = require('../utils.cjs');
+
+    test('exports pruneDirectory', () => {
+        assert.strictEqual(typeof utils.pruneDirectory, 'function');
+    });
+
+    test('prunes files exceeding max count', () => {
+        const pruneDir = path.join(tmpDir, 'prune-test');
+        fs.mkdirSync(pruneDir, { recursive: true });
+
+        // Create 5 JSON files
+        for (let i = 0; i < 5; i++) {
+            fs.writeFileSync(path.join(pruneDir, `file-${String(i).padStart(3, '0')}.json`), '{}');
+        }
+
+        // Prune to keep 3
+        utils.pruneDirectory(pruneDir, 3);
+        const remaining = fs.readdirSync(pruneDir).filter(f => f.endsWith('.json'));
+        assert.strictEqual(remaining.length, 3);
+        // Newest 3 should remain (sorted reverse: 004, 003, 002)
+        assert.ok(remaining.includes('file-004.json'));
+        assert.ok(remaining.includes('file-003.json'));
+        assert.ok(remaining.includes('file-002.json'));
+    });
+
+    test('prunes with prefix filter', () => {
+        const pruneDir = path.join(tmpDir, 'prune-prefix-test');
+        fs.mkdirSync(pruneDir, { recursive: true });
+
+        // Create files with different prefixes
+        fs.writeFileSync(path.join(pruneDir, 'pre-compact-001.json'), '{}');
+        fs.writeFileSync(path.join(pruneDir, 'pre-compact-002.json'), '{}');
+        fs.writeFileSync(path.join(pruneDir, 'other-file.json'), '{}');
+
+        // Prune pre-compact files to keep 1
+        utils.pruneDirectory(pruneDir, 1, 'pre-compact-');
+        const remaining = fs.readdirSync(pruneDir);
+        assert.ok(remaining.includes('other-file.json'), 'non-matching files should be kept');
+        assert.ok(remaining.includes('pre-compact-002.json'), 'newest matching file should be kept');
+        assert.ok(!remaining.includes('pre-compact-001.json'), 'oldest matching file should be removed');
+    });
+
+    test('handles non-existent directory gracefully', () => {
+        assert.doesNotThrow(() => utils.pruneDirectory('/nonexistent/dir', 5));
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // bash-validator.js — command normalization tests
 // ─────────────────────────────────────────────────────────────
 suite('bash-validator.js — command normalization', () => {
@@ -1012,6 +1149,20 @@ suite('bash-validator.js — command normalization', () => {
     test('blocks commands with /usr/bin paths', () => {
         const result = runHook('bash-validator.cjs', {
             tool_input: { command: '/usr/bin/rm -rf ~' }
+        });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks $(cmd) command substitution wrapping rm', () => {
+        const result = runHook('bash-validator.cjs', {
+            tool_input: { command: '$(rm -rf /)' }
+        });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks $(cmd) command substitution wrapping fork bomb', () => {
+        const result = runHook('bash-validator.cjs', {
+            tool_input: { command: '$(:(){ :|:& };:)' }
         });
         assert.strictEqual(result.decision, 'block');
     });

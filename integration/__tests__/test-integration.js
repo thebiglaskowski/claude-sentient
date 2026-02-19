@@ -327,7 +327,155 @@ suite('Hook chain state flow', () => {
 });
 
 // ============================================================
-// Suite 3: Install/uninstall script parity
+// Suite 3: Hook smoke tests (remaining hooks)
+// ============================================================
+
+suite('Hook smoke tests', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-hook-smoke-'));
+    const hooksDir = path.join(ROOT, '.claude', 'hooks');
+
+    fs.mkdirSync(path.join(tmpDir, '.claude', 'state'), { recursive: true });
+
+    // Initialize git repo for hooks that need it
+    try {
+        execSync('git init', { cwd: tmpDir, stdio: 'pipe' });
+        execSync('git commit --allow-empty -m "init"', { cwd: tmpDir, stdio: 'pipe' });
+    } catch { /* git may not be available */ }
+
+    function runHookSafe(hookName, input = {}) {
+        const hookPath = path.join(hooksDir, hookName);
+        const env = { ...process.env, HOOK_INPUT: JSON.stringify(input) };
+        try {
+            const result = execSync(`node "${hookPath}"`, {
+                cwd: tmpDir, env, encoding: 'utf8', timeout: 5000,
+                stdio: ['pipe', 'pipe', 'pipe'],
+            });
+            const trimmed = result.trim();
+            if (!trimmed) return { exitCode: 0, output: null };
+            const lines = trimmed.split('\n');
+            try {
+                return { exitCode: 0, output: JSON.parse(lines[lines.length - 1]) };
+            } catch {
+                return { exitCode: 0, output: null, raw: trimmed };
+            }
+        } catch (e) {
+            return { exitCode: e.status || 1, stderr: e.stderr || '' };
+        }
+    }
+
+    test('bash-validator.cjs produces valid JSON for safe commands', () => {
+        const { exitCode, output } = runHookSafe('bash-validator.cjs', {
+            tool_input: { command: 'echo hello' }
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.decision, 'allow');
+    });
+
+    test('bash-validator.cjs blocks dangerous commands with decision:block', () => {
+        const { exitCode, output } = runHookSafe('bash-validator.cjs', {
+            tool_input: { command: 'rm -rf /' }
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.decision, 'block');
+    });
+
+    test('file-validator.cjs produces valid JSON for project files', () => {
+        const { exitCode, output } = runHookSafe('file-validator.cjs', {
+            tool_input: { file_path: path.join(tmpDir, 'src/index.ts') },
+            tool_name: 'Write'
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.decision, 'allow');
+    });
+
+    test('agent-tracker.cjs produces valid JSON output', () => {
+        const { exitCode, output } = runHookSafe('agent-tracker.cjs', {
+            agent_id: 'smoke-test-agent',
+            tool_input: { subagent_type: 'Explore', description: 'test' }
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.tracked, true);
+    });
+
+    test('agent-synthesizer.cjs produces valid JSON output', () => {
+        runHookSafe('agent-tracker.cjs', {
+            agent_id: 'smoke-synth',
+            tool_input: { subagent_type: 'Explore' }
+        });
+        const { exitCode, output } = runHookSafe('agent-synthesizer.cjs', {
+            agent_id: 'smoke-synth', success: true
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.agentId, 'smoke-synth');
+    });
+
+    test('pre-compact.cjs produces valid JSON output', () => {
+        fs.writeFileSync(
+            path.join(tmpDir, '.claude', 'state', 'session_start.json'),
+            JSON.stringify({ id: 'smoke-test' })
+        );
+        const { exitCode, output } = runHookSafe('pre-compact.cjs');
+        assert.strictEqual(exitCode, 0);
+        assert.ok(typeof output.backupCount === 'number');
+    });
+
+    test('session-end.cjs produces valid JSON output', () => {
+        fs.writeFileSync(
+            path.join(tmpDir, '.claude', 'state', 'session_start.json'),
+            JSON.stringify({ id: 'smoke-end', timestamp: new Date().toISOString() })
+        );
+        const { exitCode, output } = runHookSafe('session-end.cjs');
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.sessionId, 'smoke-end');
+    });
+
+    test('dod-verifier.cjs produces valid JSON output', () => {
+        const { exitCode, output } = runHookSafe('dod-verifier.cjs');
+        assert.strictEqual(exitCode, 0);
+        assert.ok(output.timestamp);
+        assert.ok(Array.isArray(output.recommendations));
+    });
+
+    test('task-completed.cjs accepts valid task (exit 0)', () => {
+        fs.writeFileSync(
+            path.join(tmpDir, '.claude', 'state', 'team-state.json'),
+            JSON.stringify({ teammates: {}, completed_tasks: [], file_ownership: {} })
+        );
+        const result = runHookSafe('task-completed.cjs', {
+            task_id: 'smoke-task', task_subject: 'Test',
+            teammate_name: 'tester', files_changed: ['file.ts']
+        });
+        assert.strictEqual(result.exitCode, 0);
+        // Verify state was written
+        const state = JSON.parse(fs.readFileSync(
+            path.join(tmpDir, '.claude', 'state', 'team-state.json'), 'utf8'));
+        assert.ok(state.completed_tasks.length > 0, 'should record completed task');
+    });
+
+    test('teammate-idle.cjs allows idle with completed tasks (exit 0)', () => {
+        fs.writeFileSync(
+            path.join(tmpDir, '.claude', 'state', 'team-state.json'),
+            JSON.stringify({
+                teammates: { 'smoker': { idle_count: 0, tasks_completed: ['t1'], last_idle: null } },
+                quality_checks: []
+            })
+        );
+        const result = runHookSafe('teammate-idle.cjs', {
+            teammate_name: 'smoker', tasks_completed: ['t1']
+        });
+        assert.strictEqual(result.exitCode, 0);
+        // Verify state was updated
+        const state = JSON.parse(fs.readFileSync(
+            path.join(tmpDir, '.claude', 'state', 'team-state.json'), 'utf8'));
+        assert.ok(state.teammates.smoker.idle_count >= 1, 'should increment idle count');
+    });
+
+    // Cleanup
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
+});
+
+// ============================================================
+// Suite 4: Install/uninstall script parity (renumbered)
 // ============================================================
 
 suite('Install/uninstall script parity', () => {
@@ -463,7 +611,7 @@ suite('Install/uninstall script parity', () => {
 });
 
 // ============================================================
-// Suite 4: Documentation consistency
+// Suite 5: Documentation consistency
 // ============================================================
 
 suite('Documentation consistency', () => {
@@ -537,7 +685,7 @@ suite('Documentation consistency', () => {
 });
 
 // ============================================================
-// Suite 5: Plugin parity
+// Suite 6: Plugin parity
 // ============================================================
 
 suite('Plugin parity', () => {
