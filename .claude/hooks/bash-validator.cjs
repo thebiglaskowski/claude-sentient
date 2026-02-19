@@ -50,7 +50,13 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bpython[23]?\s+-c\s+['"].*(?:import\s+os|subprocess|eval|exec)/, reason: 'Python one-liner with dangerous imports' },
     { pattern: /\bperl\s+-e\s+['"].*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
     { pattern: /\bruby\s+-e\s+['"].*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
-    { pattern: /\bnode\s+-e\s+['"].*(?:child_process|fs\.rm|fs\.unlink)/, reason: 'Node one-liner with dangerous modules' }
+    { pattern: /\bnode\s+-e\s+['"].*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync)/, reason: 'Node one-liner with dangerous modules' },
+
+    // Supply-chain attacks — downloading then executing (chained with && or ;)
+    { pattern: /curl\s.*>\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
+    { pattern: /wget\s.*-O\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
+    { pattern: /curl\s.*>\s*\S+\s*[;&|]+\s*(chmod\s.*\+x|\.\/\S)/, reason: 'Downloading file then making executable' },
+    { pattern: /wget\s.*-O\s*\S+\s*[;&|]+\s*(chmod\s.*\+x|\.\/\S)/, reason: 'Downloading file then making executable' }
 ];
 
 // Warning patterns (allow but log)

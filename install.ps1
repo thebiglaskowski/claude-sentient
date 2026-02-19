@@ -247,7 +247,7 @@ Write-Host '  agents/__tests__/              (108 agent tests)'
 Write-Host '  schemas/*.json                 (9 JSON schemas)'
 Write-Host '  schemas/__tests__/             (166 schema tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
-Write-Host '  templates/*.md                 (4 templates)'
+Write-Host '  templates/*.md                 (5 templates)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'
 Write-Host '  .claude/rules/*.md              (15 path-scoped rules)'
 if ($PluginsInstalled.Count -gt 0) {

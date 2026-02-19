@@ -6,6 +6,37 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.4] — 2026-02-19
+
+### Fixed
+- **Bug: `session-start.cjs`** — Phantom `'javascript'` profile fallback replaced with `'general'` (no `javascript.yaml` exists)
+- **Bug: `session-start.cjs`** — Added `requirements.txt` to Python profile detection (profile claims it but hook didn't check)
+- **Bug: `file-validator.cjs`** — `startsWith` boundary: appended `path.sep` to prevent sibling-directory prefix confusion (`/project-foo` matching `/project` root)
+- **Bug: MCP tool names in commands** — `mcp__github__get_issue` → `mcp__github__issue_read`; `mcp__github__get_pull_request` → `mcp__github__pull_request_read`; `mcp__github__create_pull_request_review` → `mcp__github__pull_request_review_write`; removed 4 non-existent tools (`get_pull_request_files`, `get_pull_request_status`, `get_pull_request_comments`, `get_pull_request_reviews`) from cs-loop.md and cs-review.md allowed-tools
+- **Security: `bash-validator.cjs`** — Expanded Node one-liner pattern to block `writeFileSync`, `rmdirSync`, `unlinkSync`, `appendFileSync`
+- **Security: `bash-validator.cjs`** — Added 4 chained download+execute patterns (`curl url > x.sh && bash x.sh`, wget variants, chmod+execute)
+- **Security: `file-validator.cjs`** — Added `~/.claude/projects/` write warning (prompt injection persistence vector)
+- **Docs: `README.md`** — Fixed hook count 12 → 13 and template count 4 → 5
+- **Docs: `install.sh`, `install.ps1`** — Fixed template count 4 → 5 in summary output
+- **Tests: `test-hooks.js`** — Fixed test isolation: `.gitignore: .claude/` → `.gitignore: *` so marker files (pyproject.toml, go.mod, etc.) don't make git status dirty and trigger dod-verifier enforcement
+
+### Added
+- **Feature: `gate-monitor.cjs`** — New PostToolUse Bash hook (13th hook) that records gate exit codes, command summaries, and durations to `.claude/state/gate_history.json` (max 200 entries); read-only observer, always allows
+- **Feature: `cs-loop.md`** — INIT step 1 now reads `.claude/state/compact-context.json` for session recovery after context compaction
+- **Feature: `cs-loop.md`** — EXECUTE writes `current_task.json` to state so `pre-compact.cjs` can capture the active task
+
+### Changed
+- **Architecture: `utils.cjs`** — Centralized `GIT_EXEC_OPTIONS` constant `{ encoding: 'utf8', stdio: ['pipe','pipe','pipe'], timeout: 3000 }` (eliminated 5 duplicate copies across hooks)
+- **Enforcement: `dod-verifier.cjs`** — Now exits with code 2 when `gitClean === false && fileChanges.length > 0`, giving Claude feedback to commit before session ends
+- **Allowed-tools: `cs-loop.md`** — Added `ExitPlanMode`, `TeamCreate`, `TeamDelete`, `SendMessage`
+- **Allowed-tools: `cs-team.md`** — Added `TeamCreate`, `TeamDelete`, `SendMessage`
+
+### Tests
+- Test count unchanged at **761** (fixes improved reliability, not coverage)
+- Version bump: 1.3.3 → 1.3.4
+
+---
+
 ## [1.3.3] — 2026-02-19
 
 ### Fixed
@@ -459,6 +490,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.3.4 | 2026-02-19 | Assessment fixes: MCP tool names, boundary bugs, DoD enforcement, gate-monitor hook, 761 tests |
 | 1.3.3 | 2026-02-19 | Security hardening, test coverage gaps filled, doc cleanup, 761 tests |
 | 1.3.2 | 2026-02-19 | Auto-configure global permissions, security+quality fixes, 755 tests |
 | 1.3.1 | 2026-02-18 | Prototype pollution fix, backtick blocking, caching, cross-platform |

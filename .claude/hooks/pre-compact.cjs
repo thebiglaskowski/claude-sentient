@@ -25,7 +25,8 @@ const filesToBackup = [
     'session_start.json',
     'file_changes.json',
     'active_agents.json',
-    'prompts.json'
+    'prompts.json',
+    'current_task.json'
 ];
 
 const backedUp = [];
@@ -63,10 +64,16 @@ const summary = {
     unresolved: []
 };
 
-// Extract active task from session state
-const sessionState = backupBundle['session_start.json'];
-if (sessionState) {
-    summary.activeTask = sessionState.currentTask || sessionState.task || null;
+// Extract active task from current_task.json (written by cs-loop EXECUTE)
+const currentTask = backupBundle['current_task.json'];
+if (currentTask && currentTask.taskId) {
+    summary.activeTask = currentTask;
+} else {
+    // Fallback to session state
+    const sessionState = backupBundle['session_start.json'];
+    if (sessionState) {
+        summary.activeTask = sessionState.currentTask || sessionState.task || null;
+    }
 }
 
 // Extract recent file changes

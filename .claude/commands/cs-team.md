@@ -1,7 +1,7 @@
 ---
 description: Create and manage Agent Teams for parallel development work
 argument-hint: <task description> | --status | --stop
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Skill, mcp__memory__search_nodes
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Skill, TeamCreate, TeamDelete, SendMessage, mcp__memory__search_nodes
 ---
 
 # /cs-team

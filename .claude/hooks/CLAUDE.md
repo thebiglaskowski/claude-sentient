@@ -18,6 +18,7 @@
 | `dod-verifier.cjs` | Stop | Verify DoD, save final state |
 | `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
 | `task-completed.cjs` | TaskCompleted | Validate deliverables, file ownership |
+| `gate-monitor.cjs` | PostToolUse (Bash) | Record gate exit codes and durations |
 
 All hooks use shared `utils.cjs` for JSON I/O, state management, and logging.
 

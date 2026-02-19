@@ -28,11 +28,7 @@ function getProjectRoot() {
 
     // Try git rev-parse
     try {
-        const root = execSync('git rev-parse --show-toplevel', {
-            encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe'],
-            timeout: 3000
-        }).trim();
+        const root = execSync('git rev-parse --show-toplevel', GIT_EXEC_OPTIONS).trim();
         if (root && fs.existsSync(root)) {
             _cachedProjectRoot = root;
             return root;
@@ -77,6 +73,10 @@ const MAX_LOGGED_COMMAND_LENGTH = 500; // bash-validator.cjs: truncation for log
 const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in compact summary
 const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
 const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
+const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length
+
+// Centralized git exec options (eliminates duplication across hooks)
+const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
 
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
@@ -219,7 +219,7 @@ function saveJsonFile(filePath, data) {
  */
 function validateFilePath(filePath) {
     if (!filePath || typeof filePath !== 'string') return 'Empty or non-string path';
-    if (filePath.length > 4096) return 'Path too long (max 4096 chars)';
+    if (filePath.length > MAX_PATH_LENGTH) return `Path too long (max ${MAX_PATH_LENGTH} chars)`;
     if (filePath.includes('\0')) return 'Path contains null byte';
     if (/[\n\r]/.test(filePath)) return 'Path contains newline characters';
     if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(filePath)) return 'Path contains control characters';
@@ -332,4 +332,6 @@ module.exports = {
     MAX_COMPACT_FILE_HISTORY,
     MAX_COMPACT_DECISION_HISTORY,
     MS_PER_MINUTE,
+    MAX_PATH_LENGTH,
+    GIT_EXEC_OPTIONS,
 };

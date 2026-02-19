@@ -1,7 +1,7 @@
 ---
 description: Review a pull request with automated analysis
 argument-hint: <PR number or URL>
-allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, Skill, mcp__github__get_pull_request, mcp__github__get_pull_request_files, mcp__github__get_pull_request_comments, mcp__github__get_pull_request_reviews, mcp__github__create_pull_request_review, mcp__github__search_code
+allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, Skill, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__search_code
 ---
 
 # /cs-review
@@ -35,17 +35,8 @@ Gather all available context about the PR before analyzing.
 </thinking>
 
 ```
-Step 1: mcp__github__get_pull_request(owner, repo, pull_number)
-  → Get title, description, author, base/head branches
-
-Step 2: mcp__github__get_pull_request_files(owner, repo, pull_number)
-  → List all changed files with additions/deletions
-
-Step 3: mcp__github__get_pull_request_comments(owner, repo, pull_number)
-  → Load existing review comments
-
-Step 4: mcp__github__get_pull_request_reviews(owner, repo, pull_number)
-  → Check current approval status
+Step 1: mcp__github__pull_request_read(owner, repo, pull_number)
+  → Get title, description, author, base/head branches, changed files, comments, reviews
 
 Report: [REVIEW] PR #{n}: {title} by @{author}
         {files_changed} files changed (+{additions}/-{deletions})
@@ -100,7 +91,7 @@ AskUserQuestion:
 ### 7. Submit Review
 
 ```
-mcp__github__create_pull_request_review(
+mcp__github__pull_request_review_write(
   owner, repo, pull_number,
   event: "COMMENT" | "APPROVE" | "REQUEST_CHANGES",
   body: {review summary},

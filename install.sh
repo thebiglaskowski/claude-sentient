@@ -209,7 +209,7 @@ echo "  agents/__tests__/              (108 agent tests)"
 echo "  schemas/*.json                 (9 JSON schemas)"
 echo "  schemas/__tests__/             (166 schema tests)"
 echo "  rules/*.md                     (15 topic rules)"
-echo "  templates/*.md                 (4 templates)"
+echo "  templates/*.md                 (5 templates)"
 echo "  test-utils.js                  (shared test infrastructure)"
 echo "  .claude/rules/*.md              (15 path-scoped rules)"
 if [ -n "$PLUGINS_INSTALLED" ]; then

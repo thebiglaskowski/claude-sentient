@@ -2,7 +2,7 @@
 # Loaded when Cargo.toml detected
 
 name: rust
-version: "1.3.3"
+version: "1.3.4"
 description: "Rust projects using clippy for linting, cargo test for testing, and cargo build"
 
 # Model routing configuration

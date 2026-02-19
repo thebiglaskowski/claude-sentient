@@ -56,7 +56,9 @@ fs.mkdirSync(tmpStateDir, { recursive: true });
 // Initialize a git repo in tmpDir so hooks relying on git don't fail
 try {
     execSync('git init', { cwd: tmpDir, stdio: 'pipe' });
-    execSync('git commit --allow-empty -m "init"', { cwd: tmpDir, stdio: 'pipe' });
+    // Ignore all files so test artifacts don't make git status dirty
+    fs.writeFileSync(path.join(tmpDir, '.gitignore'), '*\n');
+    execSync('git add .gitignore && git commit -m "init"', { cwd: tmpDir, stdio: 'pipe' });
 } catch {
     // git not available — some tests will be skipped
 }

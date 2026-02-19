@@ -8,10 +8,10 @@
 
 const path = require('path');
 const { execSync } = require('child_process');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, GIT_EXEC_OPTIONS } = require('./utils.cjs');
 
 // Log session end
-logMessage('Session ended');
+logMessage('DoD verification started');
 
 // Read file changes to determine what was worked on
 const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
@@ -38,7 +38,7 @@ for (const change of fileChanges) {
 let gitClean = false;
 let uncommittedChanges = 0;
 try {
-    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
+    const status = execSync('git status --porcelain', GIT_EXEC_OPTIONS).trim();
     gitClean = !status;
     uncommittedChanges = status ? status.split('\n').length : 0;
 } catch (e) {
@@ -78,6 +78,12 @@ if (changesByType.typescript.length > 0 || changesByType.javascript.length > 0) 
 
 // Save verification to state
 saveJsonFile(getStateFilePath('last_verification.json'), verification);
+
+// Enforce DoD: exit code 2 when there are uncommitted changes
+if (!gitClean && fileChanges.length > 0) {
+    console.log(JSON.stringify(verification));
+    process.exit(2);
+}
 
 // Output
 console.log(JSON.stringify(verification));

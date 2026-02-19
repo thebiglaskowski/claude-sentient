@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.3.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.4-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -94,10 +94,10 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🎯 Commands | 12 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
-| 📄 Templates | 4 | Governance file templates |
+| 📄 Templates | 5 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
-| 🎣 Hooks | 12 | Session lifecycle, security, teams, tracking |
+| 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
 | 🧪 Tests | 761 | Profiles (242), agents (108), hooks (125), commands (81), schemas (166), integration (39) |
 | 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
@@ -451,6 +451,7 @@ Claude Sentient includes 13 hook scripts that integrate with Claude Code's hook 
 | `dod-verifier.cjs` | Stop | Verify Definition of Done, save final state |
 | `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
 | `task-completed.cjs` | TaskCompleted | Validate deliverables before task completion |
+| `gate-monitor.cjs` | PostToolUse (Bash) | Record gate exit codes and durations |
 
 Hooks are configured in `.claude/settings.json` and installed automatically.
 

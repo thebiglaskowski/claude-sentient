@@ -1,7 +1,7 @@
 ---
 description: Autonomous development loop - init, plan, execute, verify, commit
 argument-hint: <task description>
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, AskUserQuestion, WebSearch, WebFetch, Skill, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__get_issue, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__github__get_pull_request, mcp__github__get_pull_request_files, mcp__github__get_pull_request_status, mcp__github__get_pull_request_comments, mcp__github__get_pull_request_reviews, mcp__github__create_pull_request_review, mcp__github__list_commits, mcp__github__search_code, mcp__github__search_issues, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, ExitPlanMode, AskUserQuestion, WebSearch, WebFetch, Skill, TeamCreate, TeamDelete, SendMessage, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__issue_read, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__list_commits, mcp__github__search_code, mcp__github__search_issues, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
 ---
 
 # /cs-loop
@@ -86,7 +86,14 @@ build commands) are defined in each `profiles/{name}.yaml` file.
 Gather all context needed for the task: profile, environment, rules, external data.
 </thinking>
 
-1. **Load profile from session state** — Read `.claude/state/session_start.json`
+1. **Recover from compaction** — Check if `.claude/state/compact-context.json`
+   exists (written by pre-compact hook). If present, read it to restore:
+   - Current task ID and description
+   - Recent file changes and decisions
+   - Phase context before compaction occurred
+   Report: `[INIT] Recovered context from compaction checkpoint`
+
+2. **Load profile from session state** — Read `.claude/state/session_start.json`
    (created by session-start hook). Use the `profile` field.
    If state file missing or stale, fall back to scanning for project files
    (see `profiles/CLAUDE.md`). For profile capabilities (gates, conventions),
@@ -232,9 +239,11 @@ Classify complexity:
 1. `TaskList` → pick first unblocked task
 2. `TaskGet(taskId)` → fetch full description and context
 3. `TaskUpdate(status: in_progress)`
-4. Do the work (using description for guidance)
-5. `TaskUpdate(status: completed)`
-6. Repeat until all complete
+4. **Write currentTask to state** — Save `{taskId, subject, startedAt}` to
+   `.claude/state/current_task.json` so pre-compact.cjs can capture it on compaction
+5. Do the work (using description for guidance)
+6. `TaskUpdate(status: completed)`
+7. Repeat until all complete
 
 **Team Mode** (when approved in PLAN phase):
 
@@ -371,7 +380,7 @@ If error count increases after a fix attempt, revert and stop.
 6. Report: `[COMMIT] Created checkpoint: {hash}`
 
 **CI Monitoring** — After committing on a branch with a PR:
-1. Check if current branch has an open PR: `mcp__github__get_pull_request_status`
+1. Check if current branch has an open PR: `mcp__github__pull_request_read`
 2. If PR exists, monitor CI status:
    - **Passing** → Report: `[COMMIT] CI passed`
    - **Pending** → Report: `[COMMIT] CI running...` and continue

@@ -108,9 +108,9 @@ if (globalSettingsProtected.some(p => absolutePath === p)) {
     process.exit(0);
 }
 
-if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
-    !absolutePath.startsWith(os.tmpdir()) &&
-    !absolutePath.startsWith(claudeHome)) {
+if (!absolutePath.startsWith(path.resolve(projectRoot) + path.sep) &&
+    !absolutePath.startsWith(os.tmpdir() + path.sep) &&
+    !absolutePath.startsWith(claudeHome + path.sep)) {
     const output = {
         decision: 'block',
         reason: 'BLOCKED: Cannot modify files outside project root',
@@ -136,6 +136,12 @@ for (const pattern of PROTECTED_PATHS) {
 
         process.exit(0);
     }
+}
+
+// Warn on writes to ~/.claude/projects/ (auto-memory persistence vector)
+const claudeProjects = path.join(claudeHome, 'projects');
+if (absolutePath.startsWith(claudeProjects + path.sep)) {
+    logMessage(`WARNING ${toolName}: Writing to auto-memory directory: ${filePath}`, 'WARNING');
 }
 
 // Check sensitive files (warn but allow)

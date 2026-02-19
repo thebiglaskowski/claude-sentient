@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { ensureStateDir, saveState, logMessage } = require('./utils.cjs');
+const { ensureStateDir, saveState, logMessage, GIT_EXEC_OPTIONS } = require('./utils.cjs');
 
 // Ensure state directory exists
 ensureStateDir();
@@ -22,13 +22,13 @@ ensureStateDir();
 let gitBranch = 'not-a-repo';
 let gitStatus = 'unknown';
 try {
-    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
-    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
+    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', GIT_EXEC_OPTIONS).trim();
+    const status = execSync('git status --porcelain', GIT_EXEC_OPTIONS).trim();
     gitStatus = status ? 'dirty' : 'clean';
 } catch (e) {
     // Check if we're in a git repo with no commits
     try {
-        execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 });
+        execSync('git rev-parse --git-dir', GIT_EXEC_OPTIONS);
         gitBranch = 'no-commits';
     } catch (_) {
         // Not a git repo
@@ -37,7 +37,7 @@ try {
 
 // Root-level profile detection by marker files (all 9 profiles)
 function detectRootProfile(cwd) {
-    if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py'))) {
+    if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py')) || fs.existsSync(path.join(cwd, 'requirements.txt'))) {
         return 'python';
     }
     if (fs.existsSync(path.join(cwd, 'tsconfig.json'))) return 'typescript';
@@ -93,7 +93,7 @@ function detectFromPackageJson(cwd) {
     } catch (e) {
         // Ignore parse errors
     }
-    return 'javascript';
+    return 'general';
 }
 
 // Detect shell profile by scanning for shell scripts

@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-02-19
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.3
+> **Version:** 1.3.4
 
 ---
 
@@ -23,7 +23,7 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (727 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (761 total across 6 suites)
 ```
 
 ---
@@ -121,13 +121,13 @@ Testing             [███████████████████�
 | Commands | `commands/cs-*.md` | ✓ 12 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
-| Hooks | `.claude/hooks/*.cjs` | ✓ 12 created + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 101 tests |
+| Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 125 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
 | Schema Tests | `schemas/__tests__/` | ✓ 166 tests |
-| Integration Tests | `integration/__tests__/` | ✓ 30 tests |
+| Integration Tests | `integration/__tests__/` | ✓ 39 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 
 ---
@@ -140,12 +140,12 @@ Testing             [███████████████████�
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 101 | 101 ✓ |
+| Hook Tests | 125 | 125 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
 | Schema Tests | 166 | 166 ✓ |
-| Integration Tests | 29 | 29 ✓ |
+| Integration Tests | 39 | 39 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 | GitHub tools integrated | 13 | 13 ✓ |
@@ -154,6 +154,27 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-19 (Session 22)
+- **v1.3.4 — Assessment remediation: 16 bugs, security fixes, architecture improvements:**
+  - Fixed MCP tool names in cs-loop.md, cs-review.md, cs-team.md (`get_issue` → `issue_read`, etc.)
+  - Fixed `startsWith` boundary bug in `file-validator.cjs` (appended `path.sep` to prevent sibling-dir prefix confusion)
+  - Fixed phantom `'javascript'` profile in `session-start.cjs` (→ `'general'`; no `javascript.yaml` exists)
+  - Added `requirements.txt` to Python profile detection in `session-start.cjs`
+  - Expanded Node one-liner check in `bash-validator.cjs` (`writeFileSync`, `rmdirSync`, `unlinkSync`, `appendFileSync`)
+  - Added 4 new chained curl/wget execution patterns to `bash-validator.cjs`
+  - Added `~/.claude/projects/` write warning to `file-validator.cjs`
+  - Centralized `GIT_EXEC_OPTIONS` constant in `utils.cjs` (eliminated 5 duplicate copies)
+  - Made `dod-verifier.cjs` enforce DoD: exits with code 2 when git is dirty with changes
+  - Wired `compact-context.json` into cs-loop INIT for context recovery
+  - Made cs-loop write `currentTask` to state during EXECUTE
+  - Created `gate-monitor.cjs` — PostToolUse Bash hook, records gate exit codes/durations
+  - Added `ExitPlanMode`, `TeamCreate`, `TeamDelete`, `SendMessage` to cs-loop.md allowed-tools
+  - Added `TeamCreate`, `TeamDelete`, `SendMessage` to cs-team.md allowed-tools
+  - Fixed hook count (12→13) across docs and install scripts
+  - Fixed template count (4→5) in README and install scripts
+  - Fixed test isolation in dod-verifier tests (`.gitignore: *` pattern)
+  - 761 total tests across 6 suites (unchanged; fixes improved reliability)
 
 ### 2026-02-19 (Session 21)
 - **v1.3.3 — Security hardening, test coverage, doc cleanup:**
