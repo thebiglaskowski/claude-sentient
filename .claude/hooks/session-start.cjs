@@ -22,13 +22,13 @@ ensureStateDir();
 let gitBranch = 'not-a-repo';
 let gitStatus = 'unknown';
 try {
-    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
+    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
     gitStatus = status ? 'dirty' : 'clean';
 } catch (e) {
     // Check if we're in a git repo with no commits
     try {
-        execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+        execSync('git rev-parse --git-dir', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 });
         gitBranch = 'no-commits';
     } catch (_) {
         // Not a git repo

@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_BACKUPS, pruneDirectory } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_BACKUPS, pruneDirectory, MAX_COMPACT_FILE_HISTORY, MAX_COMPACT_DECISION_HISTORY } = require('./utils.cjs');
 
 const stateDir = path.join(getProjectRoot(), '.claude', 'state');
 const backupDir = path.join(stateDir, 'backups');
@@ -72,12 +72,12 @@ if (sessionState) {
 // Extract recent file changes
 const fileChanges = backupBundle['file_changes.json'];
 if (fileChanges && Array.isArray(fileChanges)) {
-    summary.fileChanges = fileChanges.slice(-10).map(f => ({
+    summary.fileChanges = fileChanges.slice(-MAX_COMPACT_FILE_HISTORY).map(f => ({
         file: f.file || f.path,
         action: f.action || f.type || 'modified'
     }));
 } else if (fileChanges && typeof fileChanges === 'object') {
-    summary.fileChanges = Object.keys(fileChanges).slice(-10).map(f => ({
+    summary.fileChanges = Object.keys(fileChanges).slice(-MAX_COMPACT_FILE_HISTORY).map(f => ({
         file: f,
         action: 'modified'
     }));
@@ -86,7 +86,7 @@ if (fileChanges && Array.isArray(fileChanges)) {
 // Extract recent prompts for decision context
 const prompts = backupBundle['prompts.json'];
 if (prompts && Array.isArray(prompts)) {
-    summary.recentDecisions = prompts.slice(-5).map(p => ({
+    summary.recentDecisions = prompts.slice(-MAX_COMPACT_DECISION_HISTORY).map(p => ({
         topics: p.topics || [],
         timestamp: p.timestamp
     }));

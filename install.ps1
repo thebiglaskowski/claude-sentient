@@ -238,7 +238,7 @@ Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md       (12 commands)'
 Write-Host '  .claude/hooks/*.cjs             (13 hook scripts)'
-Write-Host '  .claude/hooks/__tests__/       (119 hook tests)'
+Write-Host '  .claude/hooks/__tests__/       (125 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'
@@ -249,8 +249,7 @@ Write-Host '  schemas/__tests__/             (166 schema tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/*.md                 (4 templates)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'
-Write-Host '  .claude/rules/*.md              (14 path-scoped rules)'
-Write-Host '  .claude/rules/learnings.md'
+Write-Host '  .claude/rules/*.md              (15 path-scoped rules)'
 if ($PluginsInstalled.Count -gt 0) {
     $pluginList = $PluginsInstalled -join ", "
     Write-Host "  plugins                        ($pluginList)"

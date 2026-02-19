@@ -125,7 +125,7 @@ When a gate fails, the VERIFY phase runs an auto-fix sub-loop (max 3 attempts) b
 | Agent Teams | Team lead + teammates (experimental) |
 | Memory | `.claude/rules/*.md` + MCP memory |
 | Commands | `commands/*.md` + `Skill` tool |
-| Hooks | `.claude/hooks/*.cjs` (12 hooks + utils) |
+| Hooks | `.claude/hooks/*.cjs` (13 hook scripts) |
 | MCP Servers | context7, github, memory, filesystem, puppeteer |
 | Web Tools | `WebSearch`, `WebFetch` |
 | Vision | Screenshot analysis |

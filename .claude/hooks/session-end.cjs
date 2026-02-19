@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory } = require('./utils.cjs');
+const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory, MS_PER_MINUTE } = require('./utils.cjs');
 
 const stateDir = path.join(getProjectRoot(), '.claude', 'state');
 const archiveDir = path.join(stateDir, 'archive');
@@ -28,7 +28,7 @@ const sessionInfo = loadJsonFile(
 const startTime = sessionInfo.timestamp ? new Date(sessionInfo.timestamp) : new Date();
 const endTime = new Date();
 const durationMs = endTime - startTime;
-const durationMin = Math.round(durationMs / 60000);
+const durationMin = Math.round(durationMs / MS_PER_MINUTE);
 
 // Read file changes if tracked
 const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);

@@ -27,11 +27,12 @@ const PROTECTED_PATHS = [
     /\.aws\/credentials$/,
     /\.env\.production$/,
 
-    // Git internals and config (can contain credentials)
+    // Git internals, config, and hooks (can contain credentials or enable code execution)
     /\.git\/objects\//,
     /\.git\/refs\//,
     /\.git\/HEAD$/,
-    /\.git\/config$/
+    /\.git\/config$/,
+    /\.git\/hooks\//
 ];
 
 // Files that need confirmation (warn but allow)
@@ -39,6 +40,8 @@ const SENSITIVE_FILES = [
     /\.env$/,
     /\.env\.local$/,
     /\.env\.staging$/,
+    /\.env\.development$/,
+    /\.env\.test$/,
     /secrets?\./i,
     /credentials?\./i,
     /password/i,
@@ -92,9 +95,22 @@ const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
 // Ensure path stays within project root
 const projectRoot = getProjectRoot();
 const absolutePath = path.resolve(resolvedPath);
+// Block writes to global Claude Code settings (even though ~/.claude is allowed for state)
+const claudeHome = path.join(os.homedir(), '.claude');
+const globalSettingsProtected = [
+    path.join(claudeHome, 'settings.json'),
+    path.join(claudeHome, 'settings.local.json')
+];
+if (globalSettingsProtected.some(p => absolutePath === p)) {
+    const output = { decision: 'block', reason: 'BLOCKED: Cannot modify global Claude Code settings', path: filePath };
+    console.log(JSON.stringify(output));
+    logMessage(`BLOCKED ${toolName} on global settings: ${filePath}`, 'BLOCKED');
+    process.exit(0);
+}
+
 if (!absolutePath.startsWith(path.resolve(projectRoot)) &&
     !absolutePath.startsWith(os.tmpdir()) &&
-    !absolutePath.startsWith(path.join(os.homedir(), '.claude'))) {
+    !absolutePath.startsWith(claudeHome)) {
     const output = {
         decision: 'block',
         reason: 'BLOCKED: Cannot modify files outside project root',

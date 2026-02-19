@@ -32,6 +32,24 @@ activeAgents[agentId] = {
     status: 'running'
 };
 
+// Parse list sections from a YAML file content string
+function parseYamlListSections(content, sectionNames) {
+    const result = {};
+    for (const name of sectionNames) result[name] = [];
+    let currentSection = null;
+
+    for (const line of content.split('\n')) {
+        if (/^[a-z]/.test(line)) {
+            currentSection = sectionNames.find(s => line.startsWith(s + ':')) || null;
+            continue;
+        }
+        if (!currentSection) continue;
+        const match = line.match(/^\s+-\s+(.+)/);
+        if (match) result[currentSection].push(match[1].trim());
+    }
+    return result;
+}
+
 // Detect if agent matches a known agent definition from agents/*.yaml
 let agentRole = null;
 let rulesLoaded = [];
@@ -50,19 +68,9 @@ try {
 
         agentRole = roleName;
         const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-        let currentSection = null;
-
-        for (const line of content.split('\n')) {
-            if (/^[a-z]/.test(line)) {
-                currentSection = line.startsWith('rules_to_load:') ? 'rules'
-                    : line.startsWith('expertise:') ? 'expertise' : null;
-                continue;
-            }
-            const match = line.match(/^\s+-\s+(.+)/);
-            if (!match) continue;
-            if (currentSection === 'rules') rulesLoaded.push(match[1].trim());
-            if (currentSection === 'expertise') expertise.push(match[1].trim());
-        }
+        const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
+        rulesLoaded = sections.rules_to_load;
+        expertise = sections.expertise;
         break;
     }
 } catch {

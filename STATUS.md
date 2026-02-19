@@ -436,7 +436,6 @@ Testing             [███████████████████�
   - Updated `profiles/python.yaml` with web pattern detection (Django, Flask, templates/)
   - Added auto-load of ui-ux-design rules for web projects in `/cs-loop`
   - Updated `rules/_index.md` with web-related keywords
-- Created `reference/prompts-index.md` - V1 prompt reference for deep guidance
 - All commands synced to `.claude/commands/`
 
 ### 2026-02-02 (Session 4)

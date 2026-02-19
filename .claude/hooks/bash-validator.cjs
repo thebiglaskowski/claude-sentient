@@ -11,7 +11,7 @@ const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH } = require('./uti
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
     // Destructive file operations (including -- flag bypass)
-    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?[\/~]/, reason: 'Recursive delete from root or home' },
+    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?[\/~$]/, reason: 'Recursive delete from root, home, or variable path' },
     { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\*/, reason: 'Recursive delete all files' },
     { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\./, reason: 'Recursive delete current directory' },
 

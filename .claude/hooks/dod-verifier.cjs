@@ -38,7 +38,7 @@ for (const change of fileChanges) {
 let gitClean = false;
 let uncommittedChanges = 0;
 try {
-    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const status = execSync('git status --porcelain', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 }).trim();
     gitClean = !status;
     uncommittedChanges = status ? status.split('\n').length : 0;
 } catch (e) {

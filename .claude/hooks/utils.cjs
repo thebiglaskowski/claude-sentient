@@ -30,7 +30,8 @@ function getProjectRoot() {
     try {
         const root = execSync('git rev-parse --show-toplevel', {
             encoding: 'utf8',
-            stdio: ['pipe', 'pipe', 'pipe']
+            stdio: ['pipe', 'pipe', 'pipe'],
+            timeout: 3000
         }).trim();
         if (root && fs.existsSync(root)) {
             _cachedProjectRoot = root;
@@ -73,6 +74,9 @@ const MAX_COMPLETED_TASKS = 100;       // task-completed.cjs: cap on completed t
 const MAX_FILE_OWNERSHIP = 200;        // task-completed.cjs: cap on file ownership entries
 const MAX_TEAMMATES = 50;              // teammate-idle.cjs: cap on tracked teammates
 const MAX_LOGGED_COMMAND_LENGTH = 500; // bash-validator.cjs: truncation for logged commands
+const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in compact summary
+const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
+const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
 
 // Patterns for redacting secrets from log output
 const SECRET_PATTERNS = [
@@ -325,4 +329,7 @@ module.exports = {
     MAX_FILE_OWNERSHIP,
     MAX_TEAMMATES,
     MAX_LOGGED_COMMAND_LENGTH,
+    MAX_COMPACT_FILE_HISTORY,
+    MAX_COMPACT_DECISION_HISTORY,
+    MS_PER_MINUTE,
 };

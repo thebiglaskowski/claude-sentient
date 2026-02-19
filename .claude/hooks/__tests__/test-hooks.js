@@ -495,6 +495,80 @@ suite('session-start.js — session initialization', () => {
         const result = runHook('session-start.cjs', {}, { cwd: tsDir });
         assert.strictEqual(result.context.profile, 'typescript');
     });
+
+    test('detects go profile when go.mod exists', () => {
+        const goDir = path.join(tmpDir, 'goproject');
+        fs.mkdirSync(path.join(goDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(goDir, 'go.mod'), 'module example.com/mymod');
+        try {
+            execSync('git init', { cwd: goDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: goDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: goDir });
+        assert.strictEqual(result.context.profile, 'go');
+    });
+
+    test('detects rust profile when Cargo.toml exists', () => {
+        const rustDir = path.join(tmpDir, 'rustproject');
+        fs.mkdirSync(path.join(rustDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(rustDir, 'Cargo.toml'), '[package]\nname = "test"');
+        try {
+            execSync('git init', { cwd: rustDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: rustDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: rustDir });
+        assert.strictEqual(result.context.profile, 'rust');
+    });
+
+    test('detects java profile when pom.xml exists', () => {
+        const javaDir = path.join(tmpDir, 'javaproject');
+        fs.mkdirSync(path.join(javaDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(javaDir, 'pom.xml'), '<project></project>');
+        try {
+            execSync('git init', { cwd: javaDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: javaDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: javaDir });
+        assert.strictEqual(result.context.profile, 'java');
+    });
+
+    test('detects cpp profile when CMakeLists.txt exists', () => {
+        const cppDir = path.join(tmpDir, 'cppproject');
+        fs.mkdirSync(path.join(cppDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(cppDir, 'CMakeLists.txt'), 'cmake_minimum_required(VERSION 3.10)');
+        try {
+            execSync('git init', { cwd: cppDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: cppDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: cppDir });
+        assert.strictEqual(result.context.profile, 'cpp');
+    });
+
+    test('detects ruby profile when Gemfile exists', () => {
+        const rubyDir = path.join(tmpDir, 'rubyproject');
+        fs.mkdirSync(path.join(rubyDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(rubyDir, 'Gemfile'), 'source "https://rubygems.org"');
+        try {
+            execSync('git init', { cwd: rubyDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: rubyDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: rubyDir });
+        assert.strictEqual(result.context.profile, 'ruby');
+    });
+
+    test('detects shell profile when 3+ shell scripts exist', () => {
+        const shellDir = path.join(tmpDir, 'shellproject');
+        fs.mkdirSync(path.join(shellDir, '.claude', 'state'), { recursive: true });
+        fs.writeFileSync(path.join(shellDir, 'build.sh'), '#!/bin/bash');
+        fs.writeFileSync(path.join(shellDir, 'deploy.sh'), '#!/bin/bash');
+        fs.writeFileSync(path.join(shellDir, 'test.sh'), '#!/bin/bash');
+        try {
+            execSync('git init', { cwd: shellDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: shellDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: shellDir });
+        assert.strictEqual(result.context.profile, 'shell');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -853,7 +927,13 @@ suite('teammate-idle.js — Agent Teams idle quality check', () => {
             tasks_completed: ['task-1']
         });
         // Exit 0 means hook completed without error (allowed idle)
-        assert.strictEqual(typeof result, 'object', 'Hook should return parsed result');
+        // Hook calls process.exit(0) with no stdout, so runHook returns { raw: '' }
+        assert.strictEqual(result.raw, '', 'Successful idle should produce no stdout');
+        // Verify state was updated
+        const state = JSON.parse(fs.readFileSync(path.join(tmpStateDir, 'team-state.json'), 'utf8'));
+        assert.ok(state.teammates.frontend, 'Should track frontend teammate');
+        assert.strictEqual(state.teammates.frontend.idle_count, 1, 'Should increment idle count');
+        assert.ok(state.teammates.frontend.last_idle, 'Should record last idle timestamp');
     });
 
     test('tracks idle count in team state', () => {
@@ -920,8 +1000,13 @@ suite('task-completed.js — Agent Teams task validation', () => {
             teammate_name: 'frontend',
             files_changed: ['src/Button.tsx', 'src/Button.test.tsx']
         });
-        // Exit 0 means completion accepted
-        assert.strictEqual(typeof result, 'object', 'Hook should return parsed result');
+        // Exit 0 means completion accepted — no stdout, state file updated
+        assert.strictEqual(result.raw, '', 'Successful completion should produce no stdout');
+        const state = JSON.parse(fs.readFileSync(path.join(tmpStateDir, 'team-state.json'), 'utf8'));
+        assert.ok(state.completed_tasks.length > 0, 'Should record completed task');
+        assert.strictEqual(state.completed_tasks[0].task_id, 'task-1');
+        assert.strictEqual(state.completed_tasks[0].teammate, 'frontend');
+        assert.strictEqual(state.file_ownership['src/Button.tsx'], 'frontend', 'Should assign file ownership');
     });
 
     test('records task completion in state', () => {
@@ -976,7 +1061,12 @@ suite('task-completed.js — Agent Teams task validation', () => {
             teammate_name: 'researcher',
             files_changed: []
         });
-        assert.strictEqual(typeof result, 'object', 'Hook should return parsed result');
+        assert.strictEqual(result.raw, '', 'Successful completion should produce no stdout');
+        const state = JSON.parse(fs.readFileSync(path.join(tmpStateDir, 'team-state.json'), 'utf8'));
+        assert.ok(state.completed_tasks.length > 0, 'Should record research task');
+        assert.strictEqual(state.completed_tasks[0].task_id, 'task-4');
+        assert.strictEqual(state.completed_tasks[0].teammate, 'researcher');
+        assert.deepStrictEqual(state.completed_tasks[0].files, [], 'Should have empty files list');
     });
 });
 
