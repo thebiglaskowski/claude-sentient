@@ -2,7 +2,7 @@
 # Loaded when pom.xml or build.gradle detected
 
 name: java
-version: "1.3.0"
+version: "1.3.3"
 description: "Java projects using checkstyle for linting and JUnit for testing, with Maven or Gradle build support"
 
 # Model routing configuration

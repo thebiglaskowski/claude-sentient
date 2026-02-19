@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-18
+> **Last Updated:** 2026-02-19
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.0
+> **Version:** 1.3.3
 
 ---
 
@@ -154,6 +154,41 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-19 (Session 21)
+- **v1.3.3 — Security hardening, test coverage, doc cleanup:**
+  - Fixed `$HOME` normalization bypass in `bash-validator.cjs`
+  - Protected `.git/hooks/` and `~/.claude/settings.json` in `file-validator.cjs`
+  - Added `.env.development`, `.env.test` to SENSITIVE_FILES
+  - Added `timeout: 3000` to all `execSync` calls in hooks
+  - Named magic numbers as constants (`MAX_COMPACT_FILE_HISTORY`, `MS_PER_MINUTE`, etc.)
+  - Extracted `parseYamlListSections()` helper in `agent-tracker.cjs`
+  - Added 6 profile detection tests (go, rust, java, cpp, ruby, shell)
+  - Strengthened 3 weak team hook assertions with state verification
+  - Deleted stale `reference/prompts-index.md`
+  - Fixed hook count (12+utils → 13) and rules count (14 → 15) in docs
+  - 761 total tests across 6 suites
+
+### 2026-02-19 (Session 20)
+- **v1.3.2 — Auto permissions + security/quality fixes:**
+  - `install.sh`, `install.ps1`, `/cs-init` auto-configure global `permissions.allow` list
+  - Fixed `$(cmd)` command substitution bypass in `bash-validator.cjs`
+  - Fixed tab+control char bypass bug in `validateFilePath()`
+  - Added `.env.staging`, `.netrc`, `.npmrc` to SENSITIVE_FILES
+  - Extracted `pruneDirectory()` shared utility; named `MAX_LOGGED_COMMAND_LENGTH`
+  - Refactored `task-completed.cjs` into sub-functions; capped teammates map
+  - 755 total tests (101→119 hooks, 29→39 integration)
+
+### 2026-02-18 (Session 19)
+- **v1.3.1 — Prototype pollution fix, backtick blocking, cross-platform:**
+  - `parseHookInput()` sanitizes JSON to prevent prototype pollution
+  - `validateFilePath()` blocks newline/CR chars
+  - `normalizeCommand()` strips backtick substitution
+  - Removed hardcoded `/tmp` from file-validator (cross-platform)
+  - `ensureStateDir()` caches result (performance)
+  - Capped `team-state.json` (MAX_COMPLETED_TASKS=100, MAX_FILE_OWNERSHIP=200)
+  - Removed stale `reference/v1/template/` footers from 24 rule files
+  - 755 total tests
 
 ### 2026-02-18 (Session 18)
 - **v1.3.0 — Dashboard & SDK Removal + Quality Hardening:**

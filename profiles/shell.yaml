@@ -2,7 +2,7 @@
 # Loaded when .sh or .ps1 scripts detected
 
 name: shell
-version: "1.3.0"
+version: "1.3.3"
 description: "Shell and PowerShell projects using shellcheck and PSScriptAnalyzer for linting"
 
 # Model routing configuration

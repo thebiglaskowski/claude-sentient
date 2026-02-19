@@ -6,6 +6,67 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.3] — 2026-02-19
+
+### Fixed
+- **Security: `bash-validator.cjs`** — Fixed `$HOME` normalization bypass (`[\/~]` → `[\/~$]` in rm pattern)
+- **Security: `file-validator.cjs`** — Added `.git/hooks/` to PROTECTED_PATHS; block writes to `~/.claude/settings.json` (was incorrectly allowed via `~/.claude` allowlist)
+- **Security: `file-validator.cjs`** — Added `.env.development` and `.env.test` to SENSITIVE_FILES
+- **Reliability: all hooks** — Added `timeout: 3000` to every `execSync` call to prevent hangs on network filesystems
+
+### Changed
+- **Code quality: `utils.cjs`** — Named magic numbers `MAX_COMPACT_FILE_HISTORY` (10), `MAX_COMPACT_DECISION_HISTORY` (5), `MS_PER_MINUTE` (60000)
+- **Code quality: `agent-tracker.cjs`** — Extracted `parseYamlListSections()` helper; reduced nesting from 4 to 3 levels
+- **Docs: `CLAUDE.md`** — Fixed hook count framing: "12 hooks + utils" → "13 hook scripts"
+- **Docs: install.sh, install.ps1** — Fixed `.claude/rules/` count from 14 to 15
+- **Cleanup: `reference/prompts-index.md`** — Deleted (referenced non-existent `reference/v1/` directory)
+
+### Tests
+- Added 6 profile detection tests: go, rust, java, cpp, ruby, shell (session-start.cjs)
+- Strengthened 3 weak team hook assertions with state-level verification
+- Total: **761 tests** (hooks 119→125)
+- Version bump: 1.3.2 → 1.3.3
+
+---
+
+## [1.3.2] — 2026-02-19
+
+### Added
+- **Feature: auto-configure global permissions** — `install.sh`, `install.ps1`, and `/cs-init` now merge the full auto-approve allow list into `~/.claude/settings.json`. Safe merge, non-fatal if node unavailable.
+
+### Fixed
+- **Security: `bash-validator.cjs`** — `normalizeCommand()` strips `$(cmd)` substitution before pattern matching
+- **Security: `bash-validator.cjs`** — Fixed `validateFilePath` tab+control char bypass bug
+- **Security: `file-validator.cjs`** — Added `.env.staging`, `.netrc`, `.npmrc` to SENSITIVE_FILES
+- **Code quality: `utils.cjs`** — Named magic number 500 as `MAX_LOGGED_COMMAND_LENGTH`
+- **Code quality: `utils.cjs`** — Extracted shared `pruneDirectory()` utility (DRY: session-end + pre-compact)
+- **Code quality: `task-completed.cjs`** — Refactored `main()` into focused sub-functions
+- **Reliability: `teammate-idle.cjs`** — Capped teammates map at `MAX_TEAMMATES` (50)
+
+### Tests
+- Added 18 new hook unit tests (101→119) and 10 integration smoke tests (29→39)
+- Total: **755 tests** across 6 suites
+- Version bump: 1.3.1 → 1.3.2
+
+---
+
+## [1.3.1] — 2026-02-18
+
+### Fixed
+- **Security: `utils.cjs`** — `parseHookInput()` now calls `sanitizeJson()` to prevent prototype pollution from hook input
+- **Security: `utils.cjs`** — `validateFilePath()` blocks newline/carriage-return chars (log injection, path confusion)
+- **Security: `bash-validator.cjs`** — `normalizeCommand()` strips backtick substitution before pattern matching
+- **Cross-platform: `file-validator.cjs`** — Removed hardcoded `/tmp` check; `os.tmpdir()` already covers Linux/macOS/Windows
+- **Performance: `utils.cjs`** — `ensureStateDir()` caches result to skip redundant `fs.existsSync()` per `saveJsonFile()` call
+- **Reliability: `task-completed.cjs`** — `team-state.json` now capped (`MAX_COMPLETED_TASKS=100`, `MAX_FILE_OWNERSHIP=200`)
+
+### Changed
+- Removed stale `reference/v1/template/` footers from all 24 rule files in `rules/` and `.claude/rules/`
+- Hook test count corrected: 93→101 in install.sh and install.ps1
+- Version bump: 1.3.0 → 1.3.1
+
+---
+
 ## [1.3.0] — 2026-02-18
 
 ### Removed
@@ -398,6 +459,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.3.3 | 2026-02-19 | Security hardening, test coverage gaps filled, doc cleanup, 761 tests |
+| 1.3.2 | 2026-02-19 | Auto-configure global permissions, security+quality fixes, 755 tests |
+| 1.3.1 | 2026-02-18 | Prototype pollution fix, backtick blocking, caching, cross-platform |
 | 1.3.0 | 2026-02-18 | Dashboard/SDK removal, security & quality hardening, 727 tests |
 | 1.2.1 | 2026-02-14 | Cognitive coherence, integration tests, schema validation, security hardening, installer checksums, 716+ tests |
 | 1.2.0 | 2026-02-10 | Security fixes, schema standardization, Java/security agent fixes |
