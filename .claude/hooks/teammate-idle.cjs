@@ -20,17 +20,10 @@
 
 const { parseHookInput, loadState, saveState, logMessage, MAX_TEAMMATES } = require('./utils.cjs');
 
-function main() {
-    const input = parseHookInput();
-    const teammateName = input.teammate_name || 'unknown';
-
-    // Load team state
-    const teamState = loadState('team-state.json', {
-        teammates: {},
-        quality_checks: []
-    });
-
-    // Record teammate going idle
+function recordIdleEvent(teamState, teammateName, tasksCompleted) {
+    if (!teamState.teammates) {
+        teamState.teammates = {};
+    }
     if (!teamState.teammates[teammateName]) {
         teamState.teammates[teammateName] = {
             idle_count: 0,
@@ -42,8 +35,8 @@ function main() {
     teamState.teammates[teammateName].idle_count += 1;
     teamState.teammates[teammateName].last_idle = new Date().toISOString();
 
-    if (input.tasks_completed) {
-        teamState.teammates[teammateName].tasks_completed = input.tasks_completed;
+    if (tasksCompleted) {
+        teamState.teammates[teammateName].tasks_completed = tasksCompleted;
     }
 
     // Prune oldest teammates if exceeding cap
@@ -55,7 +48,20 @@ function main() {
         }
     }
 
-    // Check if teammate has completed any tasks
+    return teamState;
+}
+
+function main() {
+    const input = parseHookInput();
+    const teammateName = input.teammate_name || 'unknown';
+
+    const teamState = loadState('team-state.json', {
+        teammates: {},
+        quality_checks: []
+    });
+
+    recordIdleEvent(teamState, teammateName, input.tasks_completed);
+
     const completedTasks = teamState.teammates[teammateName].tasks_completed || [];
 
     if (completedTasks.length === 0 && teamState.teammates[teammateName].idle_count === 1) {

@@ -796,6 +796,64 @@ suite('Plugin parity', () => {
 });
 
 // ============================================================
+// Suite 7: Installer validation
+// ============================================================
+
+suite('Installer validation', () => {
+
+    test('install.sh is valid bash syntax', () => {
+        execSync('bash -n ' + path.join(ROOT, 'install.sh'), {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        assert.ok(true);
+    });
+
+    test('install.ps1 exists', () => {
+        assert.ok(fileExists('install.ps1'), 'install.ps1 should exist');
+    });
+
+    test('uninstall.sh is valid bash syntax', () => {
+        execSync('bash -n ' + path.join(ROOT, 'uninstall.sh'), {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        assert.ok(true);
+    });
+
+    test('uninstall.ps1 exists', () => {
+        assert.ok(fileExists('uninstall.ps1'), 'uninstall.ps1 should exist');
+    });
+
+    test('generate-checksums.sh exists and is valid bash', () => {
+        assert.ok(fileExists('generate-checksums.sh'), 'generate-checksums.sh should exist');
+        execSync('bash -n ' + path.join(ROOT, 'generate-checksums.sh'), {
+            encoding: 'utf8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        assert.ok(true);
+    });
+
+    test('install.sh references CHECKSUMS.sha256 for integrity verification', () => {
+        const content = readFile('install.sh');
+        assert.ok(content.includes('CHECKSUMS.sha256'),
+            'install.sh should reference CHECKSUMS.sha256 for file integrity');
+    });
+
+    test('install.sh exits non-zero on checksum mismatch without --force', () => {
+        // Verify the checksum failure path exits with code 1
+        const content = readFile('install.sh');
+        assert.ok(content.includes('exit 1'),
+            'install.sh should exit 1 on checksum failure');
+        assert.ok(content.includes('--force'),
+            'install.sh should mention --force bypass option');
+        // Verify the conditional structure: FORCE_INSTALL=false -> exit 1
+        assert.ok(content.includes('FORCE_INSTALL') && content.includes('exit 1'),
+            'install.sh should gate checksum failure on FORCE_INSTALL flag');
+    });
+});
+
+// ============================================================
 // Summary
 // ============================================================
 

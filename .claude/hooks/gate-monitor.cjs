@@ -7,9 +7,7 @@
  * Decision: always allow (never blocks).
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_LOGGED_COMMAND_LENGTH } = require('./utils.cjs');
-
-const MAX_GATE_HISTORY = 200;
+const { parseHookInput, loadState, saveState, logMessage, MAX_LOGGED_COMMAND_LENGTH, MAX_GATE_HISTORY, MAX_GATE_LOG_TRUNCATE } = require('./utils.cjs');
 
 // Parse hook input
 const parsed = parseHookInput();
@@ -47,7 +45,7 @@ if (isGateCommand) {
     saveState('gate_history.json', history);
 
     if (exitCode !== 0) {
-        logMessage(`Gate failed: ${command.substring(0, 80)} (exit ${exitCode})`, 'WARNING');
+        logMessage(`Gate failed: ${command.substring(0, MAX_GATE_LOG_TRUNCATE)} (exit ${exitCode})`, 'WARNING');
     }
 }
 

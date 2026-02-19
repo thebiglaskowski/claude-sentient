@@ -1,6 +1,6 @@
 name: security
 description: "Security specialist for vulnerability analysis and security hardening"
-version: "1.3.4"
+version: "1.3.5"
 role: reviewer
 expertise:
   - OWASP Top 10 vulnerability detection and remediation

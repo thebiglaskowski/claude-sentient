@@ -57,24 +57,26 @@ let expertise = [];
 
 try {
     const agentsDir = path.resolve(__dirname, '..', '..', 'agents');
-    if (!fs.existsSync(agentsDir)) throw new Error('no agents dir');
+    if (!fs.existsSync(agentsDir)) {
+        logMessage('agent-tracker: agents/ directory not found, skipping role detection', 'DEBUG');
+    } else {
+        const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
+        const searchText = (description + ' ' + agentType).toLowerCase();
 
-    const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
-    const searchText = (description + ' ' + agentType).toLowerCase();
+        for (const file of agentFiles) {
+            const roleName = file.replace('.yaml', '');
+            if (!searchText.includes(roleName)) continue;
 
-    for (const file of agentFiles) {
-        const roleName = file.replace('.yaml', '');
-        if (!searchText.includes(roleName)) continue;
-
-        agentRole = roleName;
-        const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-        const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
-        rulesLoaded = sections.rules_to_load;
-        expertise = sections.expertise;
-        break;
+            agentRole = roleName;
+            const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
+            const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
+            rulesLoaded = sections.rules_to_load;
+            expertise = sections.expertise;
+            break;
+        }
     }
-} catch {
-    // Agent definition detection is best-effort
+} catch (e) {
+    logMessage(`agent-tracker: error: ${e.message}`, 'DEBUG');
 }
 
 // Add agent role info to tracked data

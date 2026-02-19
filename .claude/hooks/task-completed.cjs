@@ -58,6 +58,26 @@ function pruneTeamState(teamState) {
     }
 }
 
+function updateFileOwnership(teamState, filesChanged, teammateName) {
+    for (const file of filesChanged) {
+        teamState.file_ownership[file] = teammateName;
+    }
+}
+
+function recordTaskCompletion(teamState, taskId, taskSubject, teammateName, filesChanged, hadIssues) {
+    if (!teamState.completed_tasks) {
+        teamState.completed_tasks = [];
+    }
+    teamState.completed_tasks.push({
+        task_id: taskId,
+        subject: taskSubject,
+        teammate: teammateName,
+        files: filesChanged,
+        timestamp: new Date().toISOString(),
+        had_issues: hadIssues
+    });
+}
+
 function main() {
     const input = parseHookInput();
     const taskId = input.task_id || 'unknown';
@@ -79,24 +99,8 @@ function main() {
     const conflicts = checkOwnershipConflicts(filesChanged, teamState.file_ownership, teammateName);
     issues.push(...conflicts);
 
-    // Register file ownership for this teammate
-    for (const file of filesChanged) {
-        teamState.file_ownership[file] = teammateName;
-    }
-
-    // Record task completion
-    if (!teamState.completed_tasks) {
-        teamState.completed_tasks = [];
-    }
-    teamState.completed_tasks.push({
-        task_id: taskId,
-        subject: taskSubject,
-        teammate: teammateName,
-        files: filesChanged,
-        timestamp: new Date().toISOString(),
-        had_issues: issues.length > 0
-    });
-
+    updateFileOwnership(teamState, filesChanged, teammateName);
+    recordTaskCompletion(teamState, taskId, taskSubject, teammateName, filesChanged, issues.length > 0);
     pruneTeamState(teamState);
     saveState('team-state.json', teamState);
 

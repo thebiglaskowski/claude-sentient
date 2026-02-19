@@ -1368,6 +1368,110 @@ suite('agent-tracker.js — agent role detection', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// gate-monitor.js tests
+// ─────────────────────────────────────────────────────────────
+suite('gate-monitor.js — gate result tracking', () => {
+    test('non-gate Bash command — no gate recorded', () => {
+        // Clear any prior gate history
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        const result = runHook('gate-monitor.cjs', {
+            tool_input: { command: 'ls .' },
+            tool_result: { exit_code: 0 }
+        });
+        assert.strictEqual(result.decision, 'allow');
+
+        // No gate history should be written for 'ls'
+        if (fs.existsSync(historyFile)) {
+            const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+            const lsEntries = (history.entries || []).filter(e => e.command === 'ls .');
+            assert.strictEqual(lsEntries.length, 0, 'ls should not be recorded as a gate command');
+        }
+    });
+
+    test('gate command success — gate_history entry written', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        const result = runHook('gate-monitor.cjs', {
+            tool_input: { command: 'jest --coverage' },
+            tool_result: { exit_code: 0 }
+        });
+        assert.strictEqual(result.decision, 'allow');
+
+        assert.ok(fs.existsSync(historyFile), 'gate_history.json should exist');
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        assert.ok(history.entries.length > 0, 'should have at least one entry');
+        const entry = history.entries[history.entries.length - 1];
+        assert.strictEqual(entry.passed, true);
+        assert.strictEqual(entry.exitCode, 0);
+    });
+
+    test('gate command failure — decision allow, WARNING logged', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        const result = runHook('gate-monitor.cjs', {
+            tool_input: { command: 'pytest' },
+            tool_result: { exit_code: 1 }
+        });
+        assert.strictEqual(result.decision, 'allow', 'gate-monitor is an observer, always allows');
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        const entry = history.entries[history.entries.length - 1];
+        assert.strictEqual(entry.passed, false);
+        assert.strictEqual(entry.exitCode, 1);
+    });
+
+    test('gate history truncation at MAX_GATE_HISTORY', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        // Pre-seed with 201 entries
+        const entries = [];
+        for (let i = 0; i < 201; i++) {
+            entries.push({
+                timestamp: new Date(Date.now() - (201 - i) * 1000).toISOString(),
+                command: 'eslint .',
+                exitCode: 0,
+                duration: 100,
+                passed: true
+            });
+        }
+        fs.writeFileSync(historyFile, JSON.stringify({ entries }));
+
+        // Run hook to trigger truncation
+        runHook('gate-monitor.cjs', {
+            tool_input: { command: 'ruff check .' },
+            tool_result: { exit_code: 0 }
+        });
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        assert.ok(history.entries.length <= 200,
+            `history should be pruned to MAX_GATE_HISTORY (200), got ${history.entries.length}`);
+    });
+
+    test('duration tracking — gate entry has numeric duration', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        runHook('gate-monitor.cjs', {
+            tool_input: { command: 'cargo test' },
+            tool_result: { exit_code: 0, duration_ms: 1234 }
+        });
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        const entry = history.entries[history.entries.length - 1];
+        assert.strictEqual(entry.duration, 1234);
+        assert.strictEqual(typeof entry.duration, 'number');
+    });
+
+    test('missing HOOK_INPUT — decision allow, no crash', () => {
+        const result = runHook('gate-monitor.cjs', {});
+        assert.strictEqual(result.decision, 'allow');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // Cleanup and report
 // ─────────────────────────────────────────────────────────────
 

@@ -8,7 +8,9 @@
     .\install.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [switch]$Force = $false
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -62,7 +64,12 @@ if (Test-Path $checksumFile) {
     if ($allValid) {
         Write-Host "✓ All file checksums verified" -ForegroundColor Green
     } else {
-        Write-Host "⚠ Checksum verification failed (non-fatal, may be a newer version)" -ForegroundColor Yellow
+        if (-not $Force) {
+            Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
+            Write-Error "Checksum verification failed. Use -Force to bypass."
+            exit 1
+        }
+        Write-Warning "Checksum mismatch — continuing (-Force)"
     }
 }
 

@@ -32,7 +32,12 @@ const PROTECTED_PATHS = [
     /\.git\/refs\//,
     /\.git\/HEAD$/,
     /\.git\/config$/,
-    /\.git\/hooks\//
+    /\.git\/hooks\//,
+
+    // Container and package manager credentials
+    /\.kube[/\\]config$/,           // Kubernetes cluster credentials
+    /\.docker[/\\]config\.json$/,   // Docker registry credentials
+    /\.cargo[/\\]credentials$/      // Rust crates.io token
 ];
 
 // Files that need confirmation (warn but allow)
@@ -118,6 +123,17 @@ if (!absolutePath.startsWith(path.resolve(projectRoot) + path.sep) &&
     };
     console.log(JSON.stringify(output));
     logMessage(`BLOCKED ${toolName} outside project root: ${filePath}`, 'BLOCKED');
+    process.exit(0);
+}
+
+// Protect hook scripts from self-modification
+const hookDir = path.join(projectRoot, '.claude', 'hooks');
+if (resolvedPath.startsWith(hookDir + path.sep) && resolvedPath.endsWith('.cjs')) {
+    console.log(JSON.stringify({
+        decision: 'block',
+        reason: `Cannot modify active hook scripts: ${filePath}. Edit hooks outside a running session or restart after changes.`
+    }));
+    logMessage(`BLOCKED ${toolName} on hook script: ${filePath}`, 'BLOCKED');
     process.exit(0);
 }
 

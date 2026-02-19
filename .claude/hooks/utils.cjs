@@ -74,6 +74,8 @@ const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in
 const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
 const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
 const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length
+const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
+const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate log messages
 
 // Centralized git exec options (eliminates duplication across hooks)
 const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
@@ -239,14 +241,14 @@ function logMessage(message, level = 'INFO') {
     const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
         // Rotate log if it exceeds size limit
-        if (fs.existsSync(logFile)) {
+        try {
             const stats = fs.statSync(logFile);
             if (stats.size > MAX_LOG_SIZE) {
                 const rotatedPath = logFile + '.1';
                 try { fs.unlinkSync(rotatedPath); } catch (_) {}
                 fs.renameSync(logFile, rotatedPath);
             }
-        }
+        } catch (_) { /* file doesn't exist yet — that's fine */ }
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
         // Fallback to stderr so log failures are visible during debugging
@@ -333,5 +335,7 @@ module.exports = {
     MAX_COMPACT_DECISION_HISTORY,
     MS_PER_MINUTE,
     MAX_PATH_LENGTH,
+    MAX_GATE_HISTORY,
+    MAX_GATE_LOG_TRUNCATE,
     GIT_EXEC_OPTIONS,
 };

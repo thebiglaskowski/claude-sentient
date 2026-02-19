@@ -7,6 +7,9 @@ set -euo pipefail
 REPO_URL="https://github.com/thebiglaskowski/claude-sentient.git"
 TEMP_DIR=".claude-sentient-temp"
 
+FORCE_INSTALL=false
+for arg in "$@"; do [[ "$arg" == "--force" ]] && FORCE_INSTALL=true; done
+
 echo "=== Claude Sentient Installer ==="
 echo ""
 
@@ -42,7 +45,12 @@ if [ -f "$TEMP_DIR/CHECKSUMS.sha256" ]; then
     if (cd "$TEMP_DIR" && sha256sum -c CHECKSUMS.sha256 --quiet 2>/dev/null); then
         echo "✓ All file checksums verified"
     else
-        echo "⚠ Checksum verification failed (non-fatal, may be a newer version)"
+        if [ "$FORCE_INSTALL" = false ]; then
+            echo "✗ Checksum verification failed. Use --force to bypass." >&2
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+        echo "⚠ Checksum mismatch — continuing (--force)" >&2
     fi
 fi
 

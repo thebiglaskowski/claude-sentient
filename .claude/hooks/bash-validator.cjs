@@ -56,7 +56,14 @@ const DANGEROUS_PATTERNS = [
     { pattern: /curl\s.*>\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
     { pattern: /wget\s.*-O\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
     { pattern: /curl\s.*>\s*\S+\s*[;&|]+\s*(chmod\s.*\+x|\.\/\S)/, reason: 'Downloading file then making executable' },
-    { pattern: /wget\s.*-O\s*\S+\s*[;&|]+\s*(chmod\s.*\+x|\.\/\S)/, reason: 'Downloading file then making executable' }
+    { pattern: /wget\s.*-O\s*\S+\s*[;&|]+\s*(chmod\s.*\+x|\.\/\S)/, reason: 'Downloading file then making executable' },
+
+    // Direct disk writes, bulk deletion, and privilege escalation
+    { pattern: /\btee\s+\/dev\/sd[a-z]/i, reason: 'Direct disk write via tee' },
+    { pattern: /\bfind\b.*\bxargs\b.*\brm\b/i, reason: 'Bulk file deletion via find|xargs' },
+    { pattern: /\bchmod\s+[ao]\+[rwx]*w/i, reason: 'World/all-writable permission change' },
+    { pattern: /\bchmod\s+-R\s+[0-7]*[2367][0-7]{2}\s+\//i, reason: 'Recursive world-writable chmod on root' },
+    { pattern: /\bsudo\s+bash\b|\bsudo\s+sh\b/i, reason: 'Privilege escalation to root shell' }
 ];
 
 // Warning patterns (allow but log)
