@@ -1070,6 +1070,26 @@ suite('task-completed.js — Agent Teams task validation', () => {
         assert.strictEqual(state.completed_tasks[0].teammate, 'researcher');
         assert.deepStrictEqual(state.completed_tasks[0].files, [], 'Should have empty files list');
     });
+
+    test('handles pre-v1.3.5 team-state.json missing file_ownership and completed_tasks', () => {
+        // Simulate state file created by old teammate-idle (missing required fields)
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'team-state.json'),
+            JSON.stringify({ teammates: {}, quality_checks: [] })
+        );
+
+        // Should not crash — null-guards in main() must run before field access
+        const result = runHook('task-completed.cjs', {
+            task_id: 'task-5',
+            task_subject: 'Legacy state test',
+            teammate_name: 'frontend',
+            files_changed: ['src/App.tsx']
+        });
+        assert.strictEqual(result.raw, '', 'Should accept completion without crash');
+        const state = JSON.parse(fs.readFileSync(path.join(tmpStateDir, 'team-state.json'), 'utf8'));
+        assert.ok(Array.isArray(state.completed_tasks), 'Should have initialized completed_tasks');
+        assert.strictEqual(state.file_ownership['src/App.tsx'], 'frontend', 'Should have initialized file_ownership');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -1098,6 +1118,37 @@ suite('utils.js — security enhancements', () => {
         assert.strictEqual(clean.a.ok, 'yes');
         assert.strictEqual(clean.a.__proto__, undefined);
         assert.deepStrictEqual(clean.b, [1, 2]);
+    });
+
+    test('sanitizeJson truncates at MAX_SANITIZE_DEPTH returning null (not raw object)', () => {
+        // Build an object nested 55 levels deep
+        let deep = { value: 'safe' };
+        for (let i = 0; i < 55; i++) deep = { nested: deep };
+        const clean = utils.sanitizeJson(deep);
+        // At some point the tree is truncated to null — root level must be an object
+        assert.ok(clean !== null, 'Root should not be null');
+        assert.ok(typeof clean === 'object', 'Root should be sanitized object');
+        // Walk 51 levels — that node must be null (truncated), not the raw object
+        let node = clean;
+        for (let i = 0; i < 51; i++) {
+            if (node === null) break;
+            node = node.nested;
+        }
+        assert.strictEqual(node, null, 'Node at depth > MAX_SANITIZE_DEPTH should be null, not raw object');
+    });
+
+    test('sanitizeJson does not pass through __proto__ at depth beyond MAX_SANITIZE_DEPTH', () => {
+        // Craft an object with __proto__ buried at depth 52
+        let payload = JSON.parse('{"__proto__": {"polluted": true}, "safe": 1}');
+        for (let i = 0; i < 52; i++) payload = { nested: payload };
+        const clean = utils.sanitizeJson(payload);
+        // Walk to depth 51 — that subtree should be null (truncated), not the malicious payload
+        let node = clean;
+        for (let i = 0; i < 51; i++) {
+            if (node === null) break;
+            node = node.nested;
+        }
+        assert.strictEqual(node, null, 'Deeply nested __proto__ payload must be truncated to null');
     });
 
     test('redactSecrets redacts API keys', () => {
