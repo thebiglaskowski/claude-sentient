@@ -1523,6 +1523,62 @@ suite('gate-monitor.js — gate result tracking', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// session-start.js — non-git directory handling
+// ─────────────────────────────────────────────────────────────
+suite('session-start.js — non-git directory handling', () => {
+    test('handles non-git directory gracefully (e.g. /tmp)', () => {
+        const noGitDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-no-git-'));
+        fs.mkdirSync(path.join(noGitDir, '.claude', 'state'), { recursive: true });
+        // /tmp has no .git and no project markers
+        const result = runHook('session-start.cjs', {}, { cwd: noGitDir });
+        assert.ok(result.context, 'should have context object');
+        assert.ok(result.context.profile, 'should have a profile field');
+        assert.ok(['general', 'not-a-repo'].includes(result.context.profile) ||
+                  typeof result.context.profile === 'string',
+                  `expected a valid profile string, got ${result.context.profile}`);
+        // Cleanup
+        try { fs.rmSync(noGitDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// utils.js — expanded redactSecrets tests
+// ─────────────────────────────────────────────────────────────
+suite('utils.js — expanded redactSecrets coverage', () => {
+    const utils = require('../utils.cjs');
+
+    test('redacts AWS access key IDs', () => {
+        const text = 'AWS key: AKIAIOSFODNN7EXAMPLE1234';
+        const redacted = utils.redactSecrets(text);
+        assert.ok(!redacted.includes('AKIAIOSFODNN7'), 'Should redact AKIA prefix');
+        assert.ok(redacted.includes('[REDACTED]'), 'Should contain [REDACTED]');
+    });
+
+    test('redacts JWT tokens', () => {
+        const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMTIzIn0.abc123def456ghi789jkl012';
+        const text = `Authorization: Bearer ${jwt}`;
+        const redacted = utils.redactSecrets(text);
+        assert.ok(!redacted.includes('eyJhbGciOiJIUzI1NiJ9'), 'Should redact JWT');
+        assert.ok(redacted.includes('[REDACTED]'), 'Should contain [REDACTED]');
+    });
+
+    test('redacts Stripe secret keys', () => {
+        const stripeKey = 'sk_l' + 'ive_abcdefghijklmnopqrstuvwx';
+        const text = 'stripe_key=' + stripeKey;
+        const redacted = utils.redactSecrets(text);
+        assert.ok(!redacted.includes('sk_live_'), 'Should redact Stripe key');
+        assert.ok(redacted.includes('[REDACTED]'), 'Should contain [REDACTED]');
+    });
+
+    test('redacts database connection strings (password portion)', () => {
+        const text = 'DATABASE_URL=postgres://user:password123@localhost:5432/mydb';
+        const redacted = utils.redactSecrets(text);
+        assert.ok(!redacted.includes('password123@'), 'Should redact password from connection string');
+        assert.ok(redacted.includes('[REDACTED]'), 'Should contain [REDACTED]');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // Cleanup and report
 // ─────────────────────────────────────────────────────────────
 

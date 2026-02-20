@@ -63,7 +63,13 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bfind\b.*\bxargs\b.*\brm\b/i, reason: 'Bulk file deletion via find|xargs' },
     { pattern: /\bchmod\s+[ao]\+[rwx]*w/i, reason: 'World/all-writable permission change' },
     { pattern: /\bchmod\s+-R\s+[0-7]*[2367][0-7]{2}\s+\//i, reason: 'Recursive world-writable chmod on root' },
-    { pattern: /\bsudo\s+bash\b|\bsudo\s+sh\b/i, reason: 'Privilege escalation to root shell' }
+    { pattern: /\bsudo\s+bash\b|\bsudo\s+sh\b/i, reason: 'Privilege escalation to root shell' },
+
+    // Shell eval execution
+    { pattern: /\beval\b/, reason: 'Shell eval execution' },
+
+    // Broader sudo privilege escalation patterns
+    { pattern: /\bsudo\s+(?:bash|sh|su\b|su\s+-|-i\b|-s\b)/, reason: 'Privilege escalation via sudo' },
 ];
 
 // Warning patterns (allow but log)
@@ -93,9 +99,8 @@ function normalizeCommand(cmd) {
     // Strip full binary paths: /usr/bin/rm → rm, /bin/bash → bash
     normalized = normalized.replace(/(?:\/usr\/local\/s?bin|\/usr\/s?bin|\/s?bin)\/(\w+)/g, '$1');
 
-    // Strip common quoting tricks: 'r''m' → rm, "rm" → rm
-    // But preserve quoted arguments (only strip single-char concatenation)
-    normalized = normalized.replace(/(['"])(\w)\1/g, '$2');
+    // Strip common quoting tricks: 'rm' → rm, "sudo bash" → sudo bash
+    normalized = normalized.replace(/["']([^"']+)["']/g, '$1');
 
     // Normalize backslash continuations: r\m → rm
     normalized = normalized.replace(/\\(?=\w)/g, '');
@@ -103,54 +108,60 @@ function normalizeCommand(cmd) {
     // Strip backtick command substitution: `rm -rf /` → rm -rf /
     normalized = normalized.replace(/`([^`]*)`/g, '$1');
 
-    // Strip $(...) command substitution: $(rm -rf /) → rm -rf /
-    normalized = normalized.replace(/\$\(([^)]*)\)/g, '$1');
+    // Strip $(...) command substitution iteratively: $($(rm -rf /)) → rm -rf /
+    let _iterCount = 0;
+    let prev;
+    do { prev = normalized; normalized = normalized.replace(/\$\(([^)]*)\)/g, '$1'); }
+    while (normalized !== prev && ++_iterCount < 10);
 
     return normalized;
 }
 
-// Parse input from hook
-const parsed = parseHookInput();
-const rawCommand = parsed.tool_input?.command || parsed.command || '';
+function main() {
+    // Parse input from hook
+    const parsed = parseHookInput();
+    const rawCommand = parsed.tool_input?.command || parsed.command || '';
 
-// Normalize command before checking patterns
-const command = normalizeCommand(rawCommand);
+    // Normalize command before checking patterns
+    const command = normalizeCommand(rawCommand);
 
-// Check for dangerous patterns (test both raw and normalized)
-for (const { pattern, reason } of DANGEROUS_PATTERNS) {
-    if (pattern.test(command) || pattern.test(rawCommand)) {
-        const output = {
-            decision: 'block',
-            reason: `BLOCKED: ${reason}`,
-            pattern: pattern.toString(),
-            command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH)
-        };
-        console.log(JSON.stringify(output));
+    // Check for dangerous patterns (test both raw and normalized)
+    for (const { pattern, reason } of DANGEROUS_PATTERNS) {
+        if (pattern.test(command) || pattern.test(rawCommand)) {
+            const output = {
+                decision: 'block',
+                reason: `BLOCKED: ${reason}`,
+                command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH)
+            };
+            console.log(JSON.stringify(output));
 
-        // Log the blocked command
-        logMessage(`BLOCKED dangerous command: ${reason}`, 'BLOCKED');
+            // Log the blocked command
+            logMessage(`BLOCKED dangerous command: ${reason}`, 'BLOCKED');
 
-        process.exit(0);
+            process.exit(0);
+        }
     }
-}
 
-// Check for warning patterns
-const warnings = [];
-for (const { pattern, reason } of WARNING_PATTERNS) {
-    if (pattern.test(command)) {
-        warnings.push(reason);
+    // Check for warning patterns
+    const warnings = [];
+    for (const { pattern, reason } of WARNING_PATTERNS) {
+        if (pattern.test(command)) {
+            warnings.push(reason);
+        }
     }
+
+    // Log warnings if any
+    if (warnings.length > 0) {
+        logMessage(warnings.join(', '), 'WARNING');
+    }
+
+    // Allow the command
+    const output = {
+        decision: 'allow',
+        warnings: warnings.length > 0 ? warnings : undefined
+    };
+
+    console.log(JSON.stringify(output));
 }
 
-// Log warnings if any
-if (warnings.length > 0) {
-    logMessage(warnings.join(', '), 'WARNING');
-}
-
-// Allow the command
-const output = {
-    decision: 'allow',
-    warnings: warnings.length > 0 ? warnings : undefined
-};
-
-console.log(JSON.stringify(output));
+main();

@@ -9,6 +9,7 @@
 const path = require('path');
 const { parseHookInput, loadState, saveState, logMessage, MAX_FILE_CHANGES } = require('./utils.cjs');
 
+function main() {
 // Parse input from hook
 const parsed = parseHookInput();
 const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
@@ -78,3 +79,6 @@ const output = {
 };
 
 console.log(JSON.stringify(output));
+}
+
+main();

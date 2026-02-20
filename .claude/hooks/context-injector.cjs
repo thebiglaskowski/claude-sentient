@@ -6,8 +6,9 @@
  * Injects relevant context based on prompt content.
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_PROMPT_HISTORY } = require('./utils.cjs');
+const { parseHookInput, appendCapped, logMessage, MAX_PROMPT_HISTORY } = require('./utils.cjs');
 
+function main() {
 // Log the prompt submission
 logMessage('Prompt received');
 
@@ -75,13 +76,7 @@ const promptMeta = {
 };
 
 // Save to state for later analysis
-let prompts = loadState('prompts.json', []);
-prompts.push(promptMeta);
-// Keep only last N prompts
-if (prompts.length > MAX_PROMPT_HISTORY) {
-    prompts = prompts.slice(-MAX_PROMPT_HISTORY);
-}
-saveState('prompts.json', prompts);
+appendCapped('prompts.json', promptMeta, MAX_PROMPT_HISTORY);
 
 // Output (continue execution)
 const output = {
@@ -91,3 +86,6 @@ const output = {
 };
 
 console.log(JSON.stringify(output));
+}
+
+main();

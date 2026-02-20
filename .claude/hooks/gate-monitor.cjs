@@ -9,12 +9,6 @@
 
 const { parseHookInput, loadState, saveState, logMessage, MAX_LOGGED_COMMAND_LENGTH, MAX_GATE_HISTORY, MAX_GATE_LOG_TRUNCATE } = require('./utils.cjs');
 
-// Parse hook input
-const parsed = parseHookInput();
-const command = parsed.tool_input?.command || '';
-const exitCode = parsed.tool_result?.exit_code ?? parsed.tool_result?.exitCode ?? null;
-const duration = parsed.tool_result?.duration_ms ?? null;
-
 // Only record gate-relevant commands (lint, test, build, format)
 const GATE_PATTERNS = [
     /\b(ruff|eslint|golangci-lint|clippy|checkstyle|rubocop|clang-tidy|shellcheck|cppcheck)\b/,
@@ -24,9 +18,20 @@ const GATE_PATTERNS = [
     /\bnode\s+.*__tests__/
 ];
 
-const isGateCommand = GATE_PATTERNS.some(p => p.test(command));
+function main() {
+    const parsed = parseHookInput();
+    const command = parsed.tool_input?.command || '';
+    const exitCode = parsed.tool_result?.exit_code ?? parsed.tool_result?.exitCode ?? null;
+    const duration = parsed.tool_result?.duration_ms ?? null;
 
-if (isGateCommand) {
+    // Early exit for non-gate commands — avoids sync disk ops per Bash call
+    const isGate = GATE_PATTERNS.some(p => p.test(command));
+    if (!isGate) {
+        console.log(JSON.stringify({ decision: 'allow' }));
+        process.exit(0);
+    }
+
+    // Only gate commands reach here
     const history = loadState('gate_history.json', { entries: [] });
 
     history.entries.push({
@@ -47,7 +52,9 @@ if (isGateCommand) {
     if (exitCode !== 0) {
         logMessage(`Gate failed: ${command.substring(0, MAX_GATE_LOG_TRUNCATE)} (exit ${exitCode})`, 'WARNING');
     }
+
+    // Always allow — read-only observer
+    console.log(JSON.stringify({ decision: 'allow' }));
 }
 
-// Always allow — read-only observer
-console.log(JSON.stringify({ decision: 'allow' }));
+main();

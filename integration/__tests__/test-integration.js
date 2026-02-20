@@ -470,6 +470,41 @@ suite('Hook smoke tests', () => {
         assert.ok(state.teammates.smoker.idle_count >= 1, 'should increment idle count');
     });
 
+    test('gate-monitor.cjs allows non-gate commands without writing gate_history', () => {
+        const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        const { exitCode, output } = runHookSafe('gate-monitor.cjs', {
+            tool_input: { command: 'ls -la' },
+            tool_result: { exit_code: 0 }
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.decision, 'allow');
+
+        // ls is not a gate command — gate_history should not be written
+        if (fs.existsSync(historyFile)) {
+            const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+            const lsEntries = (history.entries || []).filter(e => e.command === 'ls -la');
+            assert.strictEqual(lsEntries.length, 0, 'ls should not appear in gate history');
+        }
+    });
+
+    test('gate-monitor.cjs records gate command in gate_history', () => {
+        const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        const { exitCode, output } = runHookSafe('gate-monitor.cjs', {
+            tool_input: { command: 'pytest tests/' },
+            tool_result: { exit_code: 0 }
+        });
+        assert.strictEqual(exitCode, 0);
+        assert.strictEqual(output.decision, 'allow');
+
+        assert.ok(fs.existsSync(historyFile), 'gate_history.json should exist after gate command');
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        assert.ok(history.entries.length > 0, 'should have recorded a gate entry');
+    });
+
     // Cleanup
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
 });
@@ -796,7 +831,56 @@ suite('Plugin parity', () => {
 });
 
 // ============================================================
-// Suite 7: Installer validation
+// Suite 7: Rules content parity (rules/ vs .claude/rules/)
+// ============================================================
+
+suite('Rules content parity', () => {
+    const rulesDir = path.join(ROOT, 'rules');
+    const dotClaudeRulesDir = path.join(ROOT, '.claude', 'rules');
+
+    /** Strip YAML frontmatter (lines between --- markers at start of file) */
+    function stripFrontmatter(content) {
+        const lines = content.split('\n');
+        if (lines[0].trim() !== '---') return content;
+        for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim() === '---') {
+                // Return everything after the closing ---
+                return lines.slice(i + 1).join('\n');
+            }
+        }
+        return content; // No closing --- found, return as-is
+    }
+
+    const ruleFiles = fs.readdirSync(rulesDir)
+        .filter(f => f.endsWith('.md') && f !== '_index.md');
+
+    for (const file of ruleFiles) {
+        test(`rules/${file} matches .claude/rules/${file} (body content)`, () => {
+            const dotClaudePath = path.join(dotClaudeRulesDir, file);
+            assert.ok(fs.existsSync(dotClaudePath),
+                `.claude/rules/${file} should exist as counterpart to rules/${file}`);
+
+            const rulesContent = fs.readFileSync(path.join(rulesDir, file), 'utf8').trim();
+            const dotClaudeContent = stripFrontmatter(
+                fs.readFileSync(dotClaudePath, 'utf8')
+            ).trim();
+
+            assert.strictEqual(dotClaudeContent, rulesContent,
+                `Body content of .claude/rules/${file} (with frontmatter stripped) should match rules/${file}`);
+        });
+    }
+
+    // Verify learnings.md only exists in .claude/rules/ (special case)
+    test('learnings.md exists in .claude/rules/ but NOT in rules/', () => {
+        assert.ok(fs.existsSync(path.join(dotClaudeRulesDir, 'learnings.md')),
+            'learnings.md should exist in .claude/rules/');
+        assert.ok(!fs.existsSync(path.join(rulesDir, 'learnings.md')),
+            'learnings.md should NOT exist in rules/ (it is project-specific only)');
+    });
+});
+
+// ============================================================
+// Suite 8: Installer validation (renumbered)
 // ============================================================
 
 suite('Installer validation', () => {

@@ -13,27 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { ensureStateDir, saveState, logMessage, GIT_EXEC_OPTIONS } = require('./utils.cjs');
-
-// Ensure state directory exists
-ensureStateDir();
-
-// Get git branch and status (2 subprocess calls instead of 4)
-let gitBranch = 'not-a-repo';
-let gitStatus = 'unknown';
-try {
-    gitBranch = execSync('git rev-parse --abbrev-ref HEAD', GIT_EXEC_OPTIONS).trim();
-    const status = execSync('git status --porcelain', GIT_EXEC_OPTIONS).trim();
-    gitStatus = status ? 'dirty' : 'clean';
-} catch (e) {
-    // Check if we're in a git repo with no commits
-    try {
-        execSync('git rev-parse --git-dir', GIT_EXEC_OPTIONS);
-        gitBranch = 'no-commits';
-    } catch (_) {
-        // Not a git repo
-    }
-}
+const { ensureStateDir, saveState, logMessage, GIT_EXEC_OPTIONS, getProjectRoot, MIN_SHELL_FILES, SESSION_ID_SUFFIX_LEN } = require('./utils.cjs');
 
 // Root-level profile detection by marker files (all 9 profiles)
 function detectRootProfile(cwd) {
@@ -64,6 +44,8 @@ function detectSubdirProfile(subdirPath) {
 // Search monorepo directories for nested profiles
 function detectMonorepoProfile(cwd) {
     const monorepoLocations = ['packages', 'apps', 'src'];
+    // Early exit: if none of the monorepo dirs exist, skip scanning entirely
+    if (!monorepoLocations.some(dir => fs.existsSync(path.join(cwd, dir)))) return null;
     for (const dir of monorepoLocations) {
         const dirPath = path.join(cwd, dir);
         if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) continue;
@@ -101,7 +83,7 @@ function detectShellProfile(cwd) {
     try {
         const files = fs.readdirSync(cwd);
         const shellFiles = files.filter(f => f.endsWith('.sh') || f.endsWith('.ps1'));
-        if (shellFiles.length >= 3) return 'shell';
+        if (shellFiles.length >= MIN_SHELL_FILES) return 'shell';
     } catch (e) {
         // Ignore read errors
     }
@@ -118,35 +100,60 @@ function detectProfile() {
         || 'general';
 }
 
-// Generate session ID
-const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+function main() {
+    // Ensure state directory exists
+    ensureStateDir();
 
-// Write session start info
-const sessionInfo = {
-    id: sessionId,
-    timestamp: new Date().toISOString(),
-    cwd: process.cwd(),
-    gitBranch,
-    gitStatus,
-    profile: detectProfile(),
-    platform: process.platform,
-    nodeVersion: process.version
-};
-
-saveState('session_start.json', sessionInfo);
-
-// Log session start
-logMessage(`SessionStart id=${sessionId} branch=${gitBranch} profile=${sessionInfo.profile}`);
-
-// Output for hook system (optional context injection)
-const output = {
-    continue: true,
-    context: {
-        sessionId,
-        profile: sessionInfo.profile,
-        gitBranch,
-        gitStatus
+    // Get git branch and status (2 subprocess calls instead of 4)
+    let gitBranch = 'not-a-repo';
+    let gitStatus = 'unknown';
+    try {
+        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', GIT_EXEC_OPTIONS).trim();
+        const status = execSync('git status --porcelain', GIT_EXEC_OPTIONS).trim();
+        gitStatus = status ? 'dirty' : 'clean';
+    } catch (e) {
+        // Check if we're in a git repo with no commits
+        try {
+            execSync('git rev-parse --git-dir', GIT_EXEC_OPTIONS);
+            gitBranch = 'no-commits';
+        } catch (_) {
+            // Not a git repo
+        }
     }
-};
 
-console.log(JSON.stringify(output));
+    // Generate session ID
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, SESSION_ID_SUFFIX_LEN)}`;
+
+    // Write session start info
+    const sessionInfo = {
+        id: sessionId,
+        timestamp: new Date().toISOString(),
+        cwd: process.cwd(),
+        project_root: getProjectRoot(),
+        gitBranch,
+        gitStatus,
+        profile: detectProfile(),
+        platform: process.platform,
+        nodeVersion: process.version
+    };
+
+    saveState('session_start.json', sessionInfo);
+
+    // Log session start
+    logMessage(`SessionStart id=${sessionId} branch=${gitBranch} profile=${sessionInfo.profile}`);
+
+    // Output for hook system (optional context injection)
+    const output = {
+        continue: true,
+        context: {
+            sessionId,
+            profile: sessionInfo.profile,
+            gitBranch,
+            gitStatus
+        }
+    };
+
+    console.log(JSON.stringify(output));
+}
+
+main();

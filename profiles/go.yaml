@@ -2,7 +2,7 @@
 # Loaded when go.mod or *.go detected
 
 name: go
-version: "1.3.5"
+version: "1.3.6"
 description: "Go projects using golangci-lint for linting and go test for testing"
 
 # Model routing configuration

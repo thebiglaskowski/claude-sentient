@@ -26,6 +26,16 @@ let _cachedProjectRoot = null;
 function getProjectRoot() {
     if (_cachedProjectRoot) return _cachedProjectRoot;
 
+    // Fast path: read project_root from session_start.json (written by session-start hook)
+    try {
+        const sessionFile = path.join(process.cwd(), '.claude', 'state', 'session_start.json');
+        const cached = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+        if (cached.project_root && fs.existsSync(cached.project_root)) {
+            _cachedProjectRoot = cached.project_root;
+            return _cachedProjectRoot;
+        }
+    } catch (_) {}
+
     // Try git rev-parse
     try {
         const root = execSync('git rev-parse --show-toplevel', GIT_EXEC_OPTIONS).trim();
@@ -78,6 +88,9 @@ const MAX_INPUT_SIZE = 1048576;       // parseHookInput: max HOOK_INPUT size (1M
 const MAX_SANITIZE_DEPTH = 50;        // sanitizeJson: max recursion depth
 const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
 const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate log messages
+
+const MIN_SHELL_FILES = 3;          // session-start.cjs: threshold for shell profile detection
+const SESSION_ID_SUFFIX_LEN = 9;    // session-start.cjs: random suffix length for session IDs
 
 // Centralized git exec options (eliminates duplication across hooks)
 const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
@@ -244,6 +257,7 @@ function validateFilePath(filePath) {
  * @param {string} message - Message to log
  * @param {string} level - Log level (INFO, WARNING, ERROR, BLOCKED)
  */
+let _logCallCount = 0;
 function logMessage(message, level = 'INFO') {
     const logFile = path.join(getProjectRoot(), '.claude', 'session.log');
     const timestamp = new Date().toISOString().slice(0, 19);
@@ -251,15 +265,18 @@ function logMessage(message, level = 'INFO') {
     const safeMessage = redactSecrets(message);
     const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
-        // Rotate log if it exceeds size limit
-        try {
-            const stats = fs.statSync(logFile);
-            if (stats.size > MAX_LOG_SIZE) {
-                const rotatedPath = logFile + '.1';
-                try { fs.unlinkSync(rotatedPath); } catch (_) {}
-                fs.renameSync(logFile, rotatedPath);
-            }
-        } catch (_) { /* file doesn't exist yet — that's fine */ }
+        // Rotate log if it exceeds size limit (check every 100 calls to amortize statSync cost)
+        _logCallCount++;
+        if (_logCallCount % 100 === 0) {
+            try {
+                const stats = fs.statSync(logFile);
+                if (stats.size > MAX_LOG_SIZE) {
+                    const rotatedPath = logFile + '.1';
+                    try { fs.unlinkSync(rotatedPath); } catch (_) {}
+                    fs.renameSync(logFile, rotatedPath);
+                }
+            } catch (_) { /* file doesn't exist yet — that's fine */ }
+        }
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
         // Fallback to stderr so log failures are visible during debugging
@@ -314,6 +331,21 @@ function saveState(filename, data) {
     return saveJsonFile(getStateFilePath(filename), data);
 }
 
+/**
+ * Append an entry to a state array file, capped at maxLength.
+ * Loads, appends, caps, and saves atomically.
+ * @param {string} filename - State file name (without path)
+ * @param {*} entry - Entry to append
+ * @param {number} maxLength - Maximum array length
+ * @param {Array} defaultVal - Default value if file doesn't exist
+ */
+function appendCapped(filename, entry, maxLength, defaultVal = []) {
+    let arr = loadState(filename, defaultVal);
+    arr.push(entry);
+    if (arr.length > maxLength) arr = arr.slice(-maxLength);
+    saveState(filename, arr);
+}
+
 module.exports = {
     ensureStateDir,
     parseHookInput,
@@ -323,6 +355,7 @@ module.exports = {
     getStateFilePath,
     loadState,
     saveState,
+    appendCapped,
     sanitizeJson,
     redactSecrets,
     validateFilePath,
@@ -351,4 +384,6 @@ module.exports = {
     MAX_INPUT_SIZE,
     MAX_SANITIZE_DEPTH,
     GIT_EXEC_OPTIONS,
+    MIN_SHELL_FILES,
+    SESSION_ID_SUFFIX_LEN,
 };
