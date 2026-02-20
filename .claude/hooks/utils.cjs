@@ -91,7 +91,6 @@ const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate l
 
 const MIN_SHELL_FILES = 3;              // session-start.cjs: threshold for shell profile detection
 const SESSION_ID_SUFFIX_LEN = 9;        // session-start.cjs: random suffix length for session IDs
-const LOG_ROTATION_CHECK_INTERVAL = 1;  // logMessage: check rotation once per process (first call)
 
 // Centralized git exec options (eliminates duplication across hooks)
 const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
@@ -387,5 +386,4 @@ module.exports = {
     GIT_EXEC_OPTIONS,
     MIN_SHELL_FILES,
     SESSION_ID_SUFFIX_LEN,
-    LOG_ROTATION_CHECK_INTERVAL,
 };

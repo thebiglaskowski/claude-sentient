@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-02-20
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.7
+> **Version:** 1.3.8
 
 ---
 
@@ -23,7 +23,7 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (814 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (841 total across 6 suites)
 ```
 
 ---
@@ -122,7 +122,7 @@ Testing             [███████████████████�
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 154 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 181 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
@@ -140,7 +140,7 @@ Testing             [███████████████████�
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 154 | 154 ✓ |
+| Hook Tests | 181 | 181 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
@@ -154,6 +154,14 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-20 (Session 26)
+- **v1.3.8 — Code quality, NaN fix, expanded security patterns and test coverage:**
+  - Fixed NaN bug in `agent-synthesizer.cjs` (invalid `startTime` → `NaN` in `durationSeconds`)
+  - Refactored `file-validator.cjs` `main()` (104 lines, CC 14 → ~22 lines, CC ~6) into 5 named sub-functions
+  - Expanded `node -e` block pattern: added `fs.chmod`, `fs.mkdir`, `fs.rename`, `fs.copyFile`, `fs.symlink`, `fs.createWriteStream`
+  - Removed dead `LOG_ROTATION_CHECK_INTERVAL` export from `utils.cjs`
+  - Added 27 new tests (hooks 154→181, total 814→841): 8 block patterns, 7 allow-side, 12 PROTECTED_PATHS
 
 ### 2026-02-20 (Session 25)
 - **v1.3.7 — Security gap closures and expanded test coverage:**

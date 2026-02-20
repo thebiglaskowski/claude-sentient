@@ -88,21 +88,14 @@ function blockPath(toolName, reason, filePath) {
     process.exit(0);
 }
 
-function main() {
-    // Parse input from hook
-    const parsed = parseHookInput();
-    const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
-    const toolName = parsed.tool_name || 'unknown';
-
-    // Validate path for null bytes, control chars, excessive length
-    const pathError = validateFilePath(filePath);
-    if (pathError) {
-        blockPath(toolName, pathError, filePath);
-    }
-
-    // Resolve to absolute path and check for symlinks
-    let resolvedPath = filePath;
+/**
+ * Resolve a file path to its real absolute path, following symlinks.
+ * @param {string} filePath - Path to resolve
+ * @returns {{resolvedPath: string, absolutePath: string, fileExists: boolean}}
+ */
+function resolveToAbsolutePath(filePath) {
     const fileExists = fs.existsSync(filePath);
+    let resolvedPath = filePath;
     if (fileExists) {
         const realPath = resolveRealPath(filePath);
         if (realPath !== path.resolve(filePath)) resolvedPath = realPath;
@@ -112,15 +105,14 @@ function main() {
             resolvedPath = path.join(resolveRealPath(parentDir), path.basename(filePath));
         }
     }
+    return { resolvedPath, absolutePath: path.resolve(resolvedPath), fileExists };
+}
 
-    // Normalize path for comparison
-    const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
-
-    // Ensure path stays within project root
-    const projectRoot = getProjectRoot();
-    const absolutePath = path.resolve(resolvedPath);
-    // Block writes to global Claude Code settings (even though ~/.claude is allowed for state)
-    const claudeHome = path.join(os.homedir(), '.claude');
+/**
+ * Check global Claude Code settings/commands/rules and project boundary.
+ * Calls blockPath (exits) if any boundary is violated.
+ */
+function checkProjectBoundaries(absolutePath, projectRoot, claudeHome, toolName, filePath) {
     const globalSettingsProtected = [
         path.join(claudeHome, 'settings.json'),
         path.join(claudeHome, 'settings.local.json')
@@ -128,39 +120,45 @@ function main() {
     if (globalSettingsProtected.some(p => absolutePath === p)) {
         blockPath(toolName, 'Cannot modify global Claude Code settings', filePath);
     }
-
-    // Block writes to global Claude Code commands and rules (cross-project poisoning vector)
     if (absolutePath.startsWith(path.join(claudeHome, 'commands') + path.sep) ||
         absolutePath.startsWith(path.join(claudeHome, 'rules') + path.sep)) {
         blockPath(toolName, 'Cannot modify global Claude Code commands or rules', filePath);
     }
-
     if (!absolutePath.startsWith(path.resolve(projectRoot) + path.sep) &&
         !absolutePath.startsWith(os.tmpdir() + path.sep) &&
         !absolutePath.startsWith(claudeHome + path.sep)) {
         blockPath(toolName, 'Cannot modify files outside project root', filePath);
     }
+}
 
-    // Protect hook scripts from self-modification
+/**
+ * Protect active hook scripts from self-modification during a session.
+ * Calls blockPath (exits) if the path targets a .cjs file in the hooks directory.
+ */
+function checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath) {
     const hookDir = path.join(projectRoot, '.claude', 'hooks');
     if (resolvedPath.startsWith(hookDir + path.sep) && resolvedPath.endsWith('.cjs')) {
         blockPath(toolName, 'Cannot modify active hook scripts. Edit hooks outside a running session or restart after changes', filePath);
     }
+}
 
-    // Check protected paths
+/**
+ * Check a path against the PROTECTED_PATHS list.
+ * Calls blockPath (exits) on first match.
+ */
+function checkProtectedPaths(normalizedPath, filePath, toolName) {
     for (const pattern of PROTECTED_PATHS) {
         if (pattern.test(normalizedPath) || pattern.test(filePath)) {
             blockPath(toolName, 'Cannot modify protected path', filePath);
         }
     }
+}
 
-    // Warn on writes to ~/.claude/projects/ (auto-memory persistence vector)
-    const claudeProjects = path.join(claudeHome, 'projects');
-    if (absolutePath.startsWith(claudeProjects + path.sep)) {
-        logMessage(`WARNING ${toolName}: Writing to auto-memory directory: ${filePath}`, 'WARNING');
-    }
-
-    // Check sensitive files (warn but allow)
+/**
+ * Collect warning strings for sensitive files and large files.
+ * @returns {string[]} Array of warning messages (may be empty)
+ */
+function collectWarnings(normalizedPath, filePath, fileExists) {
     const warnings = [];
     for (const pattern of SENSITIVE_FILES) {
         if (pattern.test(normalizedPath) || pattern.test(path.basename(filePath))) {
@@ -168,28 +166,50 @@ function main() {
             break;
         }
     }
-
-    // Check if file exists (for overwrites) — reuse earlier existsSync result
     if (fileExists) {
         const stats = fs.statSync(filePath);
         if (stats.size > LARGE_FILE_THRESHOLD) {
             warnings.push('Large file modification');
         }
     }
+    return warnings;
+}
 
-    // Log warnings if any
+function main() {
+    const parsed = parseHookInput();
+    const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
+    const toolName = parsed.tool_name || 'unknown';
+
+    const pathError = validateFilePath(filePath);
+    if (pathError) {
+        blockPath(toolName, pathError, filePath);
+    }
+
+    const { resolvedPath, absolutePath, fileExists } = resolveToAbsolutePath(filePath);
+    const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
+    const projectRoot = getProjectRoot();
+    const claudeHome = path.join(os.homedir(), '.claude');
+
+    checkProjectBoundaries(absolutePath, projectRoot, claudeHome, toolName, filePath);
+    checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath);
+    checkProtectedPaths(normalizedPath, filePath, toolName);
+
+    // Warn on writes to ~/.claude/projects/ (auto-memory persistence vector)
+    const claudeProjects = path.join(claudeHome, 'projects');
+    if (absolutePath.startsWith(claudeProjects + path.sep)) {
+        logMessage(`WARNING ${toolName}: Writing to auto-memory directory: ${filePath}`, 'WARNING');
+    }
+
+    const warnings = collectWarnings(normalizedPath, filePath, fileExists);
     if (warnings.length > 0) {
         logMessage(`${toolName}: ${warnings.join(', ')} - ${filePath}`, 'WARNING');
     }
 
-    // Allow the operation
-    const output = {
+    console.log(JSON.stringify({
         decision: 'allow',
         warnings: warnings.length > 0 ? warnings : undefined,
         path: filePath
-    };
-
-    console.log(JSON.stringify(output));
+    }));
 }
 
 main();

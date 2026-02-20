@@ -25,10 +25,10 @@ function main() {
         startTime: new Date().toISOString()
     };
 
-    // Calculate duration
+    // Calculate duration (guard against invalid startTime producing NaN)
     const startTime = new Date(agentInfo.startTime);
     const endTime = new Date();
-    const durationMs = endTime - startTime;
+    const durationMs = isNaN(startTime.getTime()) ? 0 : (endTime - startTime);
     const durationSec = Math.round(durationMs / 1000);
 
     // Create history entry

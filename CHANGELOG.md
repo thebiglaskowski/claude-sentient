@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.8] — 2026-02-20
+
+### Fixed
+- **Bug: `agent-synthesizer.cjs`** — Guard against invalid `startTime` producing `NaN` in `durationSeconds` (was `endTime - InvalidDate = NaN`)
+
+### Changed
+- **Quality: `file-validator.cjs`** — Refactored monolithic `main()` (104 lines, cyclomatic complexity 14) into 4 named sub-functions: `resolveToAbsolutePath()`, `checkProjectBoundaries()`, `checkHookSelfProtection()`, `checkProtectedPaths()`, `collectWarnings()` — reduces `main()` to ~22 lines / complexity ~6
+- **Security: `bash-validator.cjs`** — Expanded `node -e` block pattern to cover 6 additional dangerous `fs` methods: `fs.chmod`, `fs.mkdir`, `fs.rename`, `fs.copyFile`, `fs.symlink`, `fs.createWriteStream`
+- **Quality: `utils.cjs`** — Removed dead `LOG_ROTATION_CHECK_INTERVAL` export (constant defined as `1` but never read; log rotation uses a `_logRotationChecked` boolean)
+
+### Tests
+- Added 27 new tests (hooks 154→181): 8 bash-validator block patterns, 7 allow-side tests, 12 file-validator `PROTECTED_PATHS` coverage
+- Total: **841 tests** (hooks 154→181)
+- Version bump: 1.3.7 → 1.3.8
+
+---
+
 ## [1.3.7] — 2026-02-20
 
 ### Fixed
