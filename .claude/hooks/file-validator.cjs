@@ -102,7 +102,8 @@ function main() {
 
     // Resolve to absolute path and check for symlinks
     let resolvedPath = filePath;
-    if (fs.existsSync(filePath)) {
+    const fileExists = fs.existsSync(filePath);
+    if (fileExists) {
         const realPath = resolveRealPath(filePath);
         if (realPath !== path.resolve(filePath)) resolvedPath = realPath;
     } else {
@@ -128,6 +129,12 @@ function main() {
         blockPath(toolName, 'Cannot modify global Claude Code settings', filePath);
     }
 
+    // Block writes to global Claude Code commands and rules (cross-project poisoning vector)
+    if (absolutePath.startsWith(path.join(claudeHome, 'commands') + path.sep) ||
+        absolutePath.startsWith(path.join(claudeHome, 'rules') + path.sep)) {
+        blockPath(toolName, 'Cannot modify global Claude Code commands or rules', filePath);
+    }
+
     if (!absolutePath.startsWith(path.resolve(projectRoot) + path.sep) &&
         !absolutePath.startsWith(os.tmpdir() + path.sep) &&
         !absolutePath.startsWith(claudeHome + path.sep)) {
@@ -137,12 +144,7 @@ function main() {
     // Protect hook scripts from self-modification
     const hookDir = path.join(projectRoot, '.claude', 'hooks');
     if (resolvedPath.startsWith(hookDir + path.sep) && resolvedPath.endsWith('.cjs')) {
-        console.log(JSON.stringify({
-            decision: 'block',
-            reason: `Cannot modify active hook scripts: ${filePath}. Edit hooks outside a running session or restart after changes.`
-        }));
-        logMessage(`BLOCKED ${toolName} on hook script: ${filePath}`, 'BLOCKED');
-        process.exit(0);
+        blockPath(toolName, 'Cannot modify active hook scripts. Edit hooks outside a running session or restart after changes', filePath);
     }
 
     // Check protected paths
@@ -167,8 +169,8 @@ function main() {
         }
     }
 
-    // Check if file exists (for overwrites)
-    if (fs.existsSync(filePath)) {
+    // Check if file exists (for overwrites) — reuse earlier existsSync result
+    if (fileExists) {
         const stats = fs.statSync(filePath);
         if (stats.size > LARGE_FILE_THRESHOLD) {
             warnings.push('Large file modification');

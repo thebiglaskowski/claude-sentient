@@ -6,6 +6,56 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.6] — 2026-02-20
+
+### Fixed
+- **Performance: `utils.cjs`** — Log rotation guard now checks once per process (boolean flag) instead of never firing (`% 100` counter reset to 0 per process)
+- **Quality: `context-injector.cjs`, `post-edit.cjs`** — Fixed zero-indentation in `main()` body (inconsistent with all other hooks)
+- **Performance: `file-validator.cjs`** — Eliminated duplicate `fs.existsSync(filePath)` call; reuse stored result
+- **Quality: `file-validator.cjs`** — Hook self-protection block now uses `blockPath()` helper (was inline duplicate)
+- **Deprecated API: `session-start.cjs`** — Replaced `String.prototype.substr` with `.slice()` (ES2015 deprecation)
+- **Docs** — Fixed stale test counts, version numbers, and CHANGELOG gaps
+
+### Added
+- **Security: `file-validator.cjs`** — Block writes to `~/.claude/commands/` and `~/.claude/rules/` (cross-project poisoning prevention)
+- **Security: `bash-validator.cjs`** — Iterative `$()` stripping, `eval` blocking, broader `sudo` patterns, multi-word quote normalization
+- **Security: `file-validator.cjs`** — Protected `.bashrc`, `.zshrc`, `.bash_profile`, `.profile`, `.gitconfig`, `.aws/config`
+- **Quality: `utils.cjs`** — `appendCapped()` DRY helper, `LOG_ROTATION_CHECK_INTERVAL` constant
+- **Performance: `gate-monitor.cjs`** — Early exit before disk I/O for non-gate commands
+- **Performance: `agent-tracker.cjs`** — `KNOWN_ROLES` fast-path skips YAML scan (includes `general-purpose`)
+- **Performance: `utils.cjs`** — `getProjectRoot()` fast-path reads `project_root` from `session_start.json`
+- **Tests** — 22 new tests: redactSecrets (AWS/JWT/Stripe/DB), session-start not-a-repo, rules content-parity, gate-monitor smoke
+
+### Changed
+- All 11 top-level hooks wrapped in `main()` for consistent structure
+- `appendCapped()` adopted in `context-injector.cjs` and `agent-synthesizer.cjs`
+- Named constants `MIN_SHELL_FILES`, `SESSION_ID_SUFFIX_LEN` replace magic numbers
+- Removed `pattern` field from bash-validator block response (no longer leaks regex)
+- Extracted `resolveRealPath()` and `blockPath()` helpers in `file-validator.cjs`
+
+### Tests
+- Total: **799 tests** (hooks 125→139, integration 39→63)
+- Version bump: 1.3.4 → 1.3.6
+
+---
+
+## [1.3.5] — 2026-02-20
+
+### Fixed
+- **Security: `utils.cjs`** — `sanitizeJson()` depth truncation returns `null` (not raw object) at `MAX_SANITIZE_DEPTH`
+- **Security: `bash-validator.cjs`** — `normalizeCommand()` strips `$(...)` wrapping (was only stripping `${}`/backticks)
+- **Reliability: `teammate-idle.cjs`, `task-completed.cjs`** — Null-guards before first field access; identical `team-state.json` defaults
+
+### Added
+- **Quality: `utils.cjs`** — `pruneDirectory()` shared utility for DRY archive pruning
+- **Quality: `utils.cjs`** — Centralized named constants for all hooks (27 total)
+
+### Tests
+- Total: **777 tests** (hooks 125→134)
+- Version bump: 1.3.4 → 1.3.5
+
+---
+
 ## [1.3.4] — 2026-02-19
 
 ### Fixed

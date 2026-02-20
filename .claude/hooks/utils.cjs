@@ -89,8 +89,9 @@ const MAX_SANITIZE_DEPTH = 50;        // sanitizeJson: max recursion depth
 const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
 const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate log messages
 
-const MIN_SHELL_FILES = 3;          // session-start.cjs: threshold for shell profile detection
-const SESSION_ID_SUFFIX_LEN = 9;    // session-start.cjs: random suffix length for session IDs
+const MIN_SHELL_FILES = 3;              // session-start.cjs: threshold for shell profile detection
+const SESSION_ID_SUFFIX_LEN = 9;        // session-start.cjs: random suffix length for session IDs
+const LOG_ROTATION_CHECK_INTERVAL = 1;  // logMessage: check rotation once per process (first call)
 
 // Centralized git exec options (eliminates duplication across hooks)
 const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
@@ -257,7 +258,7 @@ function validateFilePath(filePath) {
  * @param {string} message - Message to log
  * @param {string} level - Log level (INFO, WARNING, ERROR, BLOCKED)
  */
-let _logCallCount = 0;
+let _logRotationChecked = false;
 function logMessage(message, level = 'INFO') {
     const logFile = path.join(getProjectRoot(), '.claude', 'session.log');
     const timestamp = new Date().toISOString().slice(0, 19);
@@ -265,9 +266,9 @@ function logMessage(message, level = 'INFO') {
     const safeMessage = redactSecrets(message);
     const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
-        // Rotate log if it exceeds size limit (check every 100 calls to amortize statSync cost)
-        _logCallCount++;
-        if (_logCallCount % 100 === 0) {
+        // Rotate log if it exceeds size limit (once per process invocation)
+        if (!_logRotationChecked) {
+            _logRotationChecked = true;
             try {
                 const stats = fs.statSync(logFile);
                 if (stats.size > MAX_LOG_SIZE) {
@@ -386,4 +387,5 @@ module.exports = {
     GIT_EXEC_OPTIONS,
     MIN_SHELL_FILES,
     SESSION_ID_SUFFIX_LEN,
+    LOG_ROTATION_CHECK_INTERVAL,
 };

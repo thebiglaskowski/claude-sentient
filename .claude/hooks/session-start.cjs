@@ -122,7 +122,7 @@ function main() {
     }
 
     // Generate session ID
-    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, SESSION_ID_SUFFIX_LEN)}`;
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 2 + SESSION_ID_SUFFIX_LEN)}`;
 
     // Write session start info
     const sessionInfo = {

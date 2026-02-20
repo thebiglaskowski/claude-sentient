@@ -98,7 +98,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 761 | Profiles (242), agents (108), hooks (125), commands (81), schemas (166), integration (39) |
+| 🧪 Tests | 799 | Profiles (242), agents (108), hooks (139), commands (81), schemas (166), integration (63) |
 | 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
 
 ---
@@ -468,7 +468,7 @@ node profiles/__tests__/test-profiles.js
 # Agent validation (108 tests) — YAML schema, roles, expertise, spawn_prompts
 node agents/__tests__/test-agents.js
 
-# Hook tests (101 tests) — security, I/O contracts, Agent Teams, context predictions
+# Hook tests (139 tests) — security, I/O contracts, Agent Teams, context predictions
 node .claude/hooks/__tests__/test-hooks.js
 
 # Command validation (81 tests) — frontmatter, structure, auto-fix, deploy, skill chaining
@@ -477,7 +477,7 @@ node .claude/commands/__tests__/test-commands.js
 # Schema validation (166 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
 node schemas/__tests__/test-schemas.js
 
-# Integration tests (29 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity
+# Integration tests (63 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity
 node integration/__tests__/test-integration.js
 ```
 

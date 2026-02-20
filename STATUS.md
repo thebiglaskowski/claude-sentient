@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-19
+> **Last Updated:** 2026-02-20
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.4
+> **Version:** 1.3.6
 
 ---
 
@@ -23,7 +23,7 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (761 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (799 total across 6 suites)
 ```
 
 ---
@@ -122,12 +122,12 @@ Testing             [███████████████████�
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 125 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 139 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
 | Schema Tests | `schemas/__tests__/` | ✓ 166 tests |
-| Integration Tests | `integration/__tests__/` | ✓ 39 tests |
+| Integration Tests | `integration/__tests__/` | ✓ 63 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 
 ---
@@ -140,7 +140,7 @@ Testing             [███████████████████�
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 125 | 125 ✓ |
+| Hook Tests | 139 | 139 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
@@ -154,6 +154,16 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-20 (Session 24)
+- **v1.3.6 — Security hardening, DRY helpers, performance, 22 new tests:**
+  - Security: iterative $() strip, shell-exec blocking, broader sudo, multi-word quotes in bash-validator
+  - Security: protected .bashrc/.zshrc/.gitconfig/.aws/config, ~/.claude/commands/ and ~/.claude/rules/
+  - Quality: appendCapped() DRY helper, LOG_ROTATION_CHECK_INTERVAL, fixed indentation
+  - Performance: gate-monitor early exit, agent-tracker KNOWN_ROLES fast-path, getProjectRoot() cache
+  - All 11 hooks wrapped in main(), blockPath() adopted for hook self-protection
+  - Fixed log rotation guard (boolean flag), substr deprecation, duplicate existsSync
+  - 799 total tests across 6 suites (hooks 125→139, integration 39→63)
 
 ### 2026-02-19 (Session 22)
 - **v1.3.4 — Assessment remediation: 16 bugs, security fixes, architecture improvements:**
