@@ -33,105 +33,91 @@ function parseYamlListSections(content, sectionNames) {
     return result;
 }
 
+/**
+ * Create an agent tracking entry.
+ * @param {string} agentId - Unique agent identifier
+ * @param {string} agentType - Agent subtype
+ * @param {string} description - Agent task description
+ * @param {string} model - Model being used
+ * @param {boolean} runInBackground - Whether agent runs in background
+ * @returns {Object} Agent tracking entry
+ */
+function buildAgentEntry(agentId, agentType, description, model, runInBackground) {
+    return {
+        id: agentId, type: agentType, description, model,
+        runInBackground, startTime: new Date().toISOString(), status: 'running'
+    };
+}
+
+/**
+ * Detect agent role by matching against YAML definitions in agents/.
+ * @param {string} agentType - Agent subtype
+ * @param {string} description - Agent task description
+ * @returns {{agentRole: string|null, rulesLoaded: string[], expertise: string[]}}
+ */
+function detectAgentRole(agentType, description) {
+    if (KNOWN_ROLES.includes(agentType)) {
+        return { agentRole: agentType, rulesLoaded: [], expertise: [] };
+    }
+    try {
+        const agentsDir = path.resolve(__dirname, '..', '..', 'agents');
+        if (!fs.existsSync(agentsDir)) return { agentRole: null, rulesLoaded: [], expertise: [] };
+
+        const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
+        const searchText = (description + ' ' + agentType).toLowerCase();
+        for (const file of agentFiles) {
+            const roleName = file.replace('.yaml', '');
+            if (!searchText.includes(roleName)) continue;
+            const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
+            const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
+            return { agentRole: roleName, rulesLoaded: sections.rules_to_load, expertise: sections.expertise };
+        }
+    } catch (e) {
+        logMessage(`agent-tracker: error: ${e.message}`, 'DEBUG');
+    }
+    return { agentRole: null, rulesLoaded: [], expertise: [] };
+}
+
+/**
+ * Prune oldest agents if the map exceeds the cap.
+ * @param {Object} activeAgents - Map of agent ID to agent data
+ */
+function pruneAgents(activeAgents) {
+    const agentKeys = Object.keys(activeAgents);
+    if (agentKeys.length <= MAX_ACTIVE_AGENTS) return;
+    const sorted = agentKeys.sort((a, b) => {
+        const ta = activeAgents[a].startTime || '';
+        const tb = activeAgents[b].startTime || '';
+        return ta.localeCompare(tb);
+    });
+    for (let i = 0; i < sorted.length - MAX_ACTIVE_AGENTS; i++) {
+        delete activeAgents[sorted[i]];
+    }
+}
+
 function main() {
-    // Parse input from hook
     const parsed = parseHookInput();
     const agentId = parsed.agent_id || parsed.task_id || `agent-${Date.now()}`;
     const agentType = parsed.tool_input?.subagent_type || 'general-purpose';
     const description = parsed.tool_input?.description || '';
     const model = parsed.tool_input?.model || 'sonnet';
-    const runInBackground = parsed.tool_input?.run_in_background || false;
 
-    // Load active agents
     const activeAgents = loadState('active_agents.json', {});
+    activeAgents[agentId] = buildAgentEntry(agentId, agentType, description, model,
+        parsed.tool_input?.run_in_background || false);
 
-    // Track this agent
-    activeAgents[agentId] = {
-        id: agentId,
-        type: agentType,
-        description,
-        model,
-        runInBackground,
-        startTime: new Date().toISOString(),
-        status: 'running'
-    };
-
-    // Detect if agent matches a known agent definition from agents/*.yaml
-    let agentRole = null;
-    let rulesLoaded = [];
-    let expertise = [];
-
-    // Fast path: skip YAML scan if agentType is already a known role
-    if (KNOWN_ROLES.includes(agentType)) {
-        agentRole = agentType;
-    }
-
-    if (!agentRole) {
-        try {
-            const agentsDir = path.resolve(__dirname, '..', '..', 'agents');
-            if (!fs.existsSync(agentsDir)) {
-                logMessage('agent-tracker: agents/ directory not found, skipping role detection', 'DEBUG');
-            } else {
-                const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
-                const searchText = (description + ' ' + agentType).toLowerCase();
-
-                for (const file of agentFiles) {
-                    const roleName = file.replace('.yaml', '');
-                    if (!searchText.includes(roleName)) continue;
-
-                    agentRole = roleName;
-                    const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-                    const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
-                    rulesLoaded = sections.rules_to_load;
-                    expertise = sections.expertise;
-                    break;
-                }
-            }
-        } catch (e) {
-            logMessage(`agent-tracker: error: ${e.message}`, 'DEBUG');
-        }
-    }
-
-    // Add agent role info to tracked data
+    const { agentRole, rulesLoaded, expertise } = detectAgentRole(agentType, description);
     if (agentRole) {
-        activeAgents[agentId].agentRole = agentRole;
-        activeAgents[agentId].rulesLoaded = rulesLoaded;
-        activeAgents[agentId].expertise = expertise;
+        Object.assign(activeAgents[agentId], { agentRole, rulesLoaded, expertise });
     }
 
-    // Prune oldest agents if exceeding cap
-    const agentKeys = Object.keys(activeAgents);
-    if (agentKeys.length > MAX_ACTIVE_AGENTS) {
-        const sorted = agentKeys.sort((a, b) => {
-            const ta = activeAgents[a].startTime || '';
-            const tb = activeAgents[b].startTime || '';
-            return ta.localeCompare(tb);
-        });
-        for (let i = 0; i < sorted.length - MAX_ACTIVE_AGENTS; i++) {
-            delete activeAgents[sorted[i]];
-        }
-    }
-
+    pruneAgents(activeAgents);
     saveState('active_agents.json', activeAgents);
 
-    // Log the agent start
     logMessage(`SubagentStart id=${agentId} type=${agentType} model=${model}${agentRole ? ` role=${agentRole}` : ''}`);
 
-    // Output
-    const output = {
-        tracked: true,
-        agentId,
-        agentType,
-        model,
-        activeCount: Object.keys(activeAgents).length
-    };
-
-    if (agentRole) {
-        output.agentRole = agentRole;
-        output.rulesLoaded = rulesLoaded;
-        output.expertise = expertise;
-    }
-
+    const output = { tracked: true, agentId, agentType, model, activeCount: Object.keys(activeAgents).length };
+    if (agentRole) Object.assign(output, { agentRole, rulesLoaded, expertise });
     console.log(JSON.stringify(output));
 }
 

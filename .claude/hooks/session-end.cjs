@@ -10,68 +10,64 @@ const fs = require('fs');
 const path = require('path');
 const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory, MS_PER_MINUTE } = require('./utils.cjs');
 
+/**
+ * Calculate session duration in minutes.
+ * @param {Object} sessionInfo - Session start info with .timestamp
+ * @returns {{endTime: Date, durationMin: number}}
+ */
+function calculateSessionDuration(sessionInfo) {
+    const startTime = sessionInfo.timestamp ? new Date(sessionInfo.timestamp) : new Date();
+    const endTime = new Date();
+    return { endTime, durationMin: Math.round((endTime - startTime) / MS_PER_MINUTE) };
+}
+
+/**
+ * Create session archive object from session info and changes.
+ * @param {Object} sessionInfo - Session start info
+ * @param {Date} endTime - Session end timestamp
+ * @param {number} durationMin - Duration in minutes
+ * @param {Array} fileChanges - Tracked file changes
+ * @returns {Object} Archive record
+ */
+function createSessionArchive(sessionInfo, endTime, durationMin, fileChanges) {
+    return {
+        ...sessionInfo, endTimestamp: endTime.toISOString(),
+        durationMinutes: durationMin, filesChanged: fileChanges.length, filesList: fileChanges
+    };
+}
+
+/**
+ * Remove transient session state files.
+ */
+function cleanupSessionFiles() {
+    for (const file of ['session_start.json', 'file_changes.json']) {
+        const p = getStateFilePath(file);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+    }
+}
+
 function main() {
     const stateDir = path.join(getProjectRoot(), '.claude', 'state');
     const archiveDir = path.join(stateDir, 'archive');
+    if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
 
-    // Ensure archive directory exists
-    if (!fs.existsSync(archiveDir)) {
-        fs.mkdirSync(archiveDir, { recursive: true });
-    }
-
-    // Read session start info
     const sessionInfo = loadJsonFile(
         getStateFilePath('session_start.json'),
         { id: 'unknown', timestamp: new Date().toISOString() }
     );
-
-    // Calculate session duration
-    const startTime = sessionInfo.timestamp ? new Date(sessionInfo.timestamp) : new Date();
-    const endTime = new Date();
-    const durationMs = endTime - startTime;
-    const durationMin = Math.round(durationMs / MS_PER_MINUTE);
-
-    // Read file changes if tracked
     const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
+    const { endTime, durationMin } = calculateSessionDuration(sessionInfo);
 
-    // Create session archive
-    const sessionEnd = {
-        ...sessionInfo,
-        endTimestamp: endTime.toISOString(),
-        durationMinutes: durationMin,
-        filesChanged: fileChanges.length,
-        filesList: fileChanges
-    };
-
-    // Archive the session
     const archiveFile = path.join(archiveDir, `${sessionInfo.id || 'session'}.json`);
-    saveJsonFile(archiveFile, sessionEnd);
-
-    // Prune old archives if exceeding cap
+    saveJsonFile(archiveFile, createSessionArchive(sessionInfo, endTime, durationMin, fileChanges));
     pruneDirectory(archiveDir, MAX_ARCHIVES);
+    cleanupSessionFiles();
 
-    // Clean up current session files
-    const sessionFile = getStateFilePath('session_start.json');
-    const changesFile = getStateFilePath('file_changes.json');
-    if (fs.existsSync(sessionFile)) {
-        fs.unlinkSync(sessionFile);
-    }
-    if (fs.existsSync(changesFile)) {
-        fs.unlinkSync(changesFile);
-    }
-
-    // Log the session end
     logMessage(`SessionEnd id=${sessionInfo.id || 'unknown'} duration=${durationMin}min files=${fileChanges.length}`);
-
-    // Output summary
-    const output = {
-        sessionId: sessionInfo.id,
-        duration: `${durationMin} minutes`,
-        filesChanged: fileChanges.length,
-        archived: archiveFile
-    };
-
-    console.log(JSON.stringify(output));
+    console.log(JSON.stringify({
+        sessionId: sessionInfo.id, duration: `${durationMin} minutes`,
+        filesChanged: fileChanges.length, archived: archiveFile
+    }));
 }
 
 main();

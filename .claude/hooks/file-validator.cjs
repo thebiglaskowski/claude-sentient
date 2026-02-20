@@ -11,6 +11,9 @@ const os = require('os');
 const path = require('path');
 const { parseHookInput, logMessage, getProjectRoot, validateFilePath, LARGE_FILE_THRESHOLD } = require('./utils.cjs');
 
+// Cached home directory (resolved once per process)
+const _cachedHomeDir = os.homedir();
+
 // Protected paths that should never be modified
 const PROTECTED_PATHS = [
     // System files
@@ -188,7 +191,7 @@ function main() {
     const { resolvedPath, absolutePath, fileExists } = resolveToAbsolutePath(filePath);
     const normalizedPath = path.normalize(resolvedPath).replace(/\\/g, '/');
     const projectRoot = getProjectRoot();
-    const claudeHome = path.join(os.homedir(), '.claude');
+    const claudeHome = path.join(_cachedHomeDir, '.claude');
 
     checkProjectBoundaries(absolutePath, projectRoot, claudeHome, toolName, filePath);
     checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath);

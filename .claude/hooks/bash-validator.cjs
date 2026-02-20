@@ -11,7 +11,6 @@ const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH, MAX_INPUT_SIZE } 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
     // Destructive file operations — block any rm with combined -r and -f flags regardless of path
-    // Previously only blocked absolute/special paths, allowing "rm -rf named-dir" or "../traversal"
     { pattern: /\brm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)/i, reason: 'Recursive force delete (rm -rf)' },
 
     // Disk operations
@@ -37,9 +36,10 @@ const DANGEROUS_PATTERNS = [
     // Supply-chain attacks — piping remote scripts to interpreters
     { pattern: /curl.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping curl to interpreter' },
     { pattern: /wget.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping wget to interpreter' },
-    // Supply-chain bypass via command substitution: bash -c "$(curl URL)" — $() normalizer strips
-    // the substitution, destroying the pipe context. This pattern fires on rawCommand before normalization.
+    // Supply-chain bypass via command substitution: bash -c "$(curl URL)"
     { pattern: /(?:bash|sh|zsh|fish)\b.*\$\((?:curl|wget)\s/, reason: 'Shell executing curl/wget via command substitution' },
+    // Supply-chain bypass via process substitution: bash <(curl URL)
+    { pattern: /(?:bash|sh|zsh|fish)\s+<\((?:curl|wget)\s/, reason: 'Shell executing curl/wget via process substitution' },
 
     // Encoded command injection
     { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' },
@@ -49,7 +49,7 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bfind\s+\/\s+.*-exec\s+rm\b/, reason: 'find with -exec rm from root' },
 
     // Scripting language one-liners (obfuscation risk)
-    { pattern: /\bpython[23]?\s+-c\s+['"].*(?:import\s+os|subprocess|eval|exec)/, reason: 'Python one-liner with dangerous imports' },
+    { pattern: /\bpython[23]?\s+-c\s+['"].*(?:import\s+os|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports' },
     { pattern: /\bperl\s+-e\s+['"].*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
     { pattern: /\bruby\s+-e\s+['"].*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
     { pattern: /\bnode\s+-e\s+['"].*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },
@@ -89,96 +89,90 @@ const WARNING_PATTERNS = [
  */
 function normalizeCommand(cmd) {
     let normalized = cmd;
-
-    // Collapse whitespace (prevents spacing-based bypasses)
     normalized = normalized.replace(/\s+/g, ' ').trim();
-
-    // Strip variable substitution patterns: ${var}, $var, $(cmd)
-    // e.g., ${rm} -rf / → rm -rf /
     normalized = normalized.replace(/\$\{(\w+)\}/g, '$1');
     normalized = normalized.replace(/\$(\w+)/g, '$1');
-
-    // Strip full binary paths: /usr/bin/rm → rm, /bin/bash → bash
     normalized = normalized.replace(/(?:\/usr\/local\/s?bin|\/usr\/s?bin|\/s?bin)\/(\w+)/g, '$1');
-
-    // Strip common quoting tricks: 'rm' → rm, "sudo bash" → sudo bash
     normalized = normalized.replace(/["']([^"']+)["']/g, '$1');
-
-    // Normalize backslash continuations: r\m → rm
     normalized = normalized.replace(/\\(?=\w)/g, '');
-
-    // Strip backtick command substitution: `rm -rf /` → rm -rf /
     normalized = normalized.replace(/`([^`]*)`/g, '$1');
-
-    // Strip $(...) command substitution iteratively: $($(rm -rf /)) → rm -rf /
     let _iterCount = 0;
     let prev;
     do { prev = normalized; normalized = normalized.replace(/\$\(([^)]*)\)/g, '$1'); }
     while (normalized !== prev && ++_iterCount < 10);
-
     return normalized;
 }
 
-function main() {
-    // Fail closed: if HOOK_INPUT is too large to parse safely, block rather than allow.
-    // parseHookInput() silently returns {} on oversized input, making bash-validator see an empty
-    // command and allow it — a bypass vector for oversized payload attacks.
+/**
+ * Check for oversized HOOK_INPUT and block if too large.
+ * @returns {boolean} true if input was blocked (caller should exit)
+ */
+function rejectOversizedInput() {
     const hookInputStr = process.env.HOOK_INPUT;
     if (hookInputStr && hookInputStr.length > MAX_INPUT_SIZE) {
-        const output = {
+        console.log(JSON.stringify({
             decision: 'block',
             reason: 'BLOCKED: Hook input too large to process safely',
             command: '[oversized input]'
-        };
-        console.log(JSON.stringify(output));
+        }));
         logMessage('BLOCKED: Oversized hook input rejected (potential bypass attempt)', 'BLOCKED');
-        process.exit(0);
+        return true;
     }
+    return false;
+}
 
-    // Parse input from hook
-    const parsed = parseHookInput();
-    const rawCommand = parsed.tool_input?.command || parsed.command || '';
-
-    // Normalize command before checking patterns
-    const command = normalizeCommand(rawCommand);
-
-    // Check for dangerous patterns (test both raw and normalized)
+/**
+ * Test command against DANGEROUS_PATTERNS and block on first match.
+ * @param {string} command - Normalized command
+ * @param {string} rawCommand - Original command (for pre-normalization patterns)
+ * @returns {boolean} true if command was blocked
+ */
+function blockIfDangerous(command, rawCommand) {
     for (const { pattern, reason } of DANGEROUS_PATTERNS) {
         if (pattern.test(command) || pattern.test(rawCommand)) {
-            const output = {
+            console.log(JSON.stringify({
                 decision: 'block',
                 reason: `BLOCKED: ${reason}`,
                 command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH)
-            };
-            console.log(JSON.stringify(output));
-
-            // Log the blocked command
+            }));
             logMessage(`BLOCKED dangerous command: ${reason}`, 'BLOCKED');
-
-            process.exit(0);
+            return true;
         }
     }
+    return false;
+}
 
-    // Check for warning patterns
+/**
+ * Collect warnings from WARNING_PATTERNS for a command.
+ * @param {string} command - Normalized command
+ * @returns {string[]} Array of warning reason strings
+ */
+function collectWarnings(command) {
     const warnings = [];
     for (const { pattern, reason } of WARNING_PATTERNS) {
         if (pattern.test(command)) {
             warnings.push(reason);
         }
     }
+    return warnings;
+}
 
-    // Log warnings if any
-    if (warnings.length > 0) {
-        logMessage(warnings.join(', '), 'WARNING');
-    }
+function main() {
+    if (rejectOversizedInput()) { process.exit(0); }
 
-    // Allow the command
-    const output = {
+    const parsed = parseHookInput();
+    const rawCommand = parsed.tool_input?.command || parsed.command || '';
+    const command = normalizeCommand(rawCommand);
+
+    if (blockIfDangerous(command, rawCommand)) { process.exit(0); }
+
+    const warnings = collectWarnings(command);
+    if (warnings.length > 0) { logMessage(warnings.join(', '), 'WARNING'); }
+
+    console.log(JSON.stringify({
         decision: 'allow',
         warnings: warnings.length > 0 ? warnings : undefined
-    };
-
-    console.log(JSON.stringify(output));
+    }));
 }
 
 main();

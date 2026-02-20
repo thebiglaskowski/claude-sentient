@@ -6,63 +6,70 @@
  * Synthesizes results and updates cost tracking.
  */
 
-const { parseHookInput, loadState, saveState, appendCapped, logMessage, MAX_RESULT_LENGTH, MAX_AGENT_HISTORY } = require('./utils.cjs');
+const { parseHookInput, loadState, saveState, appendCapped, logMessage, MAX_RESULT_LENGTH, MAX_AGENT_HISTORY, MS_PER_SECOND } = require('./utils.cjs');
 
-function main() {
-    // Parse input from hook
-    const parsed = parseHookInput();
-    const agentId = parsed.agent_id || parsed.task_id || '';
-    const success = parsed.success !== false;
-    const resultSummary = parsed.result_summary || parsed.output?.substring(0, MAX_RESULT_LENGTH) || '';
-
-    // Load active agents
-    const activeAgents = loadState('active_agents.json', {});
-
-    // Get agent info
-    const agentInfo = activeAgents[agentId] || {
-        id: agentId,
-        type: 'unknown',
-        startTime: new Date().toISOString()
-    };
-
-    // Calculate duration (guard against invalid startTime producing NaN)
-    const startTime = new Date(agentInfo.startTime);
-    const endTime = new Date();
+/**
+ * Calculate agent duration in seconds, guarding against invalid startTime.
+ * @param {string} startTimeStr - ISO timestamp string
+ * @param {Date} endTime - End time
+ * @returns {number} Duration in seconds (0 if startTime is invalid)
+ */
+function calculateDurationSec(startTimeStr, endTime) {
+    const startTime = new Date(startTimeStr);
     const durationMs = isNaN(startTime.getTime()) ? 0 : (endTime - startTime);
-    const durationSec = Math.round(durationMs / 1000);
+    return Math.round(durationMs / MS_PER_SECOND);
+}
 
-    // Create history entry
-    const historyEntry = {
+/**
+ * Create a history entry for a completed agent.
+ * @param {Object} agentInfo - Agent metadata from active_agents.json
+ * @param {Date} endTime - Completion timestamp
+ * @param {number} durationSec - Duration in seconds
+ * @param {boolean} success - Whether the agent succeeded
+ * @param {string} resultSummary - Summary of results (truncated)
+ * @returns {Object} History entry
+ */
+function createHistoryEntry(agentInfo, endTime, durationSec, success, resultSummary) {
+    return {
         ...agentInfo,
         endTime: endTime.toISOString(),
         durationSeconds: durationSec,
         success,
         resultSummary: resultSummary.substring(0, MAX_RESULT_LENGTH)
     };
+}
 
-    // Append to history (capped at MAX_AGENT_HISTORY)
-    appendCapped('agent_history.json', historyEntry, MAX_AGENT_HISTORY);
+function main() {
+    const parsed = parseHookInput();
+    const agentId = parsed.agent_id || parsed.task_id || '';
+    const success = parsed.success !== false;
+    const resultSummary = parsed.result_summary || parsed.output?.substring(0, MAX_RESULT_LENGTH) || '';
 
-    // Remove from active agents
+    const activeAgents = loadState('active_agents.json', {});
+    const agentInfo = activeAgents[agentId] || {
+        id: agentId, type: 'unknown', startTime: new Date().toISOString()
+    };
+
+    const endTime = new Date();
+    const durationSec = calculateDurationSec(agentInfo.startTime, endTime);
+
+    appendCapped('agent_history.json',
+        createHistoryEntry(agentInfo, endTime, durationSec, success, resultSummary),
+        MAX_AGENT_HISTORY);
+
     if (activeAgents[agentId]) {
         delete activeAgents[agentId];
         saveState('active_agents.json', activeAgents);
     }
 
-    // Log the agent completion
     const status = success ? 'completed' : 'failed';
     logMessage(`SubagentStop id=${agentId} status=${status} duration=${durationSec}s`);
 
-    // Output synthesis
-    const output = {
-        agentId,
-        type: agentInfo.type,
-        success,
+    console.log(JSON.stringify({
+        agentId, type: agentInfo.type, success,
         durationSeconds: durationSec,
         remainingAgents: Object.keys(activeAgents).length
-    };
-
-    console.log(JSON.stringify(output));
+    }));
 }
 
 main();

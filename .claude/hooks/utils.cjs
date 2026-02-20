@@ -83,7 +83,8 @@ const MAX_LOGGED_COMMAND_LENGTH = 500; // bash-validator.cjs: truncation for log
 const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in compact summary
 const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
 const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
-const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length
+const MS_PER_SECOND = 1000;           // agent-synthesizer.cjs: milliseconds-to-seconds conversion
+const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length (internal only)
 const MAX_INPUT_SIZE = 1048576;       // parseHookInput: max HOOK_INPUT size (1MB)
 const MAX_SANITIZE_DEPTH = 50;        // sanitizeJson: max recursion depth
 const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
@@ -378,7 +379,7 @@ module.exports = {
     MAX_COMPACT_FILE_HISTORY,
     MAX_COMPACT_DECISION_HISTORY,
     MS_PER_MINUTE,
-    MAX_PATH_LENGTH,
+    MS_PER_SECOND,
     MAX_GATE_HISTORY,
     MAX_GATE_LOG_TRUNCATE,
     MAX_INPUT_SIZE,

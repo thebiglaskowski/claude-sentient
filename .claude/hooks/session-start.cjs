@@ -100,60 +100,45 @@ function detectProfile() {
         || 'general';
 }
 
-function main() {
-    // Ensure state directory exists
-    ensureStateDir();
-
-    // Get git branch and status (2 subprocess calls instead of 4)
-    let gitBranch = 'not-a-repo';
-    let gitStatus = 'unknown';
+/**
+ * Get git branch name and working tree status.
+ * @returns {{gitBranch: string, gitStatus: string}}
+ */
+function getGitInfo() {
     try {
-        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', GIT_EXEC_OPTIONS).trim();
+        const gitBranch = execSync('git rev-parse --abbrev-ref HEAD', GIT_EXEC_OPTIONS).trim();
         const status = execSync('git status --porcelain', GIT_EXEC_OPTIONS).trim();
-        gitStatus = status ? 'dirty' : 'clean';
+        return { gitBranch, gitStatus: status ? 'dirty' : 'clean' };
     } catch (e) {
-        // Check if we're in a git repo with no commits
         try {
             execSync('git rev-parse --git-dir', GIT_EXEC_OPTIONS);
-            gitBranch = 'no-commits';
+            return { gitBranch: 'no-commits', gitStatus: 'unknown' };
         } catch (_) {
-            // Not a git repo
+            return { gitBranch: 'not-a-repo', gitStatus: 'unknown' };
         }
     }
+}
 
-    // Generate session ID
+function main() {
+    ensureStateDir();
+    const { gitBranch, gitStatus } = getGitInfo();
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 2 + SESSION_ID_SUFFIX_LEN)}`;
 
-    // Write session start info
+    const profile = detectProfile();
+
     const sessionInfo = {
-        id: sessionId,
-        timestamp: new Date().toISOString(),
-        cwd: process.cwd(),
-        project_root: getProjectRoot(),
-        gitBranch,
-        gitStatus,
-        profile: detectProfile(),
-        platform: process.platform,
-        nodeVersion: process.version
+        id: sessionId, timestamp: new Date().toISOString(),
+        cwd: process.cwd(), project_root: getProjectRoot(),
+        gitBranch, gitStatus, profile,
+        platform: process.platform, nodeVersion: process.version
     };
 
     saveState('session_start.json', sessionInfo);
-
-    // Log session start
-    logMessage(`SessionStart id=${sessionId} branch=${gitBranch} profile=${sessionInfo.profile}`);
-
-    // Output for hook system (optional context injection)
-    const output = {
+    logMessage(`SessionStart id=${sessionId} branch=${gitBranch} profile=${profile}`);
+    console.log(JSON.stringify({
         continue: true,
-        context: {
-            sessionId,
-            profile: sessionInfo.profile,
-            gitBranch,
-            gitStatus
-        }
-    };
-
-    console.log(JSON.stringify(output));
+        context: { sessionId, profile, gitBranch, gitStatus }
+    }));
 }
 
 main();
