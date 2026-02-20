@@ -84,6 +84,8 @@ Hooks read/write to `.claude/state/`:
 | `agent_history.json` | Completed subagent history |
 | `prompts.json` | Recent prompt metadata |
 | `last_verification.json` | Last DoD verification |
+| `gate_history.json` | Quality gate exit codes and durations |
+| `compact-context.json` | State snapshot before context compaction |
 | `team-state.json` | Agent Teams: teammate tracking, file ownership |
 
 ---

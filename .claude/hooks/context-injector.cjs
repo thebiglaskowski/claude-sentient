@@ -67,8 +67,6 @@ function buildFilePredictions(topics) {
 }
 
 function main() {
-    logMessage('Prompt received');
-
     let promptText = '';
     try {
         const parsed = parseHookInput();
@@ -80,8 +78,9 @@ function main() {
     const detectedTopics = detectTopics(promptText.toLowerCase());
     const filePredictions = buildFilePredictions(detectedTopics);
 
-    // Only persist prompt metadata when there is actual content
+    // Only persist prompt metadata and log when there is actual content
     if (promptText.length > 0) {
+        logMessage('Prompt received');
         appendCapped('prompts.json', {
             timestamp: new Date().toISOString(),
             topics: detectedTopics,

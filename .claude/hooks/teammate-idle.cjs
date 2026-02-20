@@ -18,8 +18,16 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_TEAMMATES } = require('./utils.cjs');
+const { parseHookInput, loadState, saveState, logMessage, MAX_TEAMMATES, TEAM_STATE_DEFAULT } = require('./utils.cjs');
 
+/**
+ * Record a teammate idle event and update task completion in team state.
+ * Prunes oldest entries when the teammates map exceeds MAX_TEAMMATES.
+ * @param {Object} teamState - Mutable team state object
+ * @param {string} teammateName - Name of the teammate going idle
+ * @param {Array|undefined} tasksCompleted - Latest tasks_completed list from hook input
+ * @returns {Object} Updated team state
+ */
 function recordIdleEvent(teamState, teammateName, tasksCompleted) {
     if (!teamState.teammates) {
         teamState.teammates = {};
@@ -55,11 +63,7 @@ function main() {
     const input = parseHookInput();
     const teammateName = input.teammate_name || 'unknown';
 
-    const teamState = loadState('team-state.json', {
-        teammates: {},
-        completed_tasks: [],
-        file_ownership: {}
-    });
+    const teamState = loadState('team-state.json', TEAM_STATE_DEFAULT);
 
     recordIdleEvent(teamState, teammateName, input.tasks_completed);
 

@@ -80,6 +80,9 @@ const MAX_COMPLETED_TASKS = 100;       // task-completed.cjs: cap on completed t
 const MAX_FILE_OWNERSHIP = 200;        // task-completed.cjs: cap on file ownership entries
 const MAX_TEAMMATES = 50;              // teammate-idle.cjs: cap on tracked teammates
 const MAX_LOGGED_COMMAND_LENGTH = 500; // bash-validator.cjs: truncation for logged commands
+
+// Canonical default shape for team-state.json (used by task-completed.cjs and teammate-idle.cjs)
+const TEAM_STATE_DEFAULT = Object.freeze({ teammates: {}, completed_tasks: [], file_ownership: {} });
 const MAX_COMPACT_FILE_HISTORY = 10;  // pre-compact.cjs: recent file changes in compact summary
 const MAX_COMPACT_DECISION_HISTORY = 5; // pre-compact.cjs: recent decisions in compact summary
 const MS_PER_MINUTE = 60000;          // session-end.cjs: milliseconds-to-minutes conversion
@@ -206,14 +209,14 @@ function redactSecrets(text) {
  * @returns {Object} Parsed JSON or default value (sanitized against prototype pollution)
  */
 function loadJsonFile(filePath, defaultValue = {}) {
-    if (!fs.existsSync(filePath)) {
-        return defaultValue;
-    }
     try {
         const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         return sanitizeJson(parsed);
     } catch (e) {
-        logMessage(`Failed to parse ${path.basename(filePath)}: ${e.message}`, 'WARNING');
+        // ENOENT (file not found) is expected — return default silently
+        if (e.code !== 'ENOENT') {
+            logMessage(`Failed to parse ${path.basename(filePath)}: ${e.message}`, 'WARNING');
+        }
         return defaultValue;
     }
 }
@@ -254,7 +257,24 @@ function validateFilePath(filePath) {
 }
 
 /**
- * Log a message to the session log file
+ * Rotate the session log file if it exceeds MAX_LOG_SIZE.
+ * Renames log → log.1, removing any previous .1 backup first.
+ * @param {string} logFile - Absolute path to the active log file
+ */
+function rotateLogIfNeeded(logFile) {
+    try {
+        const stats = fs.statSync(logFile);
+        if (stats.size > MAX_LOG_SIZE) {
+            const rotatedPath = logFile + '.1';
+            try { fs.unlinkSync(rotatedPath); } catch (_) {}
+            fs.renameSync(logFile, rotatedPath);
+        }
+    } catch (_) { /* file doesn't exist yet — that's fine */ }
+}
+
+/**
+ * Log a message to the session log file.
+ * Rotates the log once per process invocation if it exceeds MAX_LOG_SIZE.
  * @param {string} message - Message to log
  * @param {string} level - Log level (INFO, WARNING, ERROR, BLOCKED)
  */
@@ -262,21 +282,12 @@ let _logRotationChecked = false;
 function logMessage(message, level = 'INFO') {
     const logFile = path.join(getProjectRoot(), '.claude', 'session.log');
     const timestamp = new Date().toISOString().slice(0, 19);
-    // Redact secrets before logging
     const safeMessage = redactSecrets(message);
     const logEntry = `[cs] ${timestamp} ${level}: ${safeMessage}\n`;
     try {
-        // Rotate log if it exceeds size limit (once per process invocation)
         if (!_logRotationChecked) {
             _logRotationChecked = true;
-            try {
-                const stats = fs.statSync(logFile);
-                if (stats.size > MAX_LOG_SIZE) {
-                    const rotatedPath = logFile + '.1';
-                    try { fs.unlinkSync(rotatedPath); } catch (_) {}
-                    fs.renameSync(logFile, rotatedPath);
-                }
-            } catch (_) { /* file doesn't exist yet — that's fine */ }
+            rotateLogIfNeeded(logFile);
         }
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
@@ -376,6 +387,7 @@ module.exports = {
     MAX_FILE_OWNERSHIP,
     MAX_TEAMMATES,
     MAX_LOGGED_COMMAND_LENGTH,
+    TEAM_STATE_DEFAULT,
     MAX_COMPACT_FILE_HISTORY,
     MAX_COMPACT_DECISION_HISTORY,
     MS_PER_MINUTE,

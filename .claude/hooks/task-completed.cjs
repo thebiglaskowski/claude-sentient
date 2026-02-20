@@ -19,8 +19,13 @@
  * }
  */
 
-const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK, MAX_COMPLETED_TASKS, MAX_FILE_OWNERSHIP } = require('./utils.cjs');
+const { parseHookInput, loadState, saveState, logMessage, MAX_FILES_PER_TASK, MAX_COMPLETED_TASKS, MAX_FILE_OWNERSHIP, TEAM_STATE_DEFAULT } = require('./utils.cjs');
 
+/**
+ * Check whether the number of changed files exceeds the per-task maximum.
+ * @param {string[]} filesChanged - List of file paths changed by the task
+ * @returns {string|null} Warning message if limit exceeded, null otherwise
+ */
 function checkFileCount(filesChanged) {
     if (filesChanged.length > MAX_FILES_PER_TASK) {
         return `Task modified ${filesChanged.length} files (max ${MAX_FILES_PER_TASK}). ` +
@@ -29,6 +34,13 @@ function checkFileCount(filesChanged) {
     return null;
 }
 
+/**
+ * Detect file ownership conflicts where another teammate already owns a modified file.
+ * @param {string[]} filesChanged - Files changed by this task
+ * @param {Object} fileOwnership - Map of file path to owning teammate name
+ * @param {string} teammateName - Name of the teammate completing the task
+ * @returns {string[]} Array of conflict warning messages (empty if none)
+ */
 function checkOwnershipConflicts(filesChanged, fileOwnership, teammateName) {
     const conflicts = [];
     for (const file of filesChanged) {
@@ -44,6 +56,10 @@ function checkOwnershipConflicts(filesChanged, fileOwnership, teammateName) {
     return conflicts;
 }
 
+/**
+ * Trim completed_tasks and file_ownership collections to their configured caps.
+ * @param {Object} teamState - Mutable team state object to prune in place
+ */
 function pruneTeamState(teamState) {
     if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
         teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
@@ -58,13 +74,29 @@ function pruneTeamState(teamState) {
     }
 }
 
+/**
+ * Record the current teammate as the owner of each changed file.
+ * @param {Object} teamState - Mutable team state object
+ * @param {string[]} filesChanged - Files to assign ownership for
+ * @param {string} teammateName - Teammate taking ownership
+ */
 function updateFileOwnership(teamState, filesChanged, teammateName) {
     for (const file of filesChanged) {
         teamState.file_ownership[file] = teammateName;
     }
 }
 
-function recordTaskCompletion(teamState, taskId, taskSubject, teammateName, filesChanged, hadIssues) {
+/**
+ * Append a task completion record to the team state history.
+ * @param {Object} teamState - Mutable team state object
+ * @param {Object} record - Task completion record fields
+ * @param {string} record.taskId - Unique task identifier
+ * @param {string} record.taskSubject - Human-readable task title
+ * @param {string} record.teammateName - Teammate who completed the task
+ * @param {string[]} record.filesChanged - Files modified during the task
+ * @param {boolean} record.hadIssues - Whether quality issues were found
+ */
+function recordTaskCompletion(teamState, { taskId, taskSubject, teammateName, filesChanged, hadIssues }) {
     if (!teamState.completed_tasks) {
         teamState.completed_tasks = [];
     }
@@ -85,11 +117,7 @@ function main() {
     const teammateName = input.teammate_name || 'unknown';
     const filesChanged = input.files_changed || [];
 
-    const teamState = loadState('team-state.json', {
-        teammates: {},
-        completed_tasks: [],
-        file_ownership: {}
-    });
+    const teamState = loadState('team-state.json', TEAM_STATE_DEFAULT);
 
     // Ensure required fields exist (state may have been created before v1.3.5)
     if (!teamState.completed_tasks) teamState.completed_tasks = [];
@@ -104,7 +132,7 @@ function main() {
     issues.push(...conflicts);
 
     updateFileOwnership(teamState, filesChanged, teammateName);
-    recordTaskCompletion(teamState, taskId, taskSubject, teammateName, filesChanged, issues.length > 0);
+    recordTaskCompletion(teamState, { taskId, taskSubject, teammateName, filesChanged, hadIssues: issues.length > 0 });
     pruneTeamState(teamState);
     saveState('team-state.json', teamState);
 

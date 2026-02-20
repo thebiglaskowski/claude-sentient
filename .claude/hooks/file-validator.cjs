@@ -115,7 +115,7 @@ function resolveToAbsolutePath(filePath) {
  * Check global Claude Code settings/commands/rules and project boundary.
  * Calls blockPath (exits) if any boundary is violated.
  */
-function checkProjectBoundaries(absolutePath, projectRoot, claudeHome, toolName, filePath) {
+function checkProjectBoundaries({ absolutePath, projectRoot, claudeHome }, toolName, filePath) {
     const globalSettingsProtected = [
         path.join(claudeHome, 'settings.json'),
         path.join(claudeHome, 'settings.local.json')
@@ -193,7 +193,7 @@ function main() {
     const projectRoot = getProjectRoot();
     const claudeHome = path.join(_cachedHomeDir, '.claude');
 
-    checkProjectBoundaries(absolutePath, projectRoot, claudeHome, toolName, filePath);
+    checkProjectBoundaries({ absolutePath, projectRoot, claudeHome }, toolName, filePath);
     checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath);
     checkProtectedPaths(normalizedPath, filePath, toolName);
 

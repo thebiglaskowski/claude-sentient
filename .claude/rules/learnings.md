@@ -144,7 +144,7 @@
 - **Context**: Hook commands in settings.json used `$(git rev-parse --show-toplevel 2>/dev/null || echo .)` to resolve project root
 - **Problem**: Claude Code passes hook commands through `cmd.exe` on Windows, which treats `$(...)` as a literal string. Node then looks for a file at `<cwd>\$(git rev-parse ...)\.claude\hooks\foo.js` which doesn't exist. This broke ALL hooks on Windows.
 - **Root cause**: Commit e8f295c tried to fix subdirectory cwd by adding bash shell substitution, but Claude Code's hook executor doesn't guarantee bash on all platforms
-- **Solution**: Use simple relative paths (`node .claude/hooks/foo.js`). Claude Code runs hooks from the project root. Each hook uses `getProjectRoot()` from `utils.js` internally for file operations.
+- **Solution**: Use simple relative paths (`node .claude/hooks/foo.js`). Claude Code runs hooks from the project root. Each hook uses `getProjectRoot()` from `utils.cjs` internally for file operations.
 - **Rule**: Hook commands in settings.json must be plain cross-platform invocations (`node <path>`). Never use bash-specific syntax (`$(...)`, backticks, pipes). If a hook needs the project root, resolve it inside the JS script using `getProjectRoot()`.
 
 ### 2026-02-16: Auto-install Claude Code plugins during setup

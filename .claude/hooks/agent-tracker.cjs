@@ -36,15 +36,16 @@ function parseYamlListSections(content, sectionNames) {
 /**
  * Create an agent tracking entry.
  * @param {string} agentId - Unique agent identifier
- * @param {string} agentType - Agent subtype
- * @param {string} description - Agent task description
- * @param {string} model - Model being used
- * @param {boolean} runInBackground - Whether agent runs in background
+ * @param {Object} opts - Agent metadata
+ * @param {string} opts.type - Agent subtype
+ * @param {string} opts.description - Agent task description
+ * @param {string} opts.model - Model being used
+ * @param {boolean} opts.runInBackground - Whether agent runs in background
  * @returns {Object} Agent tracking entry
  */
-function buildAgentEntry(agentId, agentType, description, model, runInBackground) {
+function buildAgentEntry(agentId, { type, description, model, runInBackground }) {
     return {
-        id: agentId, type: agentType, description, model,
+        id: agentId, type, description, model,
         runInBackground, startTime: new Date().toISOString(), status: 'running'
     };
 }
@@ -103,8 +104,10 @@ function main() {
     const model = parsed.tool_input?.model || 'sonnet';
 
     const activeAgents = loadState('active_agents.json', {});
-    activeAgents[agentId] = buildAgentEntry(agentId, agentType, description, model,
-        parsed.tool_input?.run_in_background || false);
+    activeAgents[agentId] = buildAgentEntry(agentId, {
+        type: agentType, description, model,
+        runInBackground: parsed.tool_input?.run_in_background || false
+    });
 
     const { agentRole, rulesLoaded, expertise } = detectAgentRole(agentType, description);
     if (agentRole) {

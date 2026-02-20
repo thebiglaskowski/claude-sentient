@@ -49,10 +49,12 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bfind\s+\/\s+.*-exec\s+rm\b/, reason: 'find with -exec rm from root' },
 
     // Scripting language one-liners (obfuscation risk)
-    { pattern: /\bpython[23]?\s+-c\s+['"].*(?:import\s+os|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports' },
-    { pattern: /\bperl\s+-e\s+['"].*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
-    { pattern: /\bruby\s+-e\s+['"].*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
-    { pattern: /\bnode\s+-e\s+['"].*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },
+    // Note: ['"]? makes the quote optional to catch ANSI-C quoting bypass ($'...') and
+    // unquoted forms that survive normalizeCommand's quote-stripping pass.
+    { pattern: /\bpython[23]?\s+-c\s+['"]?.*(?:import\s+os|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports' },
+    { pattern: /\bperl\s+-e\s+['"]?.*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
+    { pattern: /\bruby\s+-e\s+['"]?.*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
+    { pattern: /\bnode\s+-e\s+['"]?.*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },
 
     // Supply-chain attacks — downloading then executing (chained with && or ;)
     { pattern: /curl\s.*>\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
@@ -72,6 +74,12 @@ const DANGEROUS_PATTERNS = [
 
     // Broader sudo privilege escalation patterns
     { pattern: /\bsudo\s+(?:bash|sh|su\b|su\s+-|-i\b|-s\b)/, reason: 'Privilege escalation via sudo' },
+
+    // Privilege escalation via sudo (writing to system files, editing sudoers, SUID bits)
+    { pattern: /\bsudo\s+tee\s+\/etc\//, reason: 'Writing to /etc/ via sudo tee' },
+    { pattern: /\bsudo\s+visudo\b/, reason: 'Editing sudoers file via sudo visudo' },
+    { pattern: /\bsudo\s+passwd\s+root\b/, reason: 'Changing root password via sudo' },
+    { pattern: /\bsudo\s+chmod\s+[ugo+]*s/, reason: 'Setting SUID/SGID bit via sudo' },
 ];
 
 // Warning patterns (allow but log)

@@ -15,7 +15,11 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { ensureStateDir, saveState, logMessage, GIT_EXEC_OPTIONS, getProjectRoot, MIN_SHELL_FILES, SESSION_ID_SUFFIX_LEN } = require('./utils.cjs');
 
-// Root-level profile detection by marker files (all 9 profiles)
+/**
+ * Detect project profile from root-level marker files.
+ * @param {string} cwd - Current working directory
+ * @returns {string|null} Profile name or null if not detected
+ */
 function detectRootProfile(cwd) {
     if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py')) || fs.existsSync(path.join(cwd, 'requirements.txt'))) {
         return 'python';
@@ -33,15 +37,40 @@ function detectRootProfile(cwd) {
     return null;
 }
 
-// Check a single monorepo subdirectory for profile markers
+/**
+ * Check a single directory for profile marker files.
+ * @param {string} subdirPath - Absolute path to the directory to inspect
+ * @returns {string|null} Profile name or null if not detected
+ */
 function detectSubdirProfile(subdirPath) {
-    if (!fs.statSync(subdirPath).isDirectory()) return null;
+    if (!fs.existsSync(subdirPath) || !fs.statSync(subdirPath).isDirectory()) return null;
     if (fs.existsSync(path.join(subdirPath, 'tsconfig.json'))) return 'typescript';
     if (fs.existsSync(path.join(subdirPath, 'pyproject.toml'))) return 'python';
     return null;
 }
 
-// Search monorepo directories for nested profiles
+/**
+ * Scan one monorepo parent directory for the first detectable subproject profile.
+ * @param {string} dirPath - Absolute path to a monorepo parent (e.g. packages/, apps/)
+ * @returns {string|null} First detected profile or null
+ */
+function scanMonorepoDir(dirPath) {
+    try {
+        for (const subdir of fs.readdirSync(dirPath)) {
+            const result = detectSubdirProfile(path.join(dirPath, subdir));
+            if (result) return result;
+        }
+    } catch (_) {
+        // Ignore read errors on individual directories
+    }
+    return null;
+}
+
+/**
+ * Detect project profile by scanning common monorepo directory structures.
+ * @param {string} cwd - Current working directory
+ * @returns {string|null} Profile name or null if not detected
+ */
 function detectMonorepoProfile(cwd) {
     const monorepoLocations = ['packages', 'apps', 'src'];
     // Early exit: if none of the monorepo dirs exist, skip scanning entirely
@@ -49,20 +78,17 @@ function detectMonorepoProfile(cwd) {
     for (const dir of monorepoLocations) {
         const dirPath = path.join(cwd, dir);
         if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) continue;
-
-        try {
-            for (const subdir of fs.readdirSync(dirPath)) {
-                const result = detectSubdirProfile(path.join(dirPath, subdir));
-                if (result) return result;
-            }
-        } catch (e) {
-            // Ignore read errors on individual directories
-        }
+        const result = scanMonorepoDir(dirPath);
+        if (result) return result;
     }
     return null;
 }
 
-// Fallback: check package.json for TypeScript dependency
+/**
+ * Fallback profile detection via package.json dependency inspection.
+ * @param {string} cwd - Current working directory
+ * @returns {string|null} 'typescript' if TypeScript is listed, 'general' if package.json exists, null otherwise
+ */
 function detectFromPackageJson(cwd) {
     const pkgPath = path.join(cwd, 'package.json');
     if (!fs.existsSync(pkgPath)) return null;
@@ -78,7 +104,11 @@ function detectFromPackageJson(cwd) {
     return 'general';
 }
 
-// Detect shell profile by scanning for shell scripts
+/**
+ * Detect shell profile by counting shell script files in the project root.
+ * @param {string} cwd - Current working directory
+ * @returns {string|null} 'shell' if enough shell scripts found, null otherwise
+ */
 function detectShellProfile(cwd) {
     try {
         const files = fs.readdirSync(cwd);
@@ -90,7 +120,11 @@ function detectShellProfile(cwd) {
     return null;
 }
 
-// Detect profile from files (supports monorepos)
+/**
+ * Detect the project's language profile by scanning the working directory.
+ * Tries root markers, monorepo structures, package.json, and shell scripts in order.
+ * @returns {string} Detected profile name (defaults to 'general')
+ */
 function detectProfile() {
     const cwd = process.cwd();
     return detectRootProfile(cwd)

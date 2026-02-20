@@ -1975,6 +1975,42 @@ suite('bash-validator.js — new security patterns', () => {
         const result = runHook('bash-validator.cjs', { tool_input: { command: "python3 -c '__import__(\"os\").system(\"rm -rf /\")'" } });
         assert.strictEqual(result.decision, 'block');
     });
+
+    // ── sudo privilege escalation ────────────────────────────────
+
+    test('blocks sudo tee to /etc/', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'echo "data" | sudo tee /etc/sudoers' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks sudo visudo', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'sudo visudo' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks sudo passwd root', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'sudo passwd root' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks sudo chmod u+s (SUID bit)', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'sudo chmod u+s /bin/bash' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    // ── ANSI-C quoting bypass ($'...') ───────────────────────────
+
+    test('blocks python ANSI-C quoting bypass (import os without surrounding quotes)', () => {
+        // $'...' is ANSI-C quoting — normalizeCommand strips regular quotes but not $'
+        // The fix makes the quote char optional so the pattern catches this form too
+        const result = runHook('bash-validator.cjs', { tool_input: { command: "python3 -c $'import os'" } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks perl ANSI-C quoting bypass (exec without surrounding quotes)', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: "perl -e $'exec(\"sh\")'" } });
+        assert.strictEqual(result.decision, 'block');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -2126,6 +2162,60 @@ suite('bash-validator.js — WARNING_PATTERNS', () => {
         const result = runHook('bash-validator.cjs', { tool_input: { command: 'pip install --user requests' } });
         assert.strictEqual(result.decision, 'allow');
         assert.ok(result.warnings && result.warnings.length > 0, 'should have warnings');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// bash-validator — eval blocking (functional test)
+// ─────────────────────────────────────────────────────────────
+
+suite('bash-validator.js — eval blocking', () => {
+    test('blocks standalone eval command', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'eval "id"' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+
+    test('blocks eval preceded by variable assignment', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'CMD="ls"; eval $CMD' } });
+        assert.strictEqual(result.decision, 'block');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// utils.js — appendCapped unit tests
+// ─────────────────────────────────────────────────────────────
+
+suite('utils.js — appendCapped', () => {
+    const utilsPath = path.resolve(__dirname, '..', 'utils.cjs');
+
+    test('caps array at maxLength, keeping newest entries', () => {
+        // Run helper script in tmpDir so getProjectRoot() resolves there
+        const scriptPath = path.join(tmpDir, '_test_appendcapped.js');
+        fs.writeFileSync(scriptPath, [
+            `const u = require(${JSON.stringify(utilsPath)});`,
+            `for (let i = 0; i < 5; i++) u.appendCapped('_ac_test.json', {i}, 3);`,
+            `const arr = u.loadState('_ac_test.json', []);`,
+            `console.log(JSON.stringify({len: arr.length, first: arr[0].i, last: arr[arr.length - 1].i}));`
+        ].join('\n'));
+        const out = execSync(`node "${scriptPath}"`, { cwd: tmpDir, encoding: 'utf8', timeout: 5000 });
+        const { len, first, last } = JSON.parse(out.trim());
+        assert.strictEqual(len, 3, 'should be capped at 3');
+        assert.strictEqual(first, 2, 'oldest kept entry should be i=2');
+        assert.strictEqual(last, 4, 'newest entry should be i=4');
+    });
+
+    test('does not cap array when under maxLength', () => {
+        const scriptPath = path.join(tmpDir, '_test_appendcapped2.js');
+        fs.writeFileSync(scriptPath, [
+            `const u = require(${JSON.stringify(utilsPath)});`,
+            `u.appendCapped('_ac_test2.json', {x: 1}, 5);`,
+            `u.appendCapped('_ac_test2.json', {x: 2}, 5);`,
+            `const arr = u.loadState('_ac_test2.json', []);`,
+            `console.log(JSON.stringify({len: arr.length}));`
+        ].join('\n'));
+        const out = execSync(`node "${scriptPath}"`, { cwd: tmpDir, encoding: 'utf8', timeout: 5000 });
+        const { len } = JSON.parse(out.trim());
+        assert.strictEqual(len, 2, 'should have exactly 2 entries (under cap)');
     });
 });
 

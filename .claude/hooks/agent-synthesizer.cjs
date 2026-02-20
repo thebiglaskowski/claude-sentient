@@ -23,13 +23,14 @@ function calculateDurationSec(startTimeStr, endTime) {
 /**
  * Create a history entry for a completed agent.
  * @param {Object} agentInfo - Agent metadata from active_agents.json
- * @param {Date} endTime - Completion timestamp
- * @param {number} durationSec - Duration in seconds
- * @param {boolean} success - Whether the agent succeeded
- * @param {string} resultSummary - Summary of results (truncated)
+ * @param {Object} completion - Completion details
+ * @param {Date} completion.endTime - Completion timestamp
+ * @param {number} completion.durationSec - Duration in seconds
+ * @param {boolean} completion.success - Whether the agent succeeded
+ * @param {string} completion.resultSummary - Summary of results (truncated)
  * @returns {Object} History entry
  */
-function createHistoryEntry(agentInfo, endTime, durationSec, success, resultSummary) {
+function createHistoryEntry(agentInfo, { endTime, durationSec, success, resultSummary }) {
     return {
         ...agentInfo,
         endTime: endTime.toISOString(),
@@ -54,7 +55,7 @@ function main() {
     const durationSec = calculateDurationSec(agentInfo.startTime, endTime);
 
     appendCapped('agent_history.json',
-        createHistoryEntry(agentInfo, endTime, durationSec, success, resultSummary),
+        createHistoryEntry(agentInfo, { endTime, durationSec, success, resultSummary }),
         MAX_AGENT_HISTORY);
 
     if (activeAgents[agentId]) {
