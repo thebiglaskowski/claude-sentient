@@ -45,9 +45,6 @@ function checkOwnershipConflicts(filesChanged, fileOwnership, teammateName) {
 }
 
 function pruneTeamState(teamState) {
-    if (!teamState.completed_tasks) teamState.completed_tasks = [];
-    if (!teamState.file_ownership) teamState.file_ownership = {};
-
     if (teamState.completed_tasks.length > MAX_COMPLETED_TASKS) {
         teamState.completed_tasks = teamState.completed_tasks.slice(-MAX_COMPLETED_TASKS);
     }
@@ -93,6 +90,10 @@ function main() {
         completed_tasks: [],
         file_ownership: {}
     });
+
+    // Ensure required fields exist (state may have been created before v1.3.5)
+    if (!teamState.completed_tasks) teamState.completed_tasks = [];
+    if (!teamState.file_ownership) teamState.file_ownership = {};
 
     const issues = [];
 

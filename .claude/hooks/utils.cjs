@@ -155,7 +155,7 @@ function parseHookInput() {
  * @returns {*} Sanitized value
  */
 function sanitizeJson(obj, depth = 0) {
-    if (depth > MAX_SANITIZE_DEPTH) return obj;
+    if (depth > MAX_SANITIZE_DEPTH) return null; // Truncate deeply nested objects rather than returning unsanitized
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
