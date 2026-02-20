@@ -96,12 +96,15 @@ const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate l
 const MIN_SHELL_FILES = 3;              // session-start.cjs: threshold for shell profile detection
 const SESSION_ID_SUFFIX_LEN = 9;        // session-start.cjs: random suffix length for session IDs
 
+const GIT_TIMEOUT_MS = 3000;           // git operations timeout in milliseconds
 // Centralized git exec options (eliminates duplication across hooks)
-const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 3000 };
+const GIT_EXEC_OPTIONS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: GIT_TIMEOUT_MS };
 
 // Patterns for redacting secrets from log output
+// Patterns are ordered so specific prefixed secrets run before broad catch-alls
+// (prevents the generic AWS base64 pattern from partially consuming prefixed tokens).
 const SECRET_PATTERNS = [
-    /sk-[a-zA-Z0-9]{20,}/g,           // OpenAI/Anthropic API keys
+    /sk-[a-zA-Z0-9_\-]{20,}/g,        // OpenAI/Anthropic API keys (including sk-ant-api03- format)
     /ghp_[a-zA-Z0-9]{36,}/g,          // GitHub personal access tokens
     /gho_[a-zA-Z0-9]{36,}/g,          // GitHub OAuth tokens
     /ghu_[a-zA-Z0-9]{36,}/g,          // GitHub user tokens
@@ -109,13 +112,17 @@ const SECRET_PATTERNS = [
     /github_pat_[a-zA-Z0-9_]{80,}/g,  // GitHub fine-grained PATs
     /Bearer\s+[a-zA-Z0-9._\-]{20,}/g, // Bearer tokens
     /AKIA[A-Z0-9]{16}/g,              // AWS access key IDs
-    /[a-zA-Z0-9\/+]{40}(?=\s|$)/g,    // AWS secret keys (40-char base64)
     /xox[bpsa]-[a-zA-Z0-9\-]{10,}/g,  // Slack tokens
     /eyJ[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}/g, // JWTs
     /sk_live_[a-zA-Z0-9]{20,}/g,          // Stripe secret keys
     /pk_live_[a-zA-Z0-9]{20,}/g,          // Stripe publishable keys
     /(?:postgres|mysql|mongodb):\/\/\w+:[^@]+@/g, // Database connection strings (mask password)
     /-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----/g, // Private key headers
+    /ya29\.[a-zA-Z0-9_\-]{68,}/g,         // GCP OAuth access tokens (before AWS catch-all)
+    /AccountKey=[a-zA-Z0-9+\/=]{40,}/g,   // Azure Storage account keys
+    /npm_[a-zA-Z0-9]{36,}/g,              // npm automation tokens
+    /pypi-[a-zA-Z0-9_\-]{100,}/g,         // PyPI API tokens
+    /[a-zA-Z0-9\/+]{40}(?=\s|$)/g,    // AWS secret keys (40-char base64) — keep last
 ];
 
 // Cached state directory path (verified once per process)
@@ -136,17 +143,25 @@ function ensureStateDir() {
 }
 
 /**
+ * Check if an input string exceeds MAX_INPUT_SIZE and log a warning if so.
+ * @param {string} input - Input string to check
+ * @param {string} source - Label for log message ('HOOK_INPUT' or 'stdin')
+ * @returns {boolean} true if the input is too large
+ */
+function isInputTooLarge(input, source) {
+    if (input.length <= MAX_INPUT_SIZE) return false;
+    logMessage(`${source} too large (${input.length} bytes, max ${MAX_INPUT_SIZE})`, 'WARNING');
+    return true;
+}
+
+/**
  * Parse hook input from environment variable or stdin
  * @returns {Object} Parsed input object or empty object if parsing fails
  */
 function parseHookInput() {
     try {
         const input = process.env.HOOK_INPUT;
-        if (input) {
-            if (input.length > MAX_INPUT_SIZE) {
-                logMessage(`HOOK_INPUT too large (${input.length} bytes, max ${MAX_INPUT_SIZE})`, 'WARNING');
-                return {};
-            }
+        if (input && !isInputTooLarge(input, 'HOOK_INPUT')) {
             return sanitizeJson(JSON.parse(input));
         }
     } catch (e) {
@@ -155,11 +170,10 @@ function parseHookInput() {
 
     try {
         const stdin = fs.readFileSync(0, 'utf8');
-        if (stdin.length > MAX_INPUT_SIZE) {
-            logMessage(`stdin input too large (${stdin.length} bytes, max ${MAX_INPUT_SIZE})`, 'WARNING');
-            return {};
+        if (!isInputTooLarge(stdin, 'stdin')) {
+            return sanitizeJson(JSON.parse(stdin));
         }
-        return sanitizeJson(JSON.parse(stdin));
+        return {};
     } catch (e) {
         return {};
     }
@@ -397,6 +411,7 @@ module.exports = {
     MAX_INPUT_SIZE,
     MAX_SANITIZE_DEPTH,
     GIT_EXEC_OPTIONS,
+    GIT_TIMEOUT_MS,
     MIN_SHELL_FILES,
     SESSION_ID_SUFFIX_LEN,
 };

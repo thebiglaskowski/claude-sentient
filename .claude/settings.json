@@ -169,6 +169,7 @@
     "vision": {
       "enabled": true,
       "screenshotOnError": true
-    }
+    },
+    "mcpServers": ["context7", "github", "memory", "puppeteer"]
   }
 }

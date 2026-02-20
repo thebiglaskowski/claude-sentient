@@ -15,7 +15,12 @@ const { parseHookInput, loadState, saveState, logMessage, MAX_ACTIVE_AGENTS } = 
 // when agentType is general-purpose, we still want to scan YAML for description-based role matching
 const KNOWN_ROLES = ['implementer', 'reviewer', 'researcher', 'tester', 'architect'];
 
-// Parse list sections from a YAML file content string
+/**
+ * Parse list sections from a YAML file content string.
+ * @param {string} content - Raw YAML file content
+ * @param {string[]} sectionNames - Section keys to extract as list values
+ * @returns {Object} Map of sectionName -> string[] values
+ */
 function parseYamlListSections(content, sectionNames) {
     const result = {};
     for (const name of sectionNames) result[name] = [];

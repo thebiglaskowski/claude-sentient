@@ -80,6 +80,18 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bsudo\s+visudo\b/, reason: 'Editing sudoers file via sudo visudo' },
     { pattern: /\bsudo\s+passwd\s+root\b/, reason: 'Changing root password via sudo' },
     { pattern: /\bsudo\s+chmod\s+[ugo+]*s/, reason: 'Setting SUID/SGID bit via sudo' },
+
+    // Reverse shell variants not covered by netcat pattern
+    { pattern: /\bsocat\b.*\b(?:EXEC|TCP|UDP):.*(?:bash|sh|cmd)/i, reason: 'socat reverse shell' },
+    { pattern: /\bopenssl\s+s_client\b.*\|\s*(?:bash|sh)\b/i, reason: 'openssl reverse shell via s_client' },
+    { pattern: /\bncat\b.*-e\s+\/(?:bin|usr)/i, reason: 'ncat reverse shell (-e flag)' },
+
+    // Cron-based persistence
+    { pattern: /\bcrontab\s+-[eli]\b/, reason: 'Crontab modification (persistence vector)' },
+    { pattern: /\becho\b.*\|\s*crontab\b/, reason: 'Piping to crontab (persistence vector)' },
+
+    // Environment variable injection
+    { pattern: /\bLD_PRELOAD\s*=/, reason: 'LD_PRELOAD library injection' },
 ];
 
 // Warning patterns (allow but log)

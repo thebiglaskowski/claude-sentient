@@ -136,11 +136,12 @@ function checkProjectBoundaries({ absolutePath, projectRoot, claudeHome }, toolN
 
 /**
  * Protect active hook scripts from self-modification during a session.
- * Calls blockPath (exits) if the path targets a .cjs file in the hooks directory.
+ * Calls blockPath (exits) if the absolute path targets a .cjs file in the hooks directory.
+ * @param {string} absolutePath - Absolute resolved path of the file being written
  */
-function checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath) {
+function checkHookSelfProtection(absolutePath, projectRoot, toolName, filePath) {
     const hookDir = path.join(projectRoot, '.claude', 'hooks');
-    if (resolvedPath.startsWith(hookDir + path.sep) && resolvedPath.endsWith('.cjs')) {
+    if (absolutePath.startsWith(hookDir + path.sep) && absolutePath.endsWith('.cjs')) {
         blockPath(toolName, 'Cannot modify active hook scripts. Edit hooks outside a running session or restart after changes', filePath);
     }
 }
@@ -194,7 +195,7 @@ function main() {
     const claudeHome = path.join(_cachedHomeDir, '.claude');
 
     checkProjectBoundaries({ absolutePath, projectRoot, claudeHome }, toolName, filePath);
-    checkHookSelfProtection(resolvedPath, projectRoot, toolName, filePath);
+    checkHookSelfProtection(absolutePath, projectRoot, toolName, filePath);
     checkProtectedPaths(normalizedPath, filePath, toolName);
 
     // Warn on writes to ~/.claude/projects/ (auto-memory persistence vector)

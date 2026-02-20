@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-sentient.dev/schemas/phase.schema.json",
-  "title": "Phase Definition",
-  "description": "Schema for modular loop phases",
+  "title": "Phase Definition [Planned]",
+  "description": "Schema for modular loop phases (planned feature — not yet implemented; phases are currently defined inline in cs-loop.md)",
   "allOf": [
     { "$ref": "base.schema.json" }
   ],

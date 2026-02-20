@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude-sentient.dev/schemas/skill.schema.json",
-  "title": "Skill Definition",
-  "description": "Schema for auto-triggered behavioral skills",
+  "title": "Skill Definition [Planned]",
+  "description": "Schema for auto-triggered behavioral skills (planned feature — not yet implemented; no skill definition files currently exist)",
   "allOf": [
     { "$ref": "base.schema.json" }
   ],

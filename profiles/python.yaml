@@ -2,7 +2,7 @@
 # Loaded when pyproject.toml or requirements.txt detected
 
 name: python
-version: "1.3.8"
+version: "1.3.9"
 description: "Python projects using ruff for linting, pytest for testing, and pyright for type checking"
 
 # Model routing configuration

@@ -29,12 +29,10 @@ function collectStateFiles(stateDir) {
     const backupBundle = {};
     for (const file of FILES_TO_BACKUP) {
         const sourcePath = path.join(stateDir, file);
-        if (fs.existsSync(sourcePath)) {
-            const data = loadJsonFile(sourcePath, null);
-            if (data !== null) {
-                backupBundle[file] = data;
-                backedUp.push(file);
-            }
+        const data = fs.existsSync(sourcePath) ? loadJsonFile(sourcePath, null) : null;
+        if (data !== null) {
+            backupBundle[file] = data;
+            backedUp.push(file);
         }
     }
     return { backedUp, backupBundle };

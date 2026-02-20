@@ -938,6 +938,80 @@ suite('Installer validation', () => {
 });
 
 // ============================================================
+// Suite 9: MCP degradation — commands degrade gracefully
+// ============================================================
+
+suite('MCP degradation — commands degrade gracefully', () => {
+    /**
+     * Parse the allowed-tools value from YAML frontmatter of a command file.
+     * Returns an array of tool names.
+     */
+    function parseAllowedTools(content) {
+        const match = content.match(/^allowed-tools:\s*(.+)$/m);
+        if (!match) return [];
+        return match[1].split(',').map(t => t.trim()).filter(Boolean);
+    }
+
+    test('cs-learn.md lists mcp__memory__ tools in allowed-tools frontmatter', () => {
+        const content = readFile('.claude/commands/cs-learn.md');
+        const tools = parseAllowedTools(content);
+        const memoryTools = tools.filter(t => t.startsWith('mcp__memory__'));
+        assert.ok(memoryTools.length > 0,
+            `cs-learn.md should list at least one mcp__memory__ tool in allowed-tools, got: ${tools.join(', ')}`);
+    });
+
+    test('cs-loop.md lists mcp__memory__ tools in allowed-tools frontmatter', () => {
+        const content = readFile('.claude/commands/cs-loop.md');
+        const tools = parseAllowedTools(content);
+        const memoryTools = tools.filter(t => t.startsWith('mcp__memory__'));
+        assert.ok(memoryTools.length > 0,
+            `cs-loop.md should list at least one mcp__memory__ tool in allowed-tools, got: ${tools.filter(t => t.startsWith('mcp')).join(', ')}`);
+    });
+
+    test('cs-learn.md documents graceful MCP degradation', () => {
+        const content = readFile('.claude/commands/cs-learn.md');
+        // Verify the command documents that MCP tools are optional
+        const hasGracefulText = /gracefully\s+handle\s+if\s+unavailable/i.test(content) ||
+                                /gracefully\s+skip/i.test(content) ||
+                                /if\s+(?:MCP\s+is\s+)?unavailable/i.test(content);
+        assert.ok(hasGracefulText,
+            'cs-learn.md should document graceful handling when MCP memory is unavailable');
+    });
+
+    test('cs-loop.md documents graceful MCP degradation', () => {
+        const content = readFile('.claude/commands/cs-loop.md');
+        // Verify the command documents that MCP servers are optional
+        const hasGracefulText = /gracefully\s+skipped\s+if\s+not\s+connected/i.test(content) ||
+                                /gracefully\s+skip/i.test(content) ||
+                                /when\s+available/i.test(content);
+        assert.ok(hasGracefulText,
+            'cs-loop.md should document graceful degradation when MCP servers are not connected');
+    });
+
+    test('cs-loop.md uses conditional language for all MCP integration steps', () => {
+        const content = readFile('.claude/commands/cs-loop.md');
+        // Each MCP integration step should be marked as optional/conditional,
+        // not a hard requirement. Check that the MCP server table uses "when available" or similar.
+        const hasConditionalMcp = /MCP servers are used when available/i.test(content) ||
+                                  /gracefully skipped if not connected/i.test(content);
+        assert.ok(hasConditionalMcp,
+            'cs-loop.md should state that MCP servers are used conditionally, not required');
+    });
+
+    test('settings.json sentient.mcpServers lists expected MCP servers', () => {
+        const settings = JSON.parse(readFile('.claude/settings.json'));
+        assert.ok(settings.sentient, 'settings.json should have a sentient configuration section');
+        assert.ok(Array.isArray(settings.sentient.mcpServers),
+            'settings.json sentient.mcpServers should be an array');
+        const servers = settings.sentient.mcpServers;
+        assert.ok(servers.includes('memory'),
+            `sentient.mcpServers should list 'memory', got: ${servers.join(', ')}`);
+        assert.ok(servers.includes('github'),
+            `sentient.mcpServers should list 'github', got: ${servers.join(', ')}`);
+    });
+});
+
+// ============================================================
 // Summary
 // ============================================================
 

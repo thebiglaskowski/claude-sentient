@@ -2,7 +2,7 @@
 # Loaded when tsconfig.json detected
 
 name: typescript
-version: "1.3.8"
+version: "1.3.9"
 description: "TypeScript projects using eslint for linting, vitest for testing, and tsc for type checking"
 
 # Model routing configuration

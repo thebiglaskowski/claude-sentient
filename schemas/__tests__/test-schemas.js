@@ -106,9 +106,9 @@ const agentFiles = fs.existsSync(agentsDir)
 
 // ─────────────────────────────────────────────────────────────
 suite('Schema file inventory', () => {
-    test('at least 5 schema files exist', () => {
-        assert.ok(schemaFiles.length >= 5,
-            `Expected >= 5 schema files, found ${schemaFiles.length}`);
+    test('at least 12 schema files exist', () => {
+        assert.ok(schemaFiles.length >= 12,
+            `Expected >= 12 schema files, found ${schemaFiles.length}`);
     });
 
     test('base.schema.json exists', () => {
@@ -125,6 +125,69 @@ suite('Schema file inventory', () => {
 
     test('profile.schema.json exists', () => {
         assert.ok(schemaFiles.includes('profile.schema.json'));
+    });
+
+    // State file schemas (added in v1.3.9)
+    test('session-state.schema.json exists', () => {
+        assert.ok(schemaFiles.includes('session-state.schema.json'));
+    });
+
+    test('team-state.schema.json exists', () => {
+        assert.ok(schemaFiles.includes('team-state.schema.json'));
+    });
+
+    test('gate-history.schema.json exists', () => {
+        assert.ok(schemaFiles.includes('gate-history.schema.json'));
+    });
+
+    // Aspirational schemas (planned features) — verify [Planned] label
+    test('skill.schema.json is marked as planned', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'skill.schema.json'), 'utf8'));
+        assert.ok(schema.title.includes('[Planned]'), 'skill schema should be marked as [Planned]');
+    });
+
+    test('phase.schema.json is marked as planned', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'phase.schema.json'), 'utf8'));
+        assert.ok(schema.title.includes('[Planned]'), 'phase schema should be marked as [Planned]');
+    });
+
+    test('event.schema.json is marked as planned', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'event.schema.json'), 'utf8'));
+        assert.ok(schema.title.includes('[Planned]'), 'event schema should be marked as [Planned]');
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+suite('State file schemas — structure', () => {
+    test('session-state.schema.json has required fields: id, timestamp, cwd, project_root, profile', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'session-state.schema.json'), 'utf8'));
+        const required = schema.required || [];
+        assert.ok(required.includes('id'), 'should require id');
+        assert.ok(required.includes('timestamp'), 'should require timestamp');
+        assert.ok(required.includes('profile'), 'should require profile');
+        assert.ok(required.includes('project_root'), 'should require project_root');
+    });
+
+    test('team-state.schema.json has required fields: teammates, completed_tasks, file_ownership', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'team-state.schema.json'), 'utf8'));
+        const required = schema.required || [];
+        assert.ok(required.includes('teammates'), 'should require teammates');
+        assert.ok(required.includes('completed_tasks'), 'should require completed_tasks');
+        assert.ok(required.includes('file_ownership'), 'should require file_ownership');
+    });
+
+    test('gate-history.schema.json has required field: entries', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'gate-history.schema.json'), 'utf8'));
+        const required = schema.required || [];
+        assert.ok(required.includes('entries'), 'should require entries');
+    });
+
+    test('gate-history entries have required: timestamp, command, exitCode, duration, passed', () => {
+        const schema = JSON.parse(fs.readFileSync(path.join(schemasDir, 'gate-history.schema.json'), 'utf8'));
+        const entryRequired = schema.properties.entries.items.required || [];
+        assert.ok(entryRequired.includes('timestamp'), 'entry should require timestamp');
+        assert.ok(entryRequired.includes('exitCode'), 'entry should require exitCode');
+        assert.ok(entryRequired.includes('passed'), 'entry should require passed');
     });
 });
 

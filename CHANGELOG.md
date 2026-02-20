@@ -6,6 +6,35 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.9] — 2026-02-20
+
+### Security
+- **`bash-validator.cjs`** — Added reverse shell patterns: socat EXEC/TCP, openssl s_client pipe, ncat -e flag
+- **`bash-validator.cjs`** — Added cron persistence patterns: `crontab -e/-l/-i` and pipe-to-crontab
+- **`bash-validator.cjs`** — Added `LD_PRELOAD` library injection detection
+- **`utils.cjs`** — Fixed Anthropic key redaction pattern to include hyphens (`sk-ant-api03-` format)
+- **`utils.cjs`** — Expanded `redactSecrets()` with 4 new patterns: GCP tokens (`ya29.`), Azure Storage keys (`AccountKey=`), npm tokens (`npm_`), PyPI tokens (`pypi-`)
+- **`utils.cjs`** — Reordered `SECRET_PATTERNS` so specific prefixed secrets run before the generic AWS base64 catch-all, preventing partial token corruption
+
+### Fixed
+- **`file-validator.cjs`** — `checkHookSelfProtection()` now uses `absolutePath` instead of `resolvedPath`, fixing self-protection when path is relative (e.g. in test environments where the file/parent dir doesn't exist yet)
+
+### Added
+- **`schemas/`** — Formalized 3 state-file schemas: `session-state.schema.json`, `team-state.schema.json`, `gate-history.schema.json`
+- **`schemas/`** — Marked aspirational schemas as `[Planned]` in their titles: `skill.schema.json`, `phase.schema.json`, `event.schema.json`
+- **`utils.cjs`** — Extracted `GIT_TIMEOUT_MS = 3000` named constant; added `isInputTooLarge()` helper reducing `parseHookInput` nesting depth
+- **`pre-compact.cjs`** — Flattened `collectStateFiles` from 4-level to 3-level nesting
+- **`agent-tracker.cjs`** — JSDoc for `parseYamlListSections()`
+- **`settings.json`** — Added `sentient.mcpServers` listing expected MCP servers
+
+### Tests
+- Added 52 new tests (hooks 181→235, schemas 166→188, integration 63→69)
+- Covers: reverse shell variants, persistence patterns, expanded secret redaction, hook self-protection, state schema structure, MCP degradation
+- Total: **923 tests**
+- Version bump: 1.3.8 → 1.3.9
+
+---
+
 ## [1.3.8] — 2026-02-20
 
 ### Fixed
