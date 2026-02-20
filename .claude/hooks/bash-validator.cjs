@@ -6,14 +6,13 @@
  * Blocks dangerous commands that could harm the system.
  */
 
-const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH } = require('./utils.cjs');
+const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH, MAX_INPUT_SIZE } = require('./utils.cjs');
 
 // Dangerous command patterns
 const DANGEROUS_PATTERNS = [
-    // Destructive file operations (including -- flag bypass)
-    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?[\/~$]/, reason: 'Recursive delete from root, home, or variable path' },
-    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\*/, reason: 'Recursive delete all files' },
-    { pattern: /rm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)\s+(--\s+)?\./, reason: 'Recursive delete current directory' },
+    // Destructive file operations — block any rm with combined -r and -f flags regardless of path
+    // Previously only blocked absolute/special paths, allowing "rm -rf named-dir" or "../traversal"
+    { pattern: /\brm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)/i, reason: 'Recursive force delete (rm -rf)' },
 
     // Disk operations
     { pattern: />\s*\/dev\/sd/, reason: 'Direct write to disk device' },
@@ -38,6 +37,9 @@ const DANGEROUS_PATTERNS = [
     // Supply-chain attacks — piping remote scripts to interpreters
     { pattern: /curl.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping curl to interpreter' },
     { pattern: /wget.*\|\s*(sh|bash|zsh|fish|python[23]?|node|ruby|perl)/, reason: 'Piping wget to interpreter' },
+    // Supply-chain bypass via command substitution: bash -c "$(curl URL)" — $() normalizer strips
+    // the substitution, destroying the pipe context. This pattern fires on rawCommand before normalization.
+    { pattern: /(?:bash|sh|zsh|fish)\b.*\$\((?:curl|wget)\s/, reason: 'Shell executing curl/wget via command substitution' },
 
     // Encoded command injection
     { pattern: /base64\s+(-d|--decode).*\|\s*(sh|bash|zsh)/, reason: 'Base64-encoded command injection' },
@@ -118,6 +120,21 @@ function normalizeCommand(cmd) {
 }
 
 function main() {
+    // Fail closed: if HOOK_INPUT is too large to parse safely, block rather than allow.
+    // parseHookInput() silently returns {} on oversized input, making bash-validator see an empty
+    // command and allow it — a bypass vector for oversized payload attacks.
+    const hookInputStr = process.env.HOOK_INPUT;
+    if (hookInputStr && hookInputStr.length > MAX_INPUT_SIZE) {
+        const output = {
+            decision: 'block',
+            reason: 'BLOCKED: Hook input too large to process safely',
+            command: '[oversized input]'
+        };
+        console.log(JSON.stringify(output));
+        logMessage('BLOCKED: Oversized hook input rejected (potential bypass attempt)', 'BLOCKED');
+        process.exit(0);
+    }
+
     // Parse input from hook
     const parsed = parseHookInput();
     const rawCommand = parsed.tool_input?.command || parsed.command || '';
