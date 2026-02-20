@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-02-20
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.6
+> **Version:** 1.3.7
 
 ---
 
@@ -23,7 +23,7 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (799 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (814 total across 6 suites)
 ```
 
 ---
@@ -122,7 +122,7 @@ Testing             [███████████████████�
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 139 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 154 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
@@ -140,7 +140,7 @@ Testing             [███████████████████�
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 139 | 139 ✓ |
+| Hook Tests | 154 | 154 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
@@ -154,6 +154,12 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-20 (Session 25)
+- **v1.3.7 — Security gap closures and expanded test coverage:**
+  - Closed 3 bash-validator gaps: any-path recursive-force-delete (was path-restricted), `bash -c "$(curl ...)"` supply-chain bypass (fires on rawCommand before normalizer strips pipe context), fail-closed on oversized HOOK_INPUT (was fail-open allowing empty command through)
+  - Added 15 new security tests (hooks 139→154, total 799→814)
+  - Updated all documentation, profiles, and agents to v1.3.7
 
 ### 2026-02-20 (Session 24)
 - **v1.3.6 — Security hardening, DRY helpers, performance, 22 new tests:**

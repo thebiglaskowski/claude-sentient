@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.7] — 2026-02-20
+
+### Fixed
+- **Security: `bash-validator.cjs`** — Block any `rm` with combined `-r`/`-f` flags regardless of path (named dirs, `../traversal`); previous pattern only caught paths beginning with `/`, `~`, `.`, or `*`
+- **Security: `bash-validator.cjs`** — Added pattern to catch `bash -c "$(curl ...)"` supply-chain bypass; fires on `rawCommand` before `$()` normalizer strips pipe context
+- **Security: `bash-validator.cjs`** — Fail closed when `HOOK_INPUT` exceeds `MAX_INPUT_SIZE` — previous behavior silently returned `{}` (fail-open), allowing an empty command through
+
+### Tests
+- Added 15 new security tests to hook test suite
+- Total: **814 tests** (hooks 139→154)
+- Version bump: 1.3.6 → 1.3.7
+
+---
+
 ## [1.3.6] — 2026-02-20
 
 ### Fixed
@@ -540,6 +554,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.3.7 | 2026-02-20 | Security gap closures in bash-validator, 15 new tests, 814 total |
 | 1.3.4 | 2026-02-19 | Assessment fixes: MCP tool names, boundary bugs, DoD enforcement, gate-monitor hook, 761 tests |
 | 1.3.3 | 2026-02-19 | Security hardening, test coverage gaps filled, doc cleanup, 761 tests |
 | 1.3.2 | 2026-02-19 | Auto-configure global permissions, security+quality fixes, 755 tests |

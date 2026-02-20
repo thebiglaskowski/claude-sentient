@@ -49,13 +49,20 @@ Hooks are configured in `.claude/settings.json`:
 ## Security Patterns
 
 **Bash Validator** blocks dangerous patterns:
-- `rm -rf /` or `rm -rf ~` — Recursive delete
+- Any `rm` with combined `-r`/`-f` flags (any path — named dirs, `../` traversal, absolute)
 - `> /dev/sd*` — Direct disk writes
 - `mkfs` — Filesystem creation
 - `chmod -R 777 /` — Dangerous permissions
 - Fork bombs and reverse shells
-- `curl|sh`, `wget|sh` — Supply-chain attacks
+- `curl|sh`, `wget|sh` — Supply-chain attacks (pipe-to-interpreter)
+- `bash -c "$(curl ...)"` — Supply-chain bypass via command substitution
+- `curl url > x.sh && bash x.sh` — Download-then-execute chains
 - `base64 -d | sh` — Encoded command injection
+- `eval` — Shell eval execution
+- `sudo bash/sh`, `sudo su` — Privilege escalation
+- `find / -exec rm` or `find|xargs rm` — Bulk deletion from root
+- Python/Perl/Ruby/Node one-liners with dangerous imports
+- Oversized `HOOK_INPUT` (>1MB) — fail-closed, blocks rather than allowing empty command through
 
 **File Validator** protects sensitive paths:
 - System directories (`/etc`, `/usr`, `C:\Windows`)

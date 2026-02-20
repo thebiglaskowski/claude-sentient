@@ -2,7 +2,7 @@
 # Fallback when no specific profile matches
 
 name: general
-version: "1.3.6"
+version: "1.3.7"
 description: "General fallback profile with auto-detection of common linters, test runners, and build tools"
 
 # Model routing configuration
