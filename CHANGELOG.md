@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] — 2026-02-22
+
+### Added
+- **Skills system** — Created `.claude/skills/` with 3 priority skills extracted from cs-loop.md: `quality-gates` (gate execution + auto-fix), `profile-detection` (environment setup + MCP context), `team-orchestration` (team workflow + agent matching). Progressive disclosure reduces cs-loop context footprint by ~62%
+- **Native agents** — Converted 6 YAML agent roles to native `.claude/agents/*.md` format with proper frontmatter (name, description, model, permissionMode, tools, skills). Directly invocable via `--agent` flag or `Task(subagent_type)`. YAML configs kept for schema validation
+- **Pre-approved permissions** — Added 18 wildcard permission entries to `.claude/settings.json` covering: node/bash/git/npm/npx commands, state file writes/edits, gh CLI operations
+- **Compaction override** — Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50` in settings.json env block for proactive compaction at 50% context usage
+- **Install scripts** — Both `install.sh` and `install.ps1` now install `.claude/agents/*.md` (native agents) and `.claude/skills/` (3 skills)
+
+### Changed
+- **CLAUDE.md** — Trimmed from 267 to 150 lines. Moved Integrity Rules, Self-Improvement, expanded Rules Reference, and Governance table to nested docs (already duplicated in anthropic-patterns.md and commands/CLAUDE.md)
+- **cs-loop.md** — Reduced from 466 to ~179 lines by extracting domain knowledge into 3 skills. Added path-scoped rules note, fixed AUTO-FIX casing
+- **Install scripts** — Fixed stale schema counts (9→12 schemas, 166→188 schema tests)
+
+### Tests
+- All **923 tests** pass across 6 suites (no regressions)
+- Version bump: 1.3.9 → 1.4.0
+
+---
+
 ## [1.3.9] — 2026-02-20
 
 ### Security

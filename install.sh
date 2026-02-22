@@ -91,6 +91,19 @@ cp "$TEMP_DIR"/agents/CLAUDE.md agents/
 cp "$TEMP_DIR"/agents/__tests__/*.js agents/__tests__/
 echo "  Installed agent definitions + tests"
 
+echo "Installing native agents..."
+mkdir -p .claude/agents
+cp "$TEMP_DIR"/.claude/agents/*.md .claude/agents/
+echo "  Installed native agent definitions (.claude/agents/*.md)"
+
+echo "Installing skills..."
+for skill_dir in "$TEMP_DIR"/.claude/skills/*/; do
+    skill_name=$(basename "$skill_dir")
+    mkdir -p ".claude/skills/$skill_name"
+    cp "$skill_dir"SKILL.md ".claude/skills/$skill_name/"
+done
+echo "  Installed skills (.claude/skills/)"
+
 echo "Installing schemas..."
 mkdir -p schemas/__tests__
 cp "$TEMP_DIR"/schemas/*.json schemas/
@@ -213,9 +226,11 @@ echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"
 echo "  profiles/__tests__/            (242 profile tests)"
 echo "  agents/*.yaml                  (6 agent roles)"
+echo "  .claude/agents/*.md            (6 native agent definitions)"
 echo "  agents/__tests__/              (108 agent tests)"
-echo "  schemas/*.json                 (9 JSON schemas)"
-echo "  schemas/__tests__/             (166 schema tests)"
+echo "  .claude/skills/                (3 skills)"
+echo "  schemas/*.json                 (12 JSON schemas)"
+echo "  schemas/__tests__/             (188 schema tests)"
 echo "  rules/*.md                     (15 topic rules)"
 echo "  templates/                     (4 templates + settings.json)"
 echo "  test-utils.js                  (shared test infrastructure)"

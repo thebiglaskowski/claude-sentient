@@ -1,6 +1,6 @@
 name: backend
 description: "Backend specialist for API design, database operations, and server-side performance"
-version: "1.3.9"
+version: "1.4.0"
 role: implementer
 expertise:
   - RESTful and GraphQL API design

@@ -110,6 +110,19 @@ Copy-Item "$TempDir/agents/CLAUDE.md" -Destination "agents/" -Force
 Copy-Item "$TempDir/agents/__tests__/*.js" -Destination "agents/__tests__/" -Force
 Write-Host "  Installed agent definitions + tests"
 
+Write-Host "Installing native agents..."
+New-Item -ItemType Directory -Force -Path ".claude/agents" | Out-Null
+Copy-Item "$TempDir/.claude/agents/*.md" -Destination ".claude/agents/" -Force
+Write-Host "  Installed native agent definitions (.claude/agents/*.md)"
+
+Write-Host "Installing skills..."
+Get-ChildItem "$TempDir/.claude/skills" -Directory | ForEach-Object {
+    $skillDir = ".claude/skills/$($_.Name)"
+    New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
+    Copy-Item "$($_.FullName)/SKILL.md" -Destination "$skillDir/" -Force
+}
+Write-Host "  Installed skills (.claude/skills/)"
+
 Write-Host "Installing schemas..."
 New-Item -ItemType Directory -Force -Path "schemas/__tests__" | Out-Null
 Copy-Item "$TempDir/schemas/*.json" -Destination "schemas/" -Force
@@ -250,9 +263,11 @@ Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'
 Write-Host '  agents/*.yaml                  (6 agent roles)'
+Write-Host '  .claude/agents/*.md            (6 native agent definitions)'
 Write-Host '  agents/__tests__/              (108 agent tests)'
-Write-Host '  schemas/*.json                 (9 JSON schemas)'
-Write-Host '  schemas/__tests__/             (166 schema tests)'
+Write-Host '  .claude/skills/                (3 skills)'
+Write-Host '  schemas/*.json                 (12 JSON schemas)'
+Write-Host '  schemas/__tests__/             (188 schema tests)'
 Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/                     (4 templates + settings.json)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'

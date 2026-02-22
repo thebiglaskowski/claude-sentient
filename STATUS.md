@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-20
+> **Last Updated:** 2026-02-22
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.3.8
+> **Version:** 1.4.0
 
 ---
 
@@ -23,7 +23,9 @@ Agent Roles         [███████████████████�
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
-Testing             [████████████████████] 100% ✓ (841 total across 6 suites)
+Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
+Native Agents       [████████████████████] 100% ✓ (6 native .claude/agents/*.md)
+Testing             [████████████████████] 100% ✓ (923 total across 6 suites)
 ```
 
 ---
@@ -121,13 +123,15 @@ Testing             [███████████████████�
 | Commands | `commands/cs-*.md` | ✓ 12 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
 | Agent Roles | `agents/*.yaml` | ✓ 6 created |
+| Native Agents | `.claude/agents/*.md` | ✓ 6 native agent definitions |
+| Skills | `.claude/skills/` | ✓ 3 skills (quality-gates, profile-detection, team-orchestration) |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 181 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 235 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
-| Schema Tests | `schemas/__tests__/` | ✓ 166 tests |
-| Integration Tests | `integration/__tests__/` | ✓ 63 tests |
+| Schema Tests | `schemas/__tests__/` | ✓ 188 tests |
+| Integration Tests | `integration/__tests__/` | ✓ 69 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 
 ---
@@ -139,13 +143,15 @@ Testing             [███████████████████�
 | Commands | 12 | 12 ✓ |
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 6 | 6 ✓ |
+| Native Agents | 6 | 6 ✓ |
+| Skills | 3 | 3 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 181 | 181 ✓ |
+| Hook Tests | 235 | 235 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
-| Schema Tests | 166 | 166 ✓ |
-| Integration Tests | 39 | 39 ✓ |
+| Schema Tests | 188 | 188 ✓ |
+| Integration Tests | 69 | 69 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |
 | GitHub tools integrated | 13 | 13 ✓ |
@@ -154,6 +160,18 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-02-22 (Session 27)
+- **v1.4.0 — Best practices alignment (shanraisshan/claude-code-best-practice comparison):**
+  - Trimmed CLAUDE.md from 267 to 150 lines (best practice: adherence degrades beyond 150 lines)
+  - Added 18 pre-approved permissions to `.claude/settings.json` for common /cs-loop operations
+  - Created `.claude/skills/` system with 3 priority skills: quality-gates, profile-detection, team-orchestration
+  - Converted 6 YAML agents to native `.claude/agents/*.md` format with frontmatter
+  - Set `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50` for proactive context compaction
+  - Reduced cs-loop.md from 466 to ~179 lines via skill extraction (~62% reduction)
+  - Updated install scripts to install native agents and skills
+  - Fixed stale schema counts in install scripts (9→12 schemas, 166→188 tests)
+  - 923 total tests pass across 6 suites (no regressions)
 
 ### 2026-02-20 (Session 26)
 - **v1.3.8 — Code quality, NaN fix, expanded security patterns and test coverage:**
