@@ -40,7 +40,18 @@ if ((Test-Path ".claude/commands") -and (Test-Path ".claude/commands/cs-loop.md"
 
 Write-Host ""
 Write-Host "Downloading claude-sentient..."
-git clone --depth 1 --quiet $RepoUrl $TempDir
+
+# Remove any leftover temp dir from a previous failed run
+if (Test-Path $TempDir) {
+    Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
+}
+
+git clone --depth 1 --quiet $RepoUrl $TempDir 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path "$TempDir/CHECKSUMS.sha256")) {
+    Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
+    Write-Error "Failed to download claude-sentient. Ensure git is installed and you have internet access."
+    exit 1
+}
 
 # Verify file integrity
 $checksumFile = "$TempDir/CHECKSUMS.sha256"
@@ -51,8 +62,8 @@ if (Test-Path $checksumFile) {
     foreach ($line in $checksums) {
         if ($line -match '^(\w{64})\s+(.+)$') {
             $expectedHash = $Matches[1]
-            $filePath = "$TempDir/$($Matches[2])"
-            if (Test-Path $filePath) {
+            $filePath = [System.IO.Path]::GetFullPath("$TempDir/$($Matches[2])")
+            if ([System.IO.File]::Exists($filePath)) {
                 # Normalize CRLF -> LF before hashing to match Linux-generated checksums
                 $bytes = [System.IO.File]::ReadAllBytes($filePath)
                 $text = [System.Text.Encoding]::UTF8.GetString($bytes).Replace("`r`n", "`n")
