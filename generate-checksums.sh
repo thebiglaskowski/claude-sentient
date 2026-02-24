@@ -2,7 +2,7 @@
 # Generates CHECKSUMS.sha256 for installer verification
 set -euo pipefail
 
-echo "# Claude Sentient v1.3.0 — File Checksums" > CHECKSUMS.sha256
+echo "# Claude Sentient v1.4.0 — File Checksums" > CHECKSUMS.sha256
 echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> CHECKSUMS.sha256
 echo "" >> CHECKSUMS.sha256
 

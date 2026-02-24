@@ -53,7 +53,12 @@ if (Test-Path $checksumFile) {
             $expectedHash = $Matches[1]
             $filePath = "$TempDir/$($Matches[2])"
             if (Test-Path $filePath) {
-                $actualHash = (Get-FileHash $filePath -Algorithm SHA256).Hash.ToLower()
+                # Normalize CRLF -> LF before hashing to match Linux-generated checksums
+                $bytes = [System.IO.File]::ReadAllBytes($filePath)
+                $text = [System.Text.Encoding]::UTF8.GetString($bytes).Replace("`r`n", "`n")
+                $normalizedBytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+                $sha256 = [System.Security.Cryptography.SHA256]::Create()
+                $actualHash = [System.BitConverter]::ToString($sha256.ComputeHash($normalizedBytes)).Replace('-', '').ToLower()
                 if ($actualHash -ne $expectedHash) {
                     $allValid = $false
                     break
