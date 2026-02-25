@@ -25,7 +25,7 @@ Context Arch        [███████████████████�
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
 Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
 Native Agents       [████████████████████] 100% ✓ (6 native .claude/agents/*.md)
-Testing             [████████████████████] 100% ✓ (937 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (940 total across 6 suites)
 ```
 
 ---
@@ -127,7 +127,7 @@ Testing             [███████████████████�
 | Native Agents | `.claude/agents/*.md` | ✓ 6 native agent definitions |
 | Skills | `.claude/skills/` | ✓ 3 skills (quality-gates, profile-detection, team-orchestration) |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
-| Hook Tests | `.claude/hooks/__tests__/` | ✓ 249 tests |
+| Hook Tests | `.claude/hooks/__tests__/` | ✓ 252 tests |
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
@@ -147,7 +147,7 @@ Testing             [███████████████████�
 | Native Agents | 6 | 6 ✓ |
 | Skills | 3 | 3 ✓ |
 | Hooks | 13 | 13 ✓ |
-| Hook Tests | 249 | 249 ✓ |
+| Hook Tests | 252 | 252 ✓ |
 | Profile Tests | 242 | 242 ✓ |
 | Command Tests | 81 | 81 ✓ |
 | Agent Tests | 108 | 108 ✓ |
@@ -162,6 +162,13 @@ Testing             [███████████████████�
 
 ## Recent Activity
 
+### 2026-02-25 (Session 28)
+- **v1.4.0 post-release bug fixes:**
+  - `bash-validator.cjs` — narrowed `eval` block pattern from `/\beval\b/` to `/(^|[|;&{(=]\s*)eval\b/`; prevents false-positive blocks on `node --eval`, commit messages, and flag arguments
+  - `gate-monitor.cjs` — null `exit_code` (omitted by Claude Code PostToolUse) now recorded as `passed: null` instead of failure; eliminates spurious "Gate failed (exit null)" warnings
+  - Added 3 new tests (252 hook tests total, 940 across all suites)
+  - Updated all documentation and checksums
+
 ### 2026-02-22 (Session 27)
 - **v1.4.0 — Best practices alignment (shanraisshan/claude-code-best-practice comparison):**
   - Trimmed CLAUDE.md from 267 to 150 lines (best practice: adherence degrades beyond 150 lines)
@@ -172,7 +179,7 @@ Testing             [███████████████████�
   - Reduced cs-loop.md from 466 to ~179 lines via skill extraction (~62% reduction)
   - Updated install scripts to install native agents and skills
   - Fixed stale schema counts in install scripts (9→12 schemas, 166→188 tests)
-  - 937 total tests pass across 6 suites (no regressions)
+  - 940 total tests pass across 6 suites (no regressions)
 
 ### 2026-02-20 (Session 26)
 - **v1.3.8 — Code quality, NaN fix, expanded security patterns and test coverage:**

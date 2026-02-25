@@ -29,8 +29,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`utils.cjs`** — Removed `GIT_TIMEOUT_MS` from module exports (constant is only used internally via `GIT_EXEC_OPTIONS`)
 
 ### Tests
-- All **937 tests** pass across 6 suites (hooks 244→249 with getProjectRoot fast-path, appendCapped return value, MAX_ACTIVE_AGENTS cap, log rotation tests)
+- All **940 tests** pass across 6 suites (hooks 244→252: getProjectRoot fast-path, appendCapped return value, MAX_ACTIVE_AGENTS cap, log rotation tests, plus 3 new tests for eval pattern and null exit code)
 - Version bump: 1.3.9 → 1.4.0
+
+### Fixed (post-release)
+- **`bash-validator.cjs`** — Narrowed shell-eval block pattern from `/\beval\b/` to `/(^|[|;&{(=]\s*)eval\b/` so only shell-command-position `eval` is blocked; `node --eval`, commit messages, and flag arguments are now allowed
+- **`gate-monitor.cjs`** — Treat null `exit_code` (omitted by Claude Code PostToolUse) as inconclusive (`passed: null`) instead of failure; eliminates spurious "Gate failed (exit null)" warnings for every gate run
 
 ---
 
@@ -628,7 +632,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.4.0 | 2026-02-25 | Skills system, native agents, pre-approved permissions, performance improvements, 937 tests |
+| 1.4.0 | 2026-02-25 | Skills system, native agents, pre-approved permissions, performance improvements, 940 tests |
 | 1.3.9 | 2026-02-20 | Reverse shells, cron persistence, LD_PRELOAD, state schemas, secret redaction, 923 tests |
 | 1.3.8 | 2026-02-20 | NaN fix, file-validator refactor, expanded node one-liner checks, 841 tests |
 | 1.3.7 | 2026-02-20 | Security gap closures in bash-validator, 15 new tests, 814 total |
