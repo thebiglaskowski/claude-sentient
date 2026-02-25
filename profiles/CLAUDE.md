@@ -68,11 +68,6 @@ All gates use standardized keys:
 - Ruby: `bundle exec rubocop -a`
 - C++: `clang-tidy --fix`
 
-**Important:** Gate keys were standardized in v0.4.0:
-- Java: `maven_command`/`gradle_command` → `command`/`alternative`
-- C++: `cmake_command`/`make_command` → `command`/`alternative`
-- Shell: `powershell_command` → `alternative`
-
 ---
 
 ## Model Routing

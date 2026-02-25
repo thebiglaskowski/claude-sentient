@@ -20,8 +20,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **cs-loop.md** — Reduced from 466 to ~179 lines by extracting domain knowledge into 3 skills. Added path-scoped rules note, fixed AUTO-FIX casing
 - **Install scripts** — Fixed stale schema counts (9→12 schemas, 166→188 schema tests)
 
+### Performance
+- **`utils.cjs`** — `redactSecrets()` fast-path: returns early for strings shorter than 20 chars (minimum secret length), skipping 19-regex scan on every short log message
+- **`utils.cjs`** — `appendCapped()` now returns new array length (backward compatible), enabling callers to reuse the count without a second disk read
+- **`context-injector.cjs`** — Eliminated double `prompts.json` read on hot path: `checkContextDegradation()` accepts optional `knownCount` param; `main()` passes return value from `appendCapped()` directly
+
+### Removed
+- **`utils.cjs`** — Removed `GIT_TIMEOUT_MS` from module exports (constant is only used internally via `GIT_EXEC_OPTIONS`)
+
 ### Tests
-- All **923 tests** pass across 6 suites (no regressions)
+- All **937 tests** pass across 6 suites (hooks 244→249 with getProjectRoot fast-path, appendCapped return value, MAX_ACTIVE_AGENTS cap, log rotation tests)
 - Version bump: 1.3.9 → 1.4.0
 
 ---
@@ -620,6 +628,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.4.0 | 2026-02-25 | Skills system, native agents, pre-approved permissions, performance improvements, 937 tests |
+| 1.3.9 | 2026-02-20 | Reverse shells, cron persistence, LD_PRELOAD, state schemas, secret redaction, 923 tests |
+| 1.3.8 | 2026-02-20 | NaN fix, file-validator refactor, expanded node one-liner checks, 841 tests |
 | 1.3.7 | 2026-02-20 | Security gap closures in bash-validator, 15 new tests, 814 total |
 | 1.3.4 | 2026-02-19 | Assessment fixes: MCP tool names, boundary bugs, DoD enforcement, gate-monitor hook, 761 tests |
 | 1.3.3 | 2026-02-19 | Security hardening, test coverage gaps filled, doc cleanup, 761 tests |

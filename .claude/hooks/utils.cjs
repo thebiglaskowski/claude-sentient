@@ -213,6 +213,8 @@ function sanitizeJson(obj, depth = 0) {
  * @returns {string} Text with secrets replaced by [REDACTED]
  */
 function redactSecrets(text) {
+    // Fast path: shortest possible secret is ~20 chars (sk- prefix + token body)
+    if (text.length < 20) return text;
     let redacted = text;
     for (const pattern of SECRET_PATTERNS) {
         redacted = redacted.replace(pattern, '[REDACTED]');
@@ -374,6 +376,7 @@ function appendCapped(filename, entry, maxLength, defaultVal = []) {
     arr.push(entry);
     if (arr.length > maxLength) arr = arr.slice(-maxLength);
     saveState(filename, arr);
+    return arr.length;
 }
 
 module.exports = {
@@ -415,7 +418,6 @@ module.exports = {
     MAX_INPUT_SIZE,
     MAX_SANITIZE_DEPTH,
     GIT_EXEC_OPTIONS,
-    GIT_TIMEOUT_MS,
     MIN_SHELL_FILES,
     SESSION_ID_SUFFIX_LEN,
     CONTEXT_DEGRADATION_THRESHOLD,

@@ -71,11 +71,17 @@ function buildFilePredictions(topics) {
  * Uses prompt count as a proxy for context utilization depth.
  * Meaningful degradation (lost-in-middle) begins around 70-80% context utilization,
  * which correlates with ~15-20 exchanges in a typical session.
+ * @param {number|null} knownCount - If provided, skip the disk read and use this count directly.
  * @returns {{ warningLevel: string|null, promptCount: number, suggestCompact: boolean }}
  */
-function checkContextDegradation() {
-    const prompts = loadState('prompts.json', []);
-    const promptCount = Array.isArray(prompts) ? prompts.length : 0;
+function checkContextDegradation(knownCount = null) {
+    let promptCount;
+    if (knownCount !== null) {
+        promptCount = knownCount;
+    } else {
+        const prompts = loadState('prompts.json', []);
+        promptCount = Array.isArray(prompts) ? prompts.length : 0;
+    }
 
     let warningLevel = null;
     if (promptCount >= CONTEXT_DEGRADATION_THRESHOLD) {
@@ -113,16 +119,19 @@ function main() {
     const filePredictions = buildFilePredictions(detectedTopics);
 
     // Only persist prompt metadata and log when there is actual content
+    // appendCapped returns the new array length — pass it to checkContextDegradation
+    // to avoid re-reading prompts.json on every prompt (hot path).
+    let knownPromptCount = null;
     if (promptText.length > 0) {
         logMessage('Prompt received');
-        appendCapped('prompts.json', {
+        knownPromptCount = appendCapped('prompts.json', {
             timestamp: new Date().toISOString(),
             topics: detectedTopics,
             length: promptText.length
         }, MAX_PROMPT_HISTORY);
     }
 
-    const { warningLevel, promptCount, suggestCompact } = checkContextDegradation();
+    const { warningLevel, promptCount, suggestCompact } = checkContextDegradation(knownPromptCount);
 
     const output = { continue: true, detectedTopics, filePredictions };
     if (suggestCompact) {

@@ -87,6 +87,8 @@ Hooks read/write to `.claude/state/`:
 | `gate_history.json` | Quality gate exit codes and durations |
 | `compact-context.json` | State snapshot before context compaction |
 | `team-state.json` | Agent Teams: teammate tracking, file ownership |
+| `context_degradation.json` | Context depth warning state (medium/high) |
+| `gate-output/` | Large gate stdout saved as files (created on demand) |
 
 ---
 
@@ -132,10 +134,18 @@ console.log(JSON.stringify({ decision: 'allow', warnings: ['Warning'] }));
 | Function | Purpose |
 |----------|---------|
 | `getProjectRoot()` | Resolve project root via git (cached per process) |
-| `parseHookInput()` | Parse from HOOK_INPUT env var or stdin |
+| `parseHookInput()` | Parse from HOOK_INPUT env var or stdin (sanitized) |
 | `loadState(filename)` | Load from `.claude/state/` |
-| `saveState(filename, data)` | Save to `.claude/state/` |
+| `saveState(filename, data)` | Save to `.claude/state/` (atomic write) |
+| `loadJsonFile(path)` | Low-level JSON file read |
+| `saveJsonFile(path, data)` | Low-level JSON file write (tmp+rename) |
+| `appendCapped(file, entry, max)` | Load-push-cap-save for state arrays |
 | `logMessage(msg, level)` | Append to `.claude/session.log` |
-| `ensureStateDir()` | Create state directory if missing |
+| `ensureStateDir()` | Create state directory if missing (cached) |
+| `sanitizeJson(obj)` | Prototype pollution protection |
+| `redactSecrets(str)` | API key/token redaction in logs |
+| `validateFilePath(path)` | Path validation (control chars, traversal) |
+| `pruneDirectory(dir, max, prefix)` | Cap file count in a directory |
+| `isInputTooLarge(input)` | Check HOOK_INPUT size limit |
 
-Named constants: `MAX_PROMPT_HISTORY` (50), `MAX_FILE_CHANGES` (100), `MAX_AGENT_HISTORY` (50), `MAX_FILES_PER_TASK` (20), `LARGE_FILE_THRESHOLD` (100KB).
+Key constants: `MAX_PROMPT_HISTORY` (50), `MAX_FILE_CHANGES` (100), `MAX_AGENT_HISTORY` (50), `MAX_FILES_PER_TASK` (20), `LARGE_FILE_THRESHOLD` (100KB), `MAX_GATE_HISTORY` (200), `MAX_OBSERVATION_SIZE` (8000), `MAX_INPUT_SIZE` (1MB), `CONTEXT_DEGRADATION_THRESHOLD` (20), `CONTEXT_DEGRADATION_EARLY` (15).

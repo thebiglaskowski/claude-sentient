@@ -2525,6 +2525,126 @@ suite('bash-validator.js — reverse shell and persistence patterns', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// utils.js — getProjectRoot fast-path tests
+// ─────────────────────────────────────────────────────────────
+
+suite('utils.js — getProjectRoot fast-path', () => {
+    const utilsPath = path.resolve(__dirname, '..', 'utils.cjs');
+
+    test('reads project_root from session_start.json when present', () => {
+        const fastPathDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-gpr-test-'));
+        try {
+            const stateDir = path.join(fastPathDir, '.claude', 'state');
+            fs.mkdirSync(stateDir, { recursive: true });
+            fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+                JSON.stringify({ project_root: fastPathDir }));
+            const scriptPath = path.join(fastPathDir, '_test_gpr.js');
+            fs.writeFileSync(scriptPath, [
+                `const u = require(${JSON.stringify(utilsPath)});`,
+                `console.log(u.getProjectRoot());`
+            ].join('\n'));
+            const out = execSync(`node "${scriptPath}"`, { cwd: fastPathDir, encoding: 'utf8', timeout: 5000 });
+            assert.strictEqual(out.trim(), fastPathDir);
+        } finally {
+            try { fs.rmSync(fastPathDir, { recursive: true, force: true }); } catch (_) {}
+        }
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// utils.js — appendCapped return value tests
+// ─────────────────────────────────────────────────────────────
+
+suite('utils.js — appendCapped return value', () => {
+    const utilsPath = path.resolve(__dirname, '..', 'utils.cjs');
+
+    test('returns new array length when under cap', () => {
+        const scriptPath = path.join(tmpDir, '_test_ac_ret1.js');
+        fs.writeFileSync(scriptPath, [
+            `const u = require(${JSON.stringify(utilsPath)});`,
+            `const n = u.appendCapped('_ac_ret1.json', {x: 1}, 5);`,
+            `console.log(n);`
+        ].join('\n'));
+        const out = execSync(`node "${scriptPath}"`, { cwd: tmpDir, encoding: 'utf8', timeout: 5000 });
+        assert.strictEqual(parseInt(out.trim(), 10), 1);
+    });
+
+    test('returns capped length when array exceeds cap', () => {
+        const scriptPath = path.join(tmpDir, '_test_ac_ret2.js');
+        fs.writeFileSync(scriptPath, [
+            `const u = require(${JSON.stringify(utilsPath)});`,
+            `for (let i = 0; i < 4; i++) u.appendCapped('_ac_ret2.json', {i}, 3);`,
+            `const n = u.appendCapped('_ac_ret2.json', {i: 99}, 3);`,
+            `console.log(n);`
+        ].join('\n'));
+        const out = execSync(`node "${scriptPath}"`, { cwd: tmpDir, encoding: 'utf8', timeout: 5000 });
+        assert.strictEqual(parseInt(out.trim(), 10), 3);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// agent-tracker.js — MAX_ACTIVE_AGENTS cap tests
+// ─────────────────────────────────────────────────────────────
+
+suite('agent-tracker.js — MAX_ACTIVE_AGENTS cap', () => {
+    test('prunes oldest agents when agent count exceeds cap', () => {
+        const capDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-agcap-test-'));
+        try {
+            const stateDir = path.join(capDir, '.claude', 'state');
+            fs.mkdirSync(stateDir, { recursive: true });
+            fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+                JSON.stringify({ project_root: capDir }));
+            const agents = {};
+            for (let i = 0; i < 50; i++) {
+                agents[`agent-${String(i).padStart(3, '0')}`] = {
+                    startTime: new Date(Date.now() - (50 - i) * 1000).toISOString(),
+                    type: 'general-purpose'
+                };
+            }
+            fs.writeFileSync(path.join(stateDir, 'active_agents.json'), JSON.stringify(agents));
+            const hookPath = path.resolve(__dirname, '..', 'agent-tracker.cjs');
+            const hookEnv = { ...process.env, HOOK_INPUT: JSON.stringify({ agent_id: 'agent-new', tool_input: { subagent_type: 'general-purpose' } }) };
+            execSync(`node "${hookPath}"`, { cwd: capDir, encoding: 'utf8', timeout: 5000, env: hookEnv });
+            const result = JSON.parse(fs.readFileSync(path.join(stateDir, 'active_agents.json'), 'utf8'));
+            assert.ok(Object.keys(result).length <= 50, `expected ≤50 agents, got ${Object.keys(result).length}`);
+        } finally {
+            try { fs.rmSync(capDir, { recursive: true, force: true }); } catch (_) {}
+        }
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// utils.js — log rotation tests
+// ─────────────────────────────────────────────────────────────
+
+suite('utils.js — log rotation', () => {
+    const utilsPath = path.resolve(__dirname, '..', 'utils.cjs');
+
+    test('rotates session.log when file exceeds MAX_LOG_SIZE', () => {
+        const logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-logrot-test-'));
+        try {
+            const stateDir = path.join(logDir, '.claude', 'state');
+            const claudeDir = path.join(logDir, '.claude');
+            fs.mkdirSync(stateDir, { recursive: true });
+            fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+                JSON.stringify({ project_root: logDir }));
+            const logFile = path.join(claudeDir, 'session.log');
+            fs.writeFileSync(logFile, 'x'.repeat(1048577));
+            const scriptPath = path.join(logDir, '_test_logrot.js');
+            fs.writeFileSync(scriptPath, [
+                `const u = require(${JSON.stringify(utilsPath)});`,
+                `u.logMessage('rotation test');`
+            ].join('\n'));
+            execSync(`node "${scriptPath}"`, { cwd: logDir, encoding: 'utf8', timeout: 5000 });
+            assert.ok(fs.existsSync(logFile + '.1'), 'session.log.1 should exist after rotation');
+            assert.ok(fs.existsSync(logFile), 'session.log should exist after rotation');
+        } finally {
+            try { fs.rmSync(logDir, { recursive: true, force: true }); } catch (_) {}
+        }
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // Cleanup and report
 // ─────────────────────────────────────────────────────────────
 
