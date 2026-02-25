@@ -1,5 +1,5 @@
 # Claude Sentient v1.4.0 — File Checksums
-# Generated: 2026-02-24T18:32:32Z
+# Generated: 2026-02-25T10:49:33Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
 b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
@@ -18,17 +18,17 @@ e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/comman
 9b734b2ebbda6bd030132b0dbe06fa9991c162e4d52f30280414ec1e45a31c5e  .claude/hooks/agent-synthesizer.cjs
 1f02007e1cd1f1dfd44e58fe422b906fa5d61604ce5913988f7163b68d3440b7  .claude/hooks/agent-tracker.cjs
 5a9e8cf43d1b86e5b742b42be015120d0d7d55ff9ac118eb189152169297f8c2  .claude/hooks/bash-validator.cjs
-da8396a52e9cc042e261f9df52f8e301325c11bab329e21f75f810029ab4ed64  .claude/hooks/context-injector.cjs
+97e0a0386e523df789a6acb60dc885588564e1b06a5aa718a320821c5c0f9bfa  .claude/hooks/context-injector.cjs
 db5fe82bc9243031b98bc43d906a11d31ae423c968b9f9c765af566d5948602b  .claude/hooks/dod-verifier.cjs
 59c2d0aa1246d8660037013d92bc40d7fc5a208d7e0c86317f16f754d3686a04  .claude/hooks/file-validator.cjs
-1057b8b1378c47c2b6919f94a4fdf0e07d7c60497defd6dc19f7493ee60a3b6b  .claude/hooks/gate-monitor.cjs
+569c639636a7bbb236a5c755c1617714223aa1a21e42d770de7ecea3d081e2cb  .claude/hooks/gate-monitor.cjs
 bcc7e227061f927bc39279f9eab59d5c13d9b3c442a4f7c67d686c6859bd409a  .claude/hooks/post-edit.cjs
-6a7692f02b7c6bf8df6f06334701757876f45d879bf1fbd628a4f71c9511192f  .claude/hooks/pre-compact.cjs
+a5d9761df5500873ac9b18ddc55758ecc142285845efd62abae86a74a85a50cb  .claude/hooks/pre-compact.cjs
 5d9c94831413a21c01ec986169b4660b596db55dc00918fc388ff16b8afd3932  .claude/hooks/session-end.cjs
 3afeff0f41ed1fb7468cbd4bfe35c5b9fae1836f40c29b996fe003b3b687c84c  .claude/hooks/session-start.cjs
 dcabc837627ed144adbf1a55a69f47a7a0b2a673f2bbf457f839a9969765a2e4  .claude/hooks/task-completed.cjs
 a022eefdcb7bdd8b7b92e2c9ad9bd2e2e5b6ba3508150771ff2039ff8eda0f14  .claude/hooks/teammate-idle.cjs
-af50d981da1d11ffb514a95efac8665f5201d98473b35cd2c457be91b928a1a2  .claude/hooks/utils.cjs
+81f44a45fce8a34137c4cea69e6a1bc3c9c3254662d5ea9412de2c960258d603  .claude/hooks/utils.cjs
 c52c2b5911810bafd9d79052198a3aa0bd94537a97720ea05694aaf7653b9ca8  profiles/CLAUDE.md
 832a6e548488578cf508b738599f708500be1716a6bac4a8cd1515fb453527ea  profiles/_profile.schema.yaml
 646bfe2c162b01f0bc79a8bc3b36a299b49ab00048775b6d4c106eec831f7577  profiles/cpp.yaml

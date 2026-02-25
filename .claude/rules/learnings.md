@@ -162,6 +162,12 @@
 - **Context**: Commit messages documenting blocked security patterns (e.g. "blocks double-dash deletion" or "pipe-to-interpreter") trigger the very patterns they describe
 - **Rule**: When committing changes that reference security patterns, write the message to `/tmp/commit-msg.txt` and use `git commit -F /tmp/commit-msg.txt` instead of inline heredoc
 
+### 2026-02-25: Hook commands must use absolute paths for subdirectory support
+- **Context**: Users installing Claude Sentient on monorepos or multi-package projects (e.g. `promptvault/apps/web`) got `MODULE_NOT_FOUND` errors on stop hooks — node tried to load `.claude/hooks/dod-verifier.cjs` relative to the CWD (`apps/web`), not the project root where hooks live
+- **Root cause**: `settings.json` template uses relative paths (`node .claude/hooks/X.cjs`). Claude Code resolves these relative to wherever it was opened, not where `settings.json` lives
+- **Fix**: Installers (`install.sh`, `install.ps1`) now replace relative hook paths with absolute paths at install time using `os.getcwd()` / `(Get-Location).Path`. Also patches existing `settings.json` on reinstall if it still contains relative paths
+- **Rule**: Hook commands in `settings.json` must always be absolute paths after installation. The template keeps relative paths, but the installer makes them absolute for every target project
+
 <!-- Mistakes and their fixes will be added here -->
 
 ---

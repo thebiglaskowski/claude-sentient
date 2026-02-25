@@ -115,7 +115,16 @@ if [ ! -f ".claude/settings.json" ]; then
     cp "$TEMP_DIR"/.claude/settings.json .claude/settings.json
     echo "  Created .claude/settings.json with hooks"
 else
-    echo "  Preserved existing .claude/settings.json (review .claude/hooks/README.md to add hooks)"
+    echo "  Preserved existing .claude/settings.json"
+fi
+# Make hook paths absolute so they work when Claude is opened from a subdirectory
+if grep -q '"node .claude/hooks/' .claude/settings.json 2>/dev/null; then
+    python3 -c "
+import os
+with open('.claude/settings.json') as f: c = f.read()
+c = c.replace('\"node .claude/hooks/', '\"node ' + os.getcwd() + '/.claude/hooks/')
+with open('.claude/settings.json', 'w') as f: f.write(c)
+" 2>/dev/null && echo "  Made hook paths absolute (prevents subdirectory lookup failures)" || true
 fi
 
 echo "Initializing memory..."

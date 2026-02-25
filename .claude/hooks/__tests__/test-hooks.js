@@ -1341,6 +1341,72 @@ suite('context-injector.js — file predictions', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// context-injector.js — context degradation warnings
+// ─────────────────────────────────────────────────────────────
+suite('context-injector.js — context degradation warnings', () => {
+    test('no warning when prompt count below threshold', () => {
+        // Seed prompts.json with 5 entries (below CONTEXT_DEGRADATION_EARLY=15)
+        const prompts = Array.from({ length: 5 }, (_, i) => ({
+            timestamp: new Date().toISOString(),
+            topics: ['test'],
+            length: 50
+        }));
+        fs.writeFileSync(path.join(tmpStateDir, 'prompts.json'), JSON.stringify(prompts));
+
+        const result = runHook('context-injector.cjs', { prompt: 'do something' });
+        assert.ok(!result.contextWarning, 'should not have contextWarning below threshold');
+    });
+
+    test('medium warning when prompt count exceeds early threshold', () => {
+        // Seed prompts.json with 16 entries (above CONTEXT_DEGRADATION_EARLY=15)
+        const prompts = Array.from({ length: 16 }, (_, i) => ({
+            timestamp: new Date().toISOString(),
+            topics: ['api'],
+            length: 80
+        }));
+        fs.writeFileSync(path.join(tmpStateDir, 'prompts.json'), JSON.stringify(prompts));
+
+        const result = runHook('context-injector.cjs', { prompt: 'add an endpoint' });
+        assert.ok(result.contextWarning, 'should have contextWarning at medium threshold');
+        assert.strictEqual(result.contextWarning.level, 'medium');
+        assert.ok(result.contextWarning.suggestCompact, 'should suggest compaction');
+    });
+
+    test('high warning when prompt count exceeds main threshold', () => {
+        // Seed prompts.json with 21 entries (above CONTEXT_DEGRADATION_THRESHOLD=20)
+        const prompts = Array.from({ length: 21 }, (_, i) => ({
+            timestamp: new Date().toISOString(),
+            topics: ['security'],
+            length: 100
+        }));
+        fs.writeFileSync(path.join(tmpStateDir, 'prompts.json'), JSON.stringify(prompts));
+
+        const result = runHook('context-injector.cjs', { prompt: 'fix the vulnerability' });
+        assert.ok(result.contextWarning, 'should have contextWarning at high threshold');
+        assert.strictEqual(result.contextWarning.level, 'high');
+        assert.ok(result.contextWarning.promptCount >= 20, 'promptCount should exceed main threshold (20)');
+    });
+
+    test('context_degradation.json written when warning triggered', () => {
+        const prompts = Array.from({ length: 18 }, (_, i) => ({
+            timestamp: new Date().toISOString(),
+            topics: ['ui'],
+            length: 60
+        }));
+        fs.writeFileSync(path.join(tmpStateDir, 'prompts.json'), JSON.stringify(prompts));
+
+        runHook('context-injector.cjs', { prompt: 'update the component' });
+
+        const degradationFile = path.join(tmpStateDir, 'context_degradation.json');
+        assert.ok(fs.existsSync(degradationFile), 'context_degradation.json should be written');
+        const data = JSON.parse(fs.readFileSync(degradationFile, 'utf8'));
+        assert.ok(data.warningLevel, 'should have warningLevel');
+        assert.ok(data.promptCount >= 15, 'should record promptCount');
+        assert.strictEqual(data.suggestCompact, true);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // pre-compact.js — compact context tests
 // ─────────────────────────────────────────────────────────────
 suite('pre-compact.js — compact context', () => {
@@ -1362,6 +1428,59 @@ suite('pre-compact.js — compact context', () => {
         const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
         assert.ok(compact.timestamp, 'should have timestamp');
         assert.ok(Array.isArray(compact.fileChanges), 'should have fileChanges array');
+    });
+
+    test('sessionSummary is present in compact-context.json', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+            JSON.stringify({ profile: 'typescript', task: 'refactor auth' }));
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([{ file: 'src/auth.ts', action: 'modified' }, { file: 'src/session.ts', action: 'modified' }]));
+        fs.writeFileSync(path.join(stateDir, 'prompts.json'),
+            JSON.stringify([{ topics: ['auth', 'security'], timestamp: new Date().toISOString() }]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        assert.ok(compact.sessionSummary, 'should have sessionSummary');
+        assert.ok(typeof compact.sessionSummary.sessionIntent === 'string', 'sessionSummary.sessionIntent should be a string');
+        assert.ok(Array.isArray(compact.sessionSummary.filesModified), 'sessionSummary.filesModified should be an array');
+        assert.ok(Array.isArray(compact.sessionSummary.decisionsMade), 'sessionSummary.decisionsMade should be an array');
+        assert.ok(typeof compact.sessionSummary.currentState === 'string', 'sessionSummary.currentState should be a string');
+        assert.ok(Array.isArray(compact.sessionSummary.nextSteps), 'sessionSummary.nextSteps should be an array');
+    });
+
+    test('sessionSummary filesModified deduplicates entries', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([
+                { file: 'src/main.ts', action: 'modified' },
+                { file: 'src/main.ts', action: 'modified' },
+                { file: 'src/utils.ts', action: 'modified' }
+            ]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        const files = compact.sessionSummary.filesModified;
+        const unique = new Set(files);
+        assert.strictEqual(files.length, unique.size, 'filesModified should contain no duplicates');
+    });
+
+    test('sessionSummary derives intent from currentTask', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'current_task.json'),
+            JSON.stringify({ taskId: 'T1', subject: 'implement rate limiting', startedAt: new Date().toISOString() }));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        assert.ok(compact.sessionSummary.sessionIntent.includes('rate limiting'),
+            'sessionIntent should reflect current task subject');
+        assert.ok(compact.sessionSummary.nextSteps.length > 0, 'should have nextSteps from active task');
     });
 });
 
@@ -1519,6 +1638,43 @@ suite('gate-monitor.js — gate result tracking', () => {
     test('missing HOOK_INPUT — decision allow, no crash', () => {
         const result = runHook('gate-monitor.cjs', {});
         assert.strictEqual(result.decision, 'allow');
+    });
+
+    test('small stdout — no masking, no outputRef in entry', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        runHook('gate-monitor.cjs', {
+            tool_input: { command: 'pytest' },
+            tool_result: { exit_code: 0, stdout: 'short output' }
+        });
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        const entry = history.entries[history.entries.length - 1];
+        assert.ok(!entry.outputRef, 'small stdout should not produce outputRef');
+    });
+
+    test('large stdout — masked to file, outputRef in entry', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+
+        // Build stdout > 8000 chars
+        const largeOutput = 'x'.repeat(9000);
+
+        runHook('gate-monitor.cjs', {
+            tool_input: { command: 'jest --coverage' },
+            tool_result: { exit_code: 0, stdout: largeOutput }
+        });
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        const entry = history.entries[history.entries.length - 1];
+        assert.ok(entry.outputRef, 'large stdout should produce outputRef');
+        assert.ok(typeof entry.outputLines === 'number', 'should record line count');
+        assert.ok(typeof entry.outputPreview === 'string', 'should record preview');
+        assert.ok(entry.outputPreview.length <= 200, 'preview should be capped at 200 chars');
+        assert.ok(fs.existsSync(entry.outputRef), 'outputRef file should exist on disk');
+        const savedContent = fs.readFileSync(entry.outputRef, 'utf8');
+        assert.strictEqual(savedContent.length, 9000, 'saved file should contain full output');
     });
 });
 

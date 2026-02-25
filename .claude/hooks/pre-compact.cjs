@@ -97,6 +97,70 @@ function extractRecentDecisions(backupBundle) {
     }));
 }
 
+/**
+ * Build anchored iterative session summary for artifact trail preservation.
+ * Structured format ensures the most important context survives compaction:
+ * - sessionIntent: what task is being worked on
+ * - filesModified: complete list of changed files this session
+ * - decisionsMade: unique topic areas addressed
+ * - currentState: profile + active task status
+ * - nextSteps: what remains to be done
+ * @param {Object} backupBundle - Bundle of state file data
+ * @returns {Object} Structured session summary
+ */
+function buildSessionSummary(backupBundle) {
+    const currentTask = backupBundle['current_task.json'];
+    const session = backupBundle['session_start.json'];
+    const fileChanges = backupBundle['file_changes.json'];
+    const prompts = backupBundle['prompts.json'];
+
+    // Session intent: task subject > session task > profile name
+    const sessionIntent =
+        (currentTask && (currentTask.subject || currentTask.description)) ||
+        (session && (session.task || session.intent)) ||
+        (session && session.profile ? `${session.profile} project session` : null) ||
+        'Session in progress';
+
+    // All unique files modified this session (not just recent MAX_COMPACT_FILE_HISTORY)
+    let filesModified = [];
+    if (Array.isArray(fileChanges)) {
+        const seen = new Set();
+        for (const f of fileChanges) {
+            const name = f.file || f.path;
+            if (name && !seen.has(name)) { seen.add(name); filesModified.push(name); }
+        }
+    } else if (fileChanges && typeof fileChanges === 'object') {
+        filesModified = Object.keys(fileChanges);
+    }
+
+    // Unique decision topics from prompt history
+    const topicSet = new Set();
+    if (Array.isArray(prompts)) {
+        for (const p of prompts) {
+            if (Array.isArray(p.topics)) p.topics.forEach(t => topicSet.add(t));
+        }
+    }
+    const decisionsMade = [...topicSet];
+
+    // Current state: profile + task status
+    const profile = session && session.profile ? session.profile : null;
+    const taskStatus = currentTask && currentTask.taskId
+        ? `Task ${currentTask.taskId}: ${currentTask.subject || 'in progress'}`
+        : null;
+    const currentState = [profile, taskStatus].filter(Boolean).join(' | ') || 'No active task';
+
+    // Next steps: derive from active task or unresolved items
+    const nextSteps = [];
+    if (currentTask && currentTask.taskId) {
+        nextSteps.push(`Complete task: ${currentTask.subject || currentTask.taskId}`);
+    }
+    if (currentTask && currentTask.startedAt) {
+        nextSteps.push('Run VERIFY phase: lint, test, build');
+    }
+
+    return { sessionIntent, filesModified, decisionsMade, currentState, nextSteps };
+}
+
 function main() {
     const stateDir = path.join(getProjectRoot(), '.claude', 'state');
     const backupDir = path.join(stateDir, 'backups');
@@ -108,6 +172,7 @@ function main() {
 
     const summary = {
         timestamp: new Date().toISOString(),
+        sessionSummary: buildSessionSummary(backupBundle),
         activeTask: extractActiveTask(backupBundle),
         recentDecisions: extractRecentDecisions(backupBundle),
         fileChanges: extractFileChanges(backupBundle),

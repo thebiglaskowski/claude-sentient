@@ -6,7 +6,7 @@
  * Injects relevant context based on prompt content.
  */
 
-const { parseHookInput, appendCapped, logMessage, MAX_PROMPT_HISTORY } = require('./utils.cjs');
+const { parseHookInput, appendCapped, loadState, saveState, logMessage, MAX_PROMPT_HISTORY, CONTEXT_DEGRADATION_THRESHOLD, CONTEXT_DEGRADATION_EARLY } = require('./utils.cjs');
 
 // Topic keyword maps for rule loading (module-level constant)
 const TOPIC_KEYWORDS = {
@@ -66,6 +66,40 @@ function buildFilePredictions(topics) {
     return [...new Set(predictions)];
 }
 
+/**
+ * Check context depth and write a degradation warning if thresholds are exceeded.
+ * Uses prompt count as a proxy for context utilization depth.
+ * Meaningful degradation (lost-in-middle) begins around 70-80% context utilization,
+ * which correlates with ~15-20 exchanges in a typical session.
+ * @returns {{ warningLevel: string|null, promptCount: number, suggestCompact: boolean }}
+ */
+function checkContextDegradation() {
+    const prompts = loadState('prompts.json', []);
+    const promptCount = Array.isArray(prompts) ? prompts.length : 0;
+
+    let warningLevel = null;
+    if (promptCount >= CONTEXT_DEGRADATION_THRESHOLD) {
+        warningLevel = 'high';
+    } else if (promptCount >= CONTEXT_DEGRADATION_EARLY) {
+        warningLevel = 'medium';
+    }
+
+    const suggestCompact = warningLevel !== null;
+    if (suggestCompact) {
+        saveState('context_degradation.json', {
+            timestamp: new Date().toISOString(),
+            warningLevel,
+            promptCount,
+            threshold: CONTEXT_DEGRADATION_THRESHOLD,
+            earlyThreshold: CONTEXT_DEGRADATION_EARLY,
+            suggestCompact: true
+        });
+        logMessage(`Context depth warning: ${warningLevel} (${promptCount} prompts)`, 'WARNING');
+    }
+
+    return { warningLevel, promptCount, suggestCompact };
+}
+
 function main() {
     let promptText = '';
     try {
@@ -88,11 +122,14 @@ function main() {
         }, MAX_PROMPT_HISTORY);
     }
 
-    console.log(JSON.stringify({
-        continue: true,
-        detectedTopics,
-        filePredictions
-    }));
+    const { warningLevel, promptCount, suggestCompact } = checkContextDegradation();
+
+    const output = { continue: true, detectedTopics, filePredictions };
+    if (suggestCompact) {
+        output.contextWarning = { level: warningLevel, promptCount, suggestCompact };
+    }
+
+    console.log(JSON.stringify(output));
 }
 
 main();

@@ -150,7 +150,15 @@ if (-not (Test-Path ".claude/settings.json")) {
     Copy-Item "$TempDir/.claude/settings.json" -Destination ".claude/settings.json"
     Write-Host "  Created .claude/settings.json with hooks"
 } else {
-    Write-Host "  Preserved existing .claude/settings.json (review .claude/hooks/README.md to add hooks)"
+    Write-Host "  Preserved existing .claude/settings.json"
+}
+# Make hook paths absolute so they work when Claude is opened from a subdirectory
+$settingsContent = [System.IO.File]::ReadAllText((Resolve-Path ".claude/settings.json").Path)
+if ($settingsContent -match '"node \.claude/hooks/') {
+    $projectRoot = (Get-Location).Path.Replace('\', '/')
+    $updated = $settingsContent.Replace('"node .claude/hooks/', '"node ' + $projectRoot + '/.claude/hooks/')
+    [System.IO.File]::WriteAllText((Resolve-Path ".claude/settings.json").Path, $updated)
+    Write-Host "  Made hook paths absolute (prevents subdirectory lookup failures)" -ForegroundColor Green
 }
 
 Write-Host "Initializing memory..."
