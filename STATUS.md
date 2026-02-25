@@ -25,7 +25,7 @@ Context Arch        [███████████████████�
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
 Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
 Native Agents       [████████████████████] 100% ✓ (6 native .claude/agents/*.md)
-Testing             [████████████████████] 100% ✓ (940 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (943 total across 6 suites)
 ```
 
 ---
@@ -167,6 +167,9 @@ Testing             [███████████████████�
   - `bash-validator.cjs` — narrowed `eval` block pattern from `/\beval\b/` to `/(^|[|;&{(=]\s*)eval\b/`; prevents false-positive blocks on `node --eval`, commit messages, and flag arguments
   - `gate-monitor.cjs` — null `exit_code` (omitted by Claude Code PostToolUse) now recorded as `passed: null` instead of failure; eliminates spurious "Gate failed (exit null)" warnings
   - Added 3 new tests (252 hook tests total, 940 across all suites)
+  - `install.sh` — replaced `python3` block with node heredoc for path absolutization; node is always available if hooks run, python3 is not
+  - `session-start.cjs` — added `fixHookPaths()` self-healing: on every session start, detects relative hook paths in settings.json and patches them to absolute (fixes broken installs without reinstall)
+  - Added 3 tests for `fixHookPaths` (255 hook tests total, 943 across all suites)
   - Updated all documentation and checksums
 
 ### 2026-02-22 (Session 27)
@@ -179,7 +182,7 @@ Testing             [███████████████████�
   - Reduced cs-loop.md from 466 to ~179 lines via skill extraction (~62% reduction)
   - Updated install scripts to install native agents and skills
   - Fixed stale schema counts in install scripts (9→12 schemas, 166→188 tests)
-  - 940 total tests pass across 6 suites (no regressions)
+  - 943 total tests pass across 6 suites (no regressions)
 
 ### 2026-02-20 (Session 26)
 - **v1.3.8 — Code quality, NaN fix, expanded security patterns and test coverage:**

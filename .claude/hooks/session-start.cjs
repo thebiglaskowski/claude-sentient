@@ -153,16 +153,42 @@ function getGitInfo() {
     }
 }
 
+
+/**
+ * Self-heal: patch relative hook paths in settings.json to absolute paths.
+ * Automatically fixes installations where path absolutization did not run.
+ * @param {string} projectRoot - Absolute path to project root
+ */
+function fixHookPaths(projectRoot) {
+    const settingsPath = path.join(projectRoot, '.claude', 'settings.json');
+    if (!fs.existsSync(settingsPath)) return;
+    try {
+        const content = fs.readFileSync(settingsPath, 'utf8');
+        if (!/"node\s+\.claude\/hooks\//.test(content)) return;
+        const fixed = content.replace(
+            /"node\s+(?:[^\s"]*?)\.claude\/hooks\//g,
+            '"node ' + projectRoot + '/.claude/hooks/'
+        );
+        if (fixed === content) return;
+        fs.writeFileSync(settingsPath, fixed, 'utf8');
+        logMessage('Self-healed: patched relative hook paths to absolute in .claude/settings.json');
+    } catch (e) {
+        logMessage('fixHookPaths: ' + e.message, 'WARNING');
+    }
+}
+
 function main() {
     ensureStateDir();
     const { gitBranch, gitStatus } = getGitInfo();
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 2 + SESSION_ID_SUFFIX_LEN)}`;
-
     const profile = detectProfile();
+    const projectRoot = getProjectRoot();
+
+    fixHookPaths(projectRoot);
 
     const sessionInfo = {
         id: sessionId, timestamp: new Date().toISOString(),
-        cwd: process.cwd(), project_root: getProjectRoot(),
+        cwd: process.cwd(), project_root: projectRoot,
         gitBranch, gitStatus, profile,
         platform: process.platform, nodeVersion: process.version
     };

@@ -1716,6 +1716,71 @@ suite('session-start.js — non-git directory handling', () => {
         try { fs.rmSync(noGitDir, { recursive: true, force: true }); } catch { /* ignore */ }
     });
 });
+// ─────────────────────────────────────────────────────────────
+// session-start.js — fixHookPaths self-healing
+// ─────────────────────────────────────────────────────────────
+suite('session-start.js — fixHookPaths self-healing', () => {
+    test('patches relative hook paths to absolute on session start', () => {
+        const healDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-heal-'));
+        const claudeDir = path.join(healDir, '.claude');
+        const stateDir = path.join(claudeDir, 'state');
+        fs.mkdirSync(stateDir, { recursive: true });
+        try {
+            execSync('git init', { cwd: healDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: healDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const relativeSettings = JSON.stringify({
+            hooks: {
+                SessionStart: [{ hooks: [{ type: 'command', command: 'node .claude/hooks/session-start.cjs', timeout: 5000 }] }],
+                PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'node .claude/hooks/bash-validator.cjs' }] }]
+            }
+        }, null, 2);
+        fs.writeFileSync(path.join(claudeDir, 'settings.json'), relativeSettings, 'utf8');
+        runHook('session-start.cjs', {}, { cwd: healDir });
+        const patched = fs.readFileSync(path.join(claudeDir, 'settings.json'), 'utf8');
+        assert.ok(!/"node\s+\.claude\/hooks\//.test(patched), 'relative paths should be gone after self-heal');
+        assert.ok(patched.includes('/.claude/hooks/session-start.cjs'), 'should contain absolute path for session-start');
+        assert.ok(patched.includes('/.claude/hooks/bash-validator.cjs'), 'should contain absolute path for bash-validator');
+        assert.ok(!patched.includes('"node .claude/hooks/'), 'no relative node paths should remain');
+        try { fs.rmSync(healDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    });
+
+    test('leaves absolute hook paths unchanged', () => {
+        const stableDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-stable-'));
+        const claudeDir = path.join(stableDir, '.claude');
+        const stateDir = path.join(claudeDir, 'state');
+        fs.mkdirSync(stateDir, { recursive: true });
+        try {
+            execSync('git init', { cwd: stableDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: stableDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const absCmd = 'node /some/absolute/path/.claude/hooks/session-start.cjs';
+        const absoluteSettings = JSON.stringify({
+            hooks: { SessionStart: [{ hooks: [{ type: 'command', command: absCmd }] }] }
+        }, null, 2);
+        fs.writeFileSync(path.join(claudeDir, 'settings.json'), absoluteSettings, 'utf8');
+        runHook('session-start.cjs', {}, { cwd: stableDir });
+        const after = fs.readFileSync(path.join(claudeDir, 'settings.json'), 'utf8');
+        assert.ok(!/"node\s+\.claude\/hooks\//.test(after), 'no relative paths should appear');
+        try { fs.rmSync(stableDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    });
+
+    test('skips settings.json patch when file does not exist', () => {
+        const noSettingsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-nosettings-'));
+        const stateDir = path.join(noSettingsDir, '.claude', 'state');
+        fs.mkdirSync(stateDir, { recursive: true });
+        try {
+            execSync('git init', { cwd: noSettingsDir, stdio: 'pipe' });
+            execSync('git commit --allow-empty -m "init"', { cwd: noSettingsDir, stdio: 'pipe' });
+        } catch { /* git may not be available */ }
+        const result = runHook('session-start.cjs', {}, { cwd: noSettingsDir });
+        assert.ok(result.context, 'should still output valid context');
+        assert.ok(result.context.sessionId, 'should have sessionId');
+        try { fs.rmSync(noSettingsDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    });
+});
+
+
 
 // ─────────────────────────────────────────────────────────────
 // utils.js — expanded redactSecrets tests

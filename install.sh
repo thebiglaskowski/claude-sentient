@@ -114,15 +114,18 @@ echo "Installing settings..."
 # Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
 cp "$TEMP_DIR"/templates/settings.json .claude/settings.json
 echo "  Installed .claude/settings.json from template"
-# Make hook paths absolute so they work when Claude is opened from a subdirectory
-if grep -q '"node .claude/hooks/' .claude/settings.json 2>/dev/null; then
-    python3 -c "
-import os, re
-with open('.claude/settings.json') as f: c = f.read()
-# Replace both relative and stale absolute paths with current project root
-c = re.sub(r'\"node\s+(?:[^\s\"]*?)\.claude/hooks/', '\"node ' + os.getcwd() + '/.claude/hooks/', c)
-with open('.claude/settings.json', 'w') as f: f.write(c)
-" 2>/dev/null && echo "  Made hook paths absolute (prevents subdirectory lookup failures)" || true
+# Make hook paths absolute so they work when Claude is opened from a subdirectory.
+# Uses node (always available if hooks work) instead of python3 (may not be installed).
+if node << 'NODEEOF'
+const fs = require('fs'), root = process.cwd();
+let c = fs.readFileSync('.claude/settings.json', 'utf8');
+c = c.replace(/"node\s+(?:[^\s"]*?)\.claude\/hooks\//g, '"node ' + root + '/.claude/hooks/');
+fs.writeFileSync('.claude/settings.json', c);
+NODEEOF
+then
+    echo "  Made hook paths absolute (prevents subdirectory lookup failures)"
+else
+    echo "  ⚠ Could not make hook paths absolute (will self-heal on first session start)"
 fi
 
 echo "Initializing memory..."
@@ -228,7 +231,7 @@ echo ""
 echo "Installed:"
 echo "  .claude/commands/cs-*.md       (12 commands)"
 echo "  .claude/hooks/*.cjs             (13 hook scripts)"
-echo "  .claude/hooks/__tests__/       (252 hook tests)"
+echo "  .claude/hooks/__tests__/       (255 hook tests)"
 echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"
 echo "  profiles/__tests__/            (242 profile tests)"
