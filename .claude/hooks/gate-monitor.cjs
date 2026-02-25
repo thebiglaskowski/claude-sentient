@@ -65,7 +65,8 @@ function main() {
         command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH),
         exitCode,
         duration,
-        passed: exitCode === 0
+        // null exit code = inconclusive (hook input didn't include exit code)
+        passed: exitCode === null ? null : exitCode === 0
     };
 
     // Mask large outputs — save to file, store reference instead
@@ -85,7 +86,8 @@ function main() {
 
     saveState('gate_history.json', history);
 
-    if (exitCode !== 0) {
+    // Only log as failure when exit code is definitively non-zero
+    if (exitCode !== null && exitCode !== 0) {
         logMessage(`Gate failed: ${command.substring(0, MAX_GATE_LOG_TRUNCATE)} (exit ${exitCode})`, 'WARNING');
     }
 

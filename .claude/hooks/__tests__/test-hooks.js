@@ -1676,6 +1676,26 @@ suite('gate-monitor.js — gate result tracking', () => {
         const savedContent = fs.readFileSync(entry.outputRef, 'utf8');
         assert.strictEqual(savedContent.length, 9000, 'saved file should contain full output');
     });
+
+    test('null exit_code — recorded as inconclusive, no Gate failed log', () => {
+        const historyFile = path.join(tmpStateDir, 'gate_history.json');
+        if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
+        const logFile = path.join(tmpDir, '.claude', 'session.log');
+        if (fs.existsSync(logFile)) fs.unlinkSync(logFile);
+
+        runHook('gate-monitor.cjs', {
+            tool_input: { command: 'jest --coverage' },
+            tool_result: {}   // no exit_code key — mimics Claude Code PostToolUse
+        });
+
+        const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+        const entry = history.entries[history.entries.length - 1];
+        assert.strictEqual(entry.exitCode, null, 'exitCode should be null when not provided');
+        assert.strictEqual(entry.passed, null, 'passed should be null for inconclusive result');
+
+        const log = fs.existsSync(logFile) ? fs.readFileSync(logFile, 'utf8') : '';
+        assert.ok(!log.includes('Gate failed'), 'null exit code should not log Gate failed');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -2408,6 +2428,16 @@ suite('bash-validator.js — eval blocking', () => {
     test('blocks eval preceded by variable assignment', () => {
         const result = runHook('bash-validator.cjs', { tool_input: { command: 'CMD="ls"; eval $CMD' } });
         assert.strictEqual(result.decision, 'block');
+    });
+
+    test('allows node --eval flag (not shell eval)', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'node --eval "console.log(1)"' } });
+        assert.strictEqual(result.decision, 'allow');
+    });
+
+    test('allows eval appearing inside a commit message argument', () => {
+        const result = runHook('bash-validator.cjs', { tool_input: { command: 'git commit -m "avoid eval in shell"' } });
+        assert.strictEqual(result.decision, 'allow');
     });
 });
 

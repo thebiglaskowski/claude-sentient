@@ -69,8 +69,9 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bchmod\s+-R\s+[0-7]*[2367][0-7]{2}\s+\//i, reason: 'Recursive world-writable chmod on root' },
     { pattern: /\bsudo\s+bash\b|\bsudo\s+sh\b/i, reason: 'Privilege escalation to root shell' },
 
-    // Shell eval execution
-    { pattern: /\beval\b/, reason: 'Shell eval execution' },
+    // Shell eval execution — match only when eval is used as a shell command,
+    // not when it appears inside argument strings (e.g. node --eval, git commit -m "eval")
+    { pattern: /(^|[|;&{(=]\s*)eval\b/, reason: 'Shell eval execution' },
 
     // Broader sudo privilege escalation patterns
     { pattern: /\bsudo\s+(?:bash|sh|su\b|su\s+-|-i\b|-s\b)/, reason: 'Privilege escalation via sudo' },

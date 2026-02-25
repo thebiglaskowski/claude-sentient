@@ -1,5 +1,5 @@
 # Claude Sentient v1.4.0 — File Checksums
-# Generated: 2026-02-25T12:09:00Z
+# Generated: 2026-02-25T18:03:42Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
 b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
@@ -17,11 +17,11 @@ e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/comman
 5c2166d36073a735f154b478d9d8fe2fbc7a10b3a52a779eaa46eb21114f89ab  .claude/hooks/README.md
 9b734b2ebbda6bd030132b0dbe06fa9991c162e4d52f30280414ec1e45a31c5e  .claude/hooks/agent-synthesizer.cjs
 1f02007e1cd1f1dfd44e58fe422b906fa5d61604ce5913988f7163b68d3440b7  .claude/hooks/agent-tracker.cjs
-5a9e8cf43d1b86e5b742b42be015120d0d7d55ff9ac118eb189152169297f8c2  .claude/hooks/bash-validator.cjs
+ced28cd94fc1716f2af99a97ad7ec0cc8f507ab55b4627bcabdec6a88a833541  .claude/hooks/bash-validator.cjs
 9231896303abf52a96829290ae77a2a097a17d3eb98063afe4f2146bdc6372a7  .claude/hooks/context-injector.cjs
 db5fe82bc9243031b98bc43d906a11d31ae423c968b9f9c765af566d5948602b  .claude/hooks/dod-verifier.cjs
 59c2d0aa1246d8660037013d92bc40d7fc5a208d7e0c86317f16f754d3686a04  .claude/hooks/file-validator.cjs
-569c639636a7bbb236a5c755c1617714223aa1a21e42d770de7ecea3d081e2cb  .claude/hooks/gate-monitor.cjs
+14217f888e3788f242675380635eb947cdacf9026c3c6ff24f9eea39f617b80b  .claude/hooks/gate-monitor.cjs
 bcc7e227061f927bc39279f9eab59d5c13d9b3c442a4f7c67d686c6859bd409a  .claude/hooks/post-edit.cjs
 a5d9761df5500873ac9b18ddc55758ecc142285845efd62abae86a74a85a50cb  .claude/hooks/pre-compact.cjs
 5d9c94831413a21c01ec986169b4660b596db55dc00918fc388ff16b8afd3932  .claude/hooks/session-end.cjs
