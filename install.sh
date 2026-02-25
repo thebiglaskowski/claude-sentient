@@ -111,18 +111,16 @@ cp "$TEMP_DIR"/schemas/__tests__/*.js schemas/__tests__/
 echo "  Installed JSON schemas + tests"
 
 echo "Installing settings..."
-if [ ! -f ".claude/settings.json" ]; then
-    cp "$TEMP_DIR"/.claude/settings.json .claude/settings.json
-    echo "  Created .claude/settings.json with hooks"
-else
-    echo "  Preserved existing .claude/settings.json"
-fi
+# Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
+cp "$TEMP_DIR"/templates/settings.json .claude/settings.json
+echo "  Installed .claude/settings.json from template"
 # Make hook paths absolute so they work when Claude is opened from a subdirectory
 if grep -q '"node .claude/hooks/' .claude/settings.json 2>/dev/null; then
     python3 -c "
-import os
+import os, re
 with open('.claude/settings.json') as f: c = f.read()
-c = c.replace('\"node .claude/hooks/', '\"node ' + os.getcwd() + '/.claude/hooks/')
+# Replace both relative and stale absolute paths with current project root
+c = re.sub(r'\"node\s+(?:[^\s\"]*?)\.claude/hooks/', '\"node ' + os.getcwd() + '/.claude/hooks/', c)
 with open('.claude/settings.json', 'w') as f: f.write(c)
 " 2>/dev/null && echo "  Made hook paths absolute (prevents subdirectory lookup failures)" || true
 fi

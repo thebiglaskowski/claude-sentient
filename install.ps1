@@ -146,17 +146,14 @@ Copy-Item "$TempDir/schemas/__tests__/*.js" -Destination "schemas/__tests__/" -F
 Write-Host "  Installed JSON schemas + tests"
 
 Write-Host "Installing settings..."
-if (-not (Test-Path ".claude/settings.json")) {
-    Copy-Item "$TempDir/.claude/settings.json" -Destination ".claude/settings.json"
-    Write-Host "  Created .claude/settings.json with hooks"
-} else {
-    Write-Host "  Preserved existing .claude/settings.json"
-}
+# Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
+Copy-Item "$TempDir/templates/settings.json" -Destination ".claude/settings.json" -Force
+Write-Host "  Installed .claude/settings.json from template"
 # Make hook paths absolute so they work when Claude is opened from a subdirectory
 $settingsContent = [System.IO.File]::ReadAllText((Resolve-Path ".claude/settings.json").Path)
-if ($settingsContent -match '"node \.claude/hooks/') {
+if ($settingsContent -match '"node\s+.*?\.claude/hooks/') {
     $projectRoot = (Get-Location).Path.Replace('\', '/')
-    $updated = $settingsContent.Replace('"node .claude/hooks/', '"node ' + $projectRoot + '/.claude/hooks/')
+    $updated = [regex]::Replace($settingsContent, '"node\s+(?:[^\s"]*?)\.claude/hooks/', '"node ' + $projectRoot + '/.claude/hooks/')
     [System.IO.File]::WriteAllText((Resolve-Path ".claude/settings.json").Path, $updated)
     Write-Host "  Made hook paths absolute (prevents subdirectory lookup failures)" -ForegroundColor Green
 }

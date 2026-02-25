@@ -58,6 +58,16 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/gate-monitor.cjs",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -139,7 +149,8 @@
     ]
   },
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
   },
   "sentient": {
     "models": {
@@ -163,6 +174,7 @@
     "vision": {
       "enabled": true,
       "screenshotOnError": true
-    }
+    },
+    "mcpServers": ["context7", "github", "memory", "puppeteer"]
   }
 }
