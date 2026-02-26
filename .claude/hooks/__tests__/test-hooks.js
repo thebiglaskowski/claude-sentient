@@ -1720,7 +1720,7 @@ suite('session-start.js — non-git directory handling', () => {
 // session-start.js — fixHookPaths self-healing
 // ─────────────────────────────────────────────────────────────
 suite('session-start.js — fixHookPaths self-healing', () => {
-    test('patches relative hook paths to absolute on session start', () => {
+    test('patches relative hook paths to use absolute node binary and absolute file paths', () => {
         const healDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-heal-'));
         const claudeDir = path.join(healDir, '.claude');
         const stateDir = path.join(claudeDir, 'state');
@@ -1738,14 +1738,16 @@ suite('session-start.js — fixHookPaths self-healing', () => {
         fs.writeFileSync(path.join(claudeDir, 'settings.json'), relativeSettings, 'utf8');
         runHook('session-start.cjs', {}, { cwd: healDir });
         const patched = fs.readFileSync(path.join(claudeDir, 'settings.json'), 'utf8');
-        assert.ok(!/"node\s+\.claude\/hooks\//.test(patched), 'relative paths should be gone after self-heal');
+        assert.ok(!patched.includes('"node .claude/hooks/'), 'relative paths should be gone after self-heal');
         assert.ok(patched.includes('/.claude/hooks/session-start.cjs'), 'should contain absolute path for session-start');
         assert.ok(patched.includes('/.claude/hooks/bash-validator.cjs'), 'should contain absolute path for bash-validator');
-        assert.ok(!patched.includes('"node .claude/hooks/'), 'no relative node paths should remain');
+        // Verify the node binary itself is absolute (not bare "node") to prevent nvm FUNCNEST
+        assert.ok(!/"node\s/.test(patched), 'bare "node" command should be replaced with absolute binary path');
+        assert.ok(patched.includes('"' + process.execPath + ' '), 'should use absolute node exec path to bypass nvm shell function');
         try { fs.rmSync(healDir, { recursive: true, force: true }); } catch { /* ignore */ }
     });
 
-    test('leaves absolute hook paths unchanged', () => {
+    test('patches bare node binary even when file path is already absolute (nvm FUNCNEST fix)', () => {
         const stableDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-stable-'));
         const claudeDir = path.join(stableDir, '.claude');
         const stateDir = path.join(claudeDir, 'state');
@@ -1754,14 +1756,17 @@ suite('session-start.js — fixHookPaths self-healing', () => {
             execSync('git init', { cwd: stableDir, stdio: 'pipe' });
             execSync('git commit --allow-empty -m "init"', { cwd: stableDir, stdio: 'pipe' });
         } catch { /* git may not be available */ }
-        const absCmd = 'node /some/absolute/path/.claude/hooks/session-start.cjs';
-        const absoluteSettings = JSON.stringify({
-            hooks: { SessionStart: [{ hooks: [{ type: 'command', command: absCmd }] }] }
+        // Simulate a settings.json that has absolute file paths but bare "node" binary
+        const bareNodeCmd = 'node /some/old/path/.claude/hooks/session-start.cjs';
+        const bareNodeSettings = JSON.stringify({
+            hooks: { SessionStart: [{ hooks: [{ type: 'command', command: bareNodeCmd }] }] }
         }, null, 2);
-        fs.writeFileSync(path.join(claudeDir, 'settings.json'), absoluteSettings, 'utf8');
+        fs.writeFileSync(path.join(claudeDir, 'settings.json'), bareNodeSettings, 'utf8');
         runHook('session-start.cjs', {}, { cwd: stableDir });
         const after = fs.readFileSync(path.join(claudeDir, 'settings.json'), 'utf8');
-        assert.ok(!/"node\s+\.claude\/hooks\//.test(after), 'no relative paths should appear');
+        assert.ok(!/"node\s/.test(after), 'bare "node" should be replaced with absolute binary path');
+        assert.ok(after.includes('"' + process.execPath + ' '), 'should use absolute node exec path');
+        assert.ok(after.includes('/.claude/hooks/session-start.cjs'), 'should retain hook filename');
         try { fs.rmSync(stableDir, { recursive: true, force: true }); } catch { /* ignore */ }
     });
 

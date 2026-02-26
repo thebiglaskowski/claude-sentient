@@ -1,5 +1,5 @@
 # Claude Sentient v1.4.0 — File Checksums
-# Generated: 2026-02-26T01:57:29Z
+# Generated: 2026-02-26T02:58:00Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
 b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
@@ -25,7 +25,7 @@ db5fe82bc9243031b98bc43d906a11d31ae423c968b9f9c765af566d5948602b  .claude/hooks/
 bcc7e227061f927bc39279f9eab59d5c13d9b3c442a4f7c67d686c6859bd409a  .claude/hooks/post-edit.cjs
 a5d9761df5500873ac9b18ddc55758ecc142285845efd62abae86a74a85a50cb  .claude/hooks/pre-compact.cjs
 5d9c94831413a21c01ec986169b4660b596db55dc00918fc388ff16b8afd3932  .claude/hooks/session-end.cjs
-2269c57545d127f309701172576bfe37e54b546fc5b5ec5f9ab42a5d77c29f05  .claude/hooks/session-start.cjs
+5e1f0d8c33d7f7e0a1d3af8419592381f880fe0838d967c0edf25e4b886563f0  .claude/hooks/session-start.cjs
 dcabc837627ed144adbf1a55a69f47a7a0b2a673f2bbf457f839a9969765a2e4  .claude/hooks/task-completed.cjs
 a022eefdcb7bdd8b7b92e2c9ad9bd2e2e5b6ba3508150771ff2039ff8eda0f14  .claude/hooks/teammate-idle.cjs
 f3c73fef844f5d0e2bfdf3a4b13439c9af3cc6ba8b96c7f753bd0cabe091811a  .claude/hooks/utils.cjs

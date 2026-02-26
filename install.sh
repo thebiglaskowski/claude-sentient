@@ -114,18 +114,20 @@ echo "Installing settings..."
 # Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
 cp "$TEMP_DIR"/templates/settings.json .claude/settings.json
 echo "  Installed .claude/settings.json from template"
-# Make hook paths absolute so they work when Claude is opened from a subdirectory.
-# Uses node (always available if hooks work) instead of python3 (may not be installed).
+# Make hook commands use absolute node binary path and absolute file paths.
+# - Absolute node binary (process.execPath) bypasses nvm's shell function to prevent
+#   recursive _nvm_load FUNCNEST errors on zsh.
+# - Absolute file paths prevent MODULE_NOT_FOUND when Claude opens from a subdirectory.
 if node << 'NODEEOF'
-const fs = require('fs'), root = process.cwd();
+const fs = require('fs'), root = process.cwd(), nodeExec = process.execPath;
 let c = fs.readFileSync('.claude/settings.json', 'utf8');
-c = c.replace(/"node\s+(?:[^\s"]*?)\.claude\/hooks\//g, '"node ' + root + '/.claude/hooks/');
+c = c.replace(/"node\s+(?:[^\s"]*?)\.claude\/hooks\//g, '"' + nodeExec + ' ' + root + '/.claude/hooks/');
 fs.writeFileSync('.claude/settings.json', c);
 NODEEOF
 then
-    echo "  Made hook paths absolute (prevents subdirectory lookup failures)"
+    echo "  Made hook commands use absolute node binary and paths (prevents nvm FUNCNEST and subdirectory lookup failures)"
 else
-    echo "  ⚠ Could not make hook paths absolute (will self-heal on first session start)"
+    echo "  ⚠ Could not patch hook commands (will self-heal on first session start)"
 fi
 
 echo "Initializing memory..."

@@ -155,8 +155,10 @@ function getGitInfo() {
 
 
 /**
- * Self-heal: patch relative hook paths in settings.json to absolute paths.
- * Automatically fixes installations where path absolutization did not run.
+ * Self-heal: patch hook commands in settings.json to use absolute node binary
+ * path and absolute hook file paths. Fixes two failure modes:
+ *   1. Relative paths  → MODULE_NOT_FOUND when Claude opens from a subdirectory
+ *   2. Bare "node" cmd → nvm shell function recursive loop (FUNCNEST) on zsh
  * @param {string} projectRoot - Absolute path to project root
  */
 function fixHookPaths(projectRoot) {
@@ -164,14 +166,18 @@ function fixHookPaths(projectRoot) {
     if (!fs.existsSync(settingsPath)) return;
     try {
         const content = fs.readFileSync(settingsPath, 'utf8');
-        if (!/"node\s+\.claude\/hooks\//.test(content)) return;
+        // Quick check: only process if there are hook commands that might need fixing.
+        // Already-fixed commands start with the absolute node binary path (e.g. "/usr/bin/node")
+        // so they won't contain the literal string '"node '.
+        if (!content.includes('"node ') || !content.includes('.claude/hooks/')) return;
+        const nodeExec = process.execPath;
         const fixed = content.replace(
             /"node\s+(?:[^\s"]*?)\.claude\/hooks\//g,
-            '"node ' + projectRoot + '/.claude/hooks/'
+            '"' + nodeExec + ' ' + projectRoot + '/.claude/hooks/'
         );
         if (fixed === content) return;
         fs.writeFileSync(settingsPath, fixed, 'utf8');
-        logMessage('Self-healed: patched relative hook paths to absolute in .claude/settings.json');
+        logMessage('Self-healed: patched hook commands to use absolute node binary and paths in .claude/settings.json');
     } catch (e) {
         logMessage('fixHookPaths: ' + e.message, 'WARNING');
     }

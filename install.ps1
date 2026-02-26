@@ -149,13 +149,20 @@ Write-Host "Installing settings..."
 # Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
 Copy-Item "$TempDir/templates/settings.json" -Destination ".claude/settings.json" -Force
 Write-Host "  Installed .claude/settings.json from template"
-# Make hook paths absolute so they work when Claude is opened from a subdirectory
+# Make hook commands use absolute node binary path and absolute file paths.
+# - Absolute node binary (process.execPath) bypasses nvm's shell function to prevent
+#   recursive _nvm_load FUNCNEST errors on zsh.
+# - Absolute file paths prevent MODULE_NOT_FOUND when Claude opens from a subdirectory.
 $settingsContent = [System.IO.File]::ReadAllText((Resolve-Path ".claude/settings.json").Path)
-if ($settingsContent -match '"node\s+.*?\.claude/hooks/') {
+$nodeExec = (node -e "process.stdout.write(process.execPath)" 2>$null)
+if ($nodeExec -and ($settingsContent -match '"node\s+.*?\.claude/hooks/')) {
     $projectRoot = (Get-Location).Path.Replace('\', '/')
-    $updated = [regex]::Replace($settingsContent, '"node\s+(?:[^\s"]*?)\.claude/hooks/', '"node ' + $projectRoot + '/.claude/hooks/')
+    $nodeExecFwd = $nodeExec.Replace('\', '/')
+    $updated = [regex]::Replace($settingsContent, '"node\s+(?:[^\s"]*?)\.claude/hooks/', '"' + $nodeExecFwd + ' ' + $projectRoot + '/.claude/hooks/')
     [System.IO.File]::WriteAllText((Resolve-Path ".claude/settings.json").Path, $updated)
-    Write-Host "  Made hook paths absolute (prevents subdirectory lookup failures)" -ForegroundColor Green
+    Write-Host "  Made hook commands use absolute node binary and paths (prevents nvm FUNCNEST and subdirectory lookup failures)" -ForegroundColor Green
+} elseif (-not $nodeExec) {
+    Write-Host "  Warning: Could not determine node exec path - hook commands may fail on nvm zsh setups" -ForegroundColor Yellow
 }
 
 Write-Host "Initializing memory..."
