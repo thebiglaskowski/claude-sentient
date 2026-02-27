@@ -128,9 +128,10 @@ Advisory (report only): TYPE, DOCS, SECURITY.
 | Topic | Location |
 |-------|----------|
 | Memory system | `/cs-learn` command, `.claude/rules/learnings.md` |
-| Rules index | `rules/_index.md` |
 | Governance files | `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md` |
 | Native tools used | `TaskCreate`, `EnterPlanMode`, `Task`, `.claude/hooks/*.cjs`, MCP servers |
+
+See @rules/_index.md for keyword-to-rule mappings and the full rules catalog.
 
 ---
 
