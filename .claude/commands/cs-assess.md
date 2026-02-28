@@ -1,7 +1,7 @@
 ---
 description: Full codebase health audit with scored assessment
 argument-hint: [directory] [--ultrathink]
-allowed-tools: Read, Glob, Grep, Task, TaskCreate, AskUserQuestion, Skill, mcp__memory__search_nodes, mcp__github__search_code
+allowed-tools: Read, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskGet, TaskList, AskUserQuestion, Skill, mcp__memory__search_nodes, mcp__github__search_code
 model: opus
 ---
 

@@ -1,7 +1,7 @@
 ---
 description: Review a pull request with automated analysis
 argument-hint: <PR number or URL>
-allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, Skill, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__search_code
+allowed-tools: Read, Glob, Grep, Task, AskUserQuestion, Skill, WebSearch, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__search_code
 ---
 
 # /cs-review

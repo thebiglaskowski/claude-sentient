@@ -1,7 +1,7 @@
 ---
 description: Plan a complex task before executing
 argument-hint: <task description>
-allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate, AskUserQuestion, Skill
+allowed-tools: Read, Glob, Grep, Task, EnterPlanMode, ExitPlanMode, TaskCreate, TaskUpdate, TaskGet, TaskList, AskUserQuestion, Skill
 ---
 
 # /cs-plan

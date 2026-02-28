@@ -1,15 +1,15 @@
 # Claude Sentient v1.4.0 — File Checksums
-# Generated: 2026-02-27T13:46:45Z
+# Generated: 2026-02-28T23:00:23Z
 
 87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
-b2f29e5531a6ccccabd081268be0fc22583d16b00c5c127588c3244b30515f27  .claude/commands/cs-assess.md
+39379473b1490d1fb733b748a4e830c47dea0fc7273bc39176db0147031b82dc  .claude/commands/cs-assess.md
 3d49a3b91b9f99310f35a8fe281b7b807e68e9974cfb409714d807f7e77b667e  .claude/commands/cs-deploy.md
 0b3b598683cca002598b304115641e2a18f0c45db8b02e0bb3faae4f52176f76  .claude/commands/cs-init.md
 9006b814c0d2c796466b033f985cad7951222f67f6e61dbf96e1ddb855f99306  .claude/commands/cs-learn.md
-def759d1e2bd592fe7345acab99f41445251e2d806a070c40224efaf5d6a193c  .claude/commands/cs-loop.md
+d1c6993fc347e75dd398349b64a349cadc66a6a44ab7f39f8b501214e4b660b8  .claude/commands/cs-loop.md
 e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/commands/cs-mcp.md
-802a8de13a27fb1234b16d04bf9282b9465df8716593a1117893af91798660e0  .claude/commands/cs-plan.md
-3143e3532cbdec70b8562f995906d6f261d3a3b9decfdd69b61887bdb79251b2  .claude/commands/cs-review.md
+d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/commands/cs-plan.md
+65d25c139fab0357545d7de5220492154c454b113a442c1c9330e78331350cff  .claude/commands/cs-review.md
 0c55da82a857e9af241424b2ac8e52e87cdf9b1c4a0c2c2d1faed4bfcea3d571  .claude/commands/cs-status.md
 36a55d9a202408348efc0fbc9c967c81e2a7017b23dc7b1b5825ef60cad565cc  .claude/commands/cs-team.md
 5bbc2613ff10eadb2c6837faee678056a7c49926290706f9edae379db5cd244d  .claude/commands/cs-ui.md

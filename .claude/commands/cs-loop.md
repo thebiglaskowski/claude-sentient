@@ -60,7 +60,7 @@ Follow the profile-detection skill procedure:
 1. Recover from compaction if `.claude/state/compact-context.json` exists
 2. Load profile from `.claude/state/session_start.json` (fall back to file scanning)
 3. Detect Python environment if applicable (conda/venv/poetry/pdm)
-4. Load rules based on task keywords (see `rules/_index.md`). Note: Rules with `paths:` frontmatter in `.claude/rules/` auto-load for matching files
+4. Load rules based on task keywords (see `rules/_index.md`). Then do a second semantic pass: briefly review `rules/_index.md` to identify any additional rules not captured by keyword matching but semantically relevant to the task. Note: Rules with `paths:` frontmatter in `.claude/rules/` also auto-load for matching files
 5. Detect web project, auto-load ui-ux-design rules
 6. Check governance files exist, create from `templates/` if missing
 7. Check for CLAUDE.md, suggest `/cs-init` if missing
@@ -103,6 +103,8 @@ For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, d
 5. Do the work
 6. `TaskUpdate(status: completed)`
 7. Repeat until all complete
+
+**The task list is a living document.** If during execution you discover the plan needs adjustment — a task should be split, merged, reordered, or new work identified — update the task list. Tasks are a coordination tool, not a rigid contract.
 
 **Team Mode** (when approved in PLAN):
 

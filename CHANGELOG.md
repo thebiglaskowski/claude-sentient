@@ -6,6 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.1] — 2026-02-28
+
+### Changed
+- **`cs-loop.md`** — INIT step 4 now includes a semantic second-pass after keyword matching: briefly review `rules/_index.md` to catch rules not surfaced by keyword matching but semantically relevant to the task
+- **`cs-loop.md`** — EXECUTE section now explicitly calls out the task list as a living document: tasks may be split, merged, reordered, or added during execution; they are a coordination tool, not a rigid contract
+- **`cs-review.md`** — Added `WebSearch` to allowed-tools so reviewers can look up library behavior and common patterns when evaluating unfamiliar code
+- **`cs-assess.md`** — Added `TaskUpdate`, `TaskGet`, `TaskList` to allowed-tools so assessment can manage the tasks it creates (not just create them)
+- **`cs-plan.md`** — Added `TaskGet`, `TaskList` to allowed-tools so planning can inspect created tasks for dependency verification
+
+---
+
 ## [1.4.0] — 2026-02-22
 
 ### Added

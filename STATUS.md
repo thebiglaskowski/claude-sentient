@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-02-25
+> **Last Updated:** 2026-02-28
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.4.0
+> **Version:** 1.4.1
 
 ---
 
