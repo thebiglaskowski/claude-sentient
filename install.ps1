@@ -131,6 +131,23 @@ New-Item -ItemType Directory -Force -Path ".claude/agents" | Out-Null
 Copy-Item "$TempDir/.claude/agents/*.md" -Destination ".claude/agents/" -Force
 Write-Host "  Installed native agent definitions (.claude/agents/*.md)"
 
+Write-Host "Installing examples..."
+New-Item -ItemType Directory -Force -Path "examples" | Out-Null
+Copy-Item "$TempDir/examples/*.md" -Destination "examples/" -Force
+Write-Host "  Installed example CLAUDE.md templates (examples/)"
+
+Write-Host "Installing plugin manifest..."
+New-Item -ItemType Directory -Force -Path ".claude-plugin" | Out-Null
+Copy-Item "$TempDir/.claude-plugin/*.json" -Destination ".claude-plugin/" -Force
+Write-Host "  Installed plugin marketplace manifest (.claude-plugin/)"
+
+Write-Host "Installing IDE configs..."
+New-Item -ItemType Directory -Force -Path ".cursor/rules" | Out-Null
+Copy-Item "$TempDir/.cursor/rules/claude-sentient.mdc" -Destination ".cursor/rules/" -Force
+New-Item -ItemType Directory -Force -Path ".codex" | Out-Null
+Copy-Item "$TempDir/.codex/instructions.md" -Destination ".codex/" -Force
+Write-Host "  Installed IDE integration files (.cursor/rules/, .codex/)"
+
 Write-Host "Installing skills..."
 Get-ChildItem "$TempDir/.claude/skills" -Directory | ForEach-Object {
     $skillDir = ".claude/skills/$($_.Name)"
@@ -284,14 +301,14 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
-Write-Host '  .claude/commands/cs-*.md       (12 commands)'
+Write-Host '  .claude/commands/cs-*.md       (15 commands)'
 Write-Host '  .claude/hooks/*.cjs             (13 hook scripts)'
 Write-Host '  .claude/hooks/__tests__/       (255 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'
 Write-Host '  profiles/__tests__/            (242 profile tests)'
-Write-Host '  agents/*.yaml                  (6 agent roles)'
-Write-Host '  .claude/agents/*.md            (6 native agent definitions)'
+Write-Host '  agents/*.yaml                  (9 agent roles)'
+Write-Host '  .claude/agents/*.md            (9 native agent definitions)'
 Write-Host '  agents/__tests__/              (108 agent tests)'
 Write-Host '  .claude/skills/                (3 skills)'
 Write-Host '  schemas/*.json                 (12 JSON schemas)'
@@ -300,6 +317,10 @@ Write-Host '  rules/*.md                     (15 topic rules)'
 Write-Host '  templates/                     (4 templates + settings.json)'
 Write-Host '  test-utils.js                  (shared test infrastructure)'
 Write-Host '  .claude/rules/*.md              (15 path-scoped rules)'
+Write-Host '  examples/                      (4 example CLAUDE.md templates)'
+Write-Host '  .claude-plugin/                (plugin marketplace manifest)'
+Write-Host '  .cursor/rules/                 (Cursor IDE integration)'
+Write-Host '  .codex/                        (Codex IDE integration)'
 if ($PluginsInstalled.Count -gt 0) {
     $pluginList = $PluginsInstalled -join ", "
     Write-Host "  plugins                        ($pluginList)"

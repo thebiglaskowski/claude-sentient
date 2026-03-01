@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-03-01
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.4.2
+> **Version:** 1.5.0
 
 ---
 
@@ -12,19 +12,19 @@
 
 ```
 Foundation          [████████████████████] 100% ✓
-Commands            [████████████████████] 100% ✓ (13 commands)
+Commands            [████████████████████] 100% ✓ (15 commands)
 Profiles            [████████████████████] 100% ✓ (9 profiles + infrastructure)
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
 Hooks               [████████████████████] 100% ✓ (13 hooks, enhanced)
-Agent Teams         [████████████████████] 100% ✓ (cs-team + 6 agent roles)
+Agent Teams         [████████████████████] 100% ✓ (cs-team + 9 agent roles)
 Self-Healing        [████████████████████] 100% ✓ (auto-fix sub-loop)
-Agent Roles         [████████████████████] 100% ✓ (6 specialized agents)
+Agent Roles         [████████████████████] 100% ✓ (9 specialized agents)
 Collective Intel    [████████████████████] 100% ✓ (scoped memory)
 Context Arch        [████████████████████] 100% ✓ (predictive + map)
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
 Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
-Native Agents       [████████████████████] 100% ✓ (6 native .claude/agents/*.md)
+Native Agents       [████████████████████] 100% ✓ (9 native .claude/agents/*.md)
 Testing             [████████████████████] 100% ✓ (943 total across 6 suites)
 ```
 
@@ -51,6 +51,8 @@ Testing             [███████████████████�
 - [x] `/cs-team` - Create/manage Agent Teams for parallel multi-instance work
 - [x] `/cs-docs` - Generate and manage feature documentation handbook
 - [x] `/cs-deploy` - Deployment readiness check (CI, Docker, env, migrations)
+- [x] `/cs-sessions` - Browse, search, and resume previous Claude Code sessions
+- [x] `/cs-multi` - Configure per-phase model routing for multi-model orchestration
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -122,10 +124,10 @@ Testing             [███████████████████�
 
 | Component | Files | Status |
 |-----------|-------|--------|
-| Commands | `commands/cs-*.md` | ✓ 13 created |
+| Commands | `commands/cs-*.md` | ✓ 15 created |
 | Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
-| Agent Roles | `agents/*.yaml` | ✓ 6 created |
-| Native Agents | `.claude/agents/*.md` | ✓ 6 native agent definitions |
+| Agent Roles | `agents/*.yaml` | ✓ 9 created |
+| Native Agents | `.claude/agents/*.md` | ✓ 9 native agent definitions |
 | Skills | `.claude/skills/` | ✓ 3 skills (quality-gates, profile-detection, team-orchestration) |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 13 hooks + utils.cjs |
 | Hook Tests | `.claude/hooks/__tests__/` | ✓ 252 tests |
@@ -142,10 +144,10 @@ Testing             [███████████████████�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 13 | 13 ✓ |
+| Commands | 15 | 15 ✓ |
 | Profiles | 9 | 9 ✓ |
-| Agent Roles | 6 | 6 ✓ |
-| Native Agents | 6 | 6 ✓ |
+| Agent Roles | 9 | 9 ✓ |
+| Native Agents | 9 | 9 ✓ |
 | Skills | 3 | 3 ✓ |
 | Hooks | 13 | 13 ✓ |
 | Hook Tests | 252 | 252 ✓ |
@@ -162,6 +164,19 @@ Testing             [███████████████████�
 ---
 
 ## Recent Activity
+
+### 2026-03-01 (Session 30)
+- **v1.5.0 — ECC comparison improvements (everything-claude-code):**
+  - Added 3 new agent roles: `database.yaml`, `docs.yaml`, `build-resolver.yaml` + native `.claude/agents/*.md` definitions (total: 9 agents)
+  - Added 4 example CLAUDE.md templates: `nextjs-supabase.md`, `django-api.md`, `go-microservice.md`, `rust-api.md`
+  - Created plugin marketplace manifest: `.claude-plugin/plugin.json` + `marketplace.json`
+  - Added `/cs-sessions` command — browse, search, and resume previous Claude Code sessions
+  - Added `/cs-multi` command — configure per-phase model routing for multi-model orchestration
+  - Added cross-platform IDE support: `.cursor/rules/claude-sentient.mdc`, `.codex/instructions.md`
+  - Enhanced `/cs-learn` with `--level` flag: observed/pattern/rule/instinct confidence levels
+  - Updated all documentation (README, CLAUDE.md, CHANGELOG, STATUS, cs-validate, commands/CLAUDE.md)
+  - Updated install/uninstall scripts for new components
+  - Regenerated checksums
 
 ### 2026-03-01 (Session 29)
 - **v1.4.2 — Documentation handbook pattern:**

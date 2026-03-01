@@ -1,6 +1,6 @@
 name: architect
 description: "Architecture specialist for design patterns, code quality, and dependency management"
-version: "1.4.0"
+version: "1.5.0"
 role: architect
 expertise:
   - Design pattern selection and application

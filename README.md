@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.4.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -91,7 +91,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 13 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 15 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 5 | Governance file templates |
@@ -99,7 +99,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
 | 🧪 Tests | 940 | Profiles (242), agents (108), hooks (252), commands (81), schemas (188), integration (69) |
-| 🤖 Agent Roles | 6 | Security, devops, frontend, backend, tester, architect |
+| 🤖 Agent Roles | 9 | Security, devops, frontend, backend, tester, architect, database, docs, build-resolver |
 
 ---
 
@@ -120,6 +120,8 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | `/cs-team` | Create/manage Agent Teams for parallel work | [Command](.claude/commands/cs-team.md) |
 | `/cs-docs` | Generate and manage feature documentation handbook | [Command](.claude/commands/cs-docs.md) |
 | `/cs-deploy` | Deployment readiness check (CI, Docker, env, migrations) | [Command](.claude/commands/cs-deploy.md) |
+| `/cs-sessions` | Browse, search, and resume previous Claude Code sessions | [Command](.claude/commands/cs-sessions.md) |
+| `/cs-multi` | Configure per-phase model routing for multi-model orchestration | [Command](.claude/commands/cs-multi.md) |
 
 ---
 
@@ -269,14 +271,14 @@ Run `/cs-validate` to see which plugins are installed and which are missing. The
 ```
 your-project/
 ├── .claude/
-│   ├── commands/cs-*.md    # 12 slash commands
+│   ├── commands/cs-*.md    # 15 slash commands
 │   ├── hooks/*.cjs         # 13 hook scripts (security, teams, tracking)
-│   ├── agents/*.md         # 6 native agent definitions
+│   ├── agents/*.md         # 9 native agent definitions
 │   ├── skills/             # 3 skills (progressive disclosure)
 │   ├── settings.json       # Hook + team configuration
 │   └── rules/*.md          # Path-scoped rules + learnings
 ├── profiles/*.yaml          # 9 language profiles + schema
-├── agents/*.yaml            # 6 specialized agent roles
+├── agents/*.yaml            # 9 specialized agent roles
 ├── schemas/*.json           # 12 JSON schemas (validation)
 ├── templates/*.md           # Governance templates
 ├── test-utils.js            # Shared test infrastructure

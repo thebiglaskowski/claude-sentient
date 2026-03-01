@@ -6,6 +6,25 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] — 2026-03-01
+
+### Added
+- **3 new agent roles** — `agents/database.yaml`, `agents/docs.yaml`, `agents/build-resolver.yaml` with matching native `.claude/agents/*.md` definitions (database specialist, documentation specialist, build/CI resolver)
+- **4 new example templates** — `examples/nextjs-supabase.md`, `examples/django-api.md`, `examples/go-microservice.md`, `examples/rust-api.md`: copy-paste-ready `CLAUDE.md` starters for popular stacks
+- **Plugin marketplace manifest** — `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` for Claude Code plugin marketplace discoverability
+- **`/cs-sessions`** — New command to browse, search, and resume previous Claude Code sessions from `.claude/state/`; supports `--search`, `--last`, and `--resume` flags; chains to `/cs-loop` for resumption
+- **`/cs-multi`** — New command to configure per-phase model routing for multi-model orchestration; stores config in `.claude/state/multi-model.json`; 7 configurable phases with keyword override support
+- **Cross-platform IDE support** — `.cursor/rules/claude-sentient.mdc` for Cursor IDE and `.codex/instructions.md` for OpenAI Codex CLI
+
+### Changed
+- **`/cs-learn`** — Added `--level` flag with four confidence levels: `observed`, `pattern`, `rule`, `instinct`. Default level is inferred from type (`decision`→`rule`, `pattern`→`pattern`, `learning`→`observed`). Level is stored in the entry and MCP entity. New Step 0 "Resolve Confidence Level" resolves before any file operations
+- **`cs-validate.md`** — Added `cs-sessions.md` and `cs-multi.md` to required commands list
+- **`commands/CLAUDE.md`** — Added skill chaining rows for `cs-sessions → cs-loop` (resume) and `cs-multi` (standalone)
+- **`CLAUDE.md`** — Added `/cs-sessions` and `/cs-multi --show` to Quick Start; added both to Commands table; version bump 1.4.2 → 1.5.0
+- **`README.md`** — Version badge 1.4.2 → 1.5.0; Commands 13 → 15; Agent Roles 6 → 9; Project Structure counts updated
+
+---
+
 ## [1.4.2] — 2026-03-01
 
 ### Added

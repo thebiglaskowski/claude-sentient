@@ -128,6 +128,22 @@ Remove-DirItem "templates"
 Write-Host "Removing schemas..."
 Remove-DirItem "schemas"
 
+# --- Examples ---
+Write-Host "Removing examples..."
+Remove-DirItem "examples"
+
+# --- Plugin manifest ---
+Write-Host "Removing plugin manifest..."
+Remove-DirItem ".claude-plugin"
+
+# --- IDE configs ---
+Write-Host "Removing IDE configs..."
+Remove-FileItem ".cursor/rules/claude-sentient.mdc"
+Remove-DirIfEmpty ".cursor/rules"
+Remove-DirIfEmpty ".cursor"
+Remove-FileItem ".codex/instructions.md"
+Remove-DirIfEmpty ".codex"
+
 # --- Path-scoped rules (.claude/rules/) ---
 Write-Host "Removing path-scoped rules..."
 $scopedRules = @(

@@ -142,6 +142,22 @@ remove_dir "templates"
 echo "Removing schemas..."
 remove_dir "schemas"
 
+# --- Examples ---
+echo "Removing examples..."
+remove_dir "examples"
+
+# --- Plugin manifest ---
+echo "Removing plugin manifest..."
+remove_dir ".claude-plugin"
+
+# --- IDE configs ---
+echo "Removing IDE configs..."
+remove_file ".cursor/rules/claude-sentient.mdc"
+remove_dir_if_empty ".cursor/rules"
+remove_dir_if_empty ".cursor"
+remove_file ".codex/instructions.md"
+remove_dir_if_empty ".codex"
+
 # --- Path-scoped rules (.claude/rules/) ---
 echo "Removing path-scoped rules..."
 SCOPED_RULES=(

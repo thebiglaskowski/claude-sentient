@@ -2,7 +2,7 @@
 # Generates CHECKSUMS.sha256 for installer verification
 set -euo pipefail
 
-echo "# Claude Sentient v1.4.0 — File Checksums" > CHECKSUMS.sha256
+echo "# Claude Sentient v1.5.0 — File Checksums" > CHECKSUMS.sha256
 echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> CHECKSUMS.sha256
 echo "" >> CHECKSUMS.sha256
 
@@ -13,6 +13,12 @@ find profiles -name "*.yaml" -o -name "CLAUDE.md" | sort | xargs sha256sum >> CH
 find agents -name "*.yaml" -o -name "CLAUDE.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
 find schemas -name "*.json" | sort | xargs sha256sum >> CHECKSUMS.sha256
 find rules -name "*.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find templates -name "*.md" -o -name "*.json" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find examples -name "*.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find .claude-plugin -name "*.json" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find .cursor -name "*.mdc" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find .codex -name "*.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find .claude/skills -name "SKILL.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
 sha256sum test-utils.js >> CHECKSUMS.sha256
 
 echo "Checksums written to CHECKSUMS.sha256"

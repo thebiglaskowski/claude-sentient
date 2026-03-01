@@ -23,6 +23,20 @@ Save important learnings to `.claude/rules/learnings.md` and MCP memory. This cr
 ## Flags
 
 - `--scope`: Memory scope (default: `project`)
+- `--level`: Confidence level (default: inferred from type)
+
+### Confidence Levels
+
+Confidence levels reflect how well-established a learning is. Claude uses these to weight entries during decision-making — high-confidence rules are applied strictly, low-confidence observations are considered lightly.
+
+| Level | Description | Default For |
+|-------|-------------|-------------|
+| `observed` | Seen once, may not generalize | `learning` |
+| `pattern` | Confirmed across 2+ situations | `pattern` |
+| `rule` | Established standard, applies consistently | `decision` |
+| `instinct` | Deep expertise, applied automatically | (promote manually) |
+
+Use `--level instinct` sparingly — only for learnings that have been validated many times and should be applied without question.
 
 | Scope | Storage | Available To |
 |-------|---------|-------------|
@@ -36,7 +50,18 @@ Org name is detected from: `.claude/settings.json` → `sentient.org` field, or 
 <steps>
 ## Behavior
 
-### 0. Check for Contradictions
+### 0. Resolve Confidence Level
+
+Determine the confidence level:
+1. If `--level` is provided, use it directly (validate: must be one of `observed`, `pattern`, `rule`, `instinct`)
+2. Otherwise, infer from `type`:
+   - `decision` → `rule`
+   - `pattern` → `pattern`
+   - `learning` → `observed`
+
+Include the level in the stored entry and MCP entity.
+
+### 1. Check for Contradictions
 
 Before saving, check for conflicts with existing entries:
 
@@ -125,6 +150,7 @@ Report what was saved to both locations.
 ### YYYY-MM-DD: {title}
 - **Context**: [infer from conversation if not provided]
 - **{Type}**: {content}
+- **Confidence**: {observed|pattern|rule|instinct}
 ```
 </output_format>
 
@@ -161,6 +187,8 @@ Report what was saved to both locations.
 /cs-learn decision "Auth pattern" "Use JWT with refresh tokens" --scope global
 /cs-learn learning "Docker builds" "Multi-stage builds reduce image size" --scope org
 /cs-learn learning "Debug tip" "Use console.trace for stack traces" --scope personal
+/cs-learn pattern "Hook self-protection" "Edit hooks via /tmp copy" --level instinct
+/cs-learn learning "nvm FUNCNEST" "Use process.execPath not bare node" --level rule
 ```
 </examples>
 

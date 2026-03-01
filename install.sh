@@ -96,6 +96,23 @@ mkdir -p .claude/agents
 cp "$TEMP_DIR"/.claude/agents/*.md .claude/agents/
 echo "  Installed native agent definitions (.claude/agents/*.md)"
 
+echo "Installing examples..."
+mkdir -p examples
+cp "$TEMP_DIR"/examples/*.md examples/
+echo "  Installed example CLAUDE.md templates (examples/)"
+
+echo "Installing plugin manifest..."
+mkdir -p .claude-plugin
+cp "$TEMP_DIR"/.claude-plugin/*.json .claude-plugin/
+echo "  Installed plugin marketplace manifest (.claude-plugin/)"
+
+echo "Installing IDE configs..."
+mkdir -p .cursor/rules
+cp "$TEMP_DIR"/.cursor/rules/claude-sentient.mdc .cursor/rules/
+mkdir -p .codex
+cp "$TEMP_DIR"/.codex/instructions.md .codex/
+echo "  Installed IDE integration files (.cursor/rules/, .codex/)"
+
 echo "Installing skills..."
 for skill_dir in "$TEMP_DIR"/.claude/skills/*/; do
     skill_name=$(basename "$skill_dir")
@@ -231,14 +248,14 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
-echo "  .claude/commands/cs-*.md       (12 commands)"
+echo "  .claude/commands/cs-*.md       (15 commands)"
 echo "  .claude/hooks/*.cjs             (13 hook scripts)"
 echo "  .claude/hooks/__tests__/       (255 hook tests)"
 echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"
 echo "  profiles/__tests__/            (242 profile tests)"
-echo "  agents/*.yaml                  (6 agent roles)"
-echo "  .claude/agents/*.md            (6 native agent definitions)"
+echo "  agents/*.yaml                  (9 agent roles)"
+echo "  .claude/agents/*.md            (9 native agent definitions)"
 echo "  agents/__tests__/              (108 agent tests)"
 echo "  .claude/skills/                (3 skills)"
 echo "  schemas/*.json                 (12 JSON schemas)"
@@ -247,6 +264,10 @@ echo "  rules/*.md                     (15 topic rules)"
 echo "  templates/                     (4 templates + settings.json)"
 echo "  test-utils.js                  (shared test infrastructure)"
 echo "  .claude/rules/*.md              (15 path-scoped rules)"
+echo "  examples/                      (4 example CLAUDE.md templates)"
+echo "  .claude-plugin/                (plugin marketplace manifest)"
+echo "  .cursor/rules/                 (Cursor IDE integration)"
+echo "  .codex/                        (Codex IDE integration)"
 if [ -n "$PLUGINS_INSTALLED" ]; then
     echo "  plugins                        ($PLUGINS_INSTALLED)"
 fi

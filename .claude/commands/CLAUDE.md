@@ -80,6 +80,8 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-mcp` | — | Standalone, registers/validates MCP servers |
 | `/cs-ui` | `/cs-loop` | When UI issues found, user chooses to fix |
 | `/cs-deploy` | — | Standalone, read-only deployment readiness check |
+| `/cs-sessions` | `/cs-loop` | When user chooses to resume a previous session |
+| `/cs-multi` | — | Standalone, configures per-phase model routing |
 
 ---
 
