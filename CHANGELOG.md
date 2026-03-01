@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.2] — 2026-03-01
+
+### Added
+- **`cs-docs.md`** — New command for generating and managing a feature documentation handbook. Produces per-feature markdown spec files covering data models, API endpoints, business rules, and edge cases. Includes `--audit` mode that crawls app routes/models to discover undocumented features and generate stubs
+- **`_index.md` scaffold in `cs-init.md`** — When setting up a new project, `/cs-init` now creates `documentation/_index.md` with a feature lookup table and doc-first workflow instructions
+
+### Changed
+- **`cs-loop.md`** — UNDERSTAND phase now includes a **Doc-First Check**: if `documentation/_index.md` exists, scan for a matching feature doc and read it before writing code (business rules, data models, and edge cases that cannot be inferred from code alone)
+- **`cs-loop.md`** — COMMIT phase now includes a **Doc sync check**: if changed files correspond to a feature in `documentation/`, check whether the doc needs updating and run `/cs-docs "feature name"` if out of date
+- **`cs-validate.md`** — Added `cs-docs.md` to required commands list
+- **`commands/CLAUDE.md`** — Added two skill chaining rows: `cs-loop → cs-docs` (COMMIT doc sync) and `cs-docs → cs-loop` (implement after generating doc)
+- **`CLAUDE.md`** — Added `/cs-docs` to Quick Start and Commands table; version bump 1.4.1 → 1.4.2
+
+---
+
 ## [1.4.1] — 2026-02-28
 
 ### Changed

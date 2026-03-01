@@ -74,6 +74,8 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-team` | `/cs-loop` | When team completes, fallback to solo for remaining work |
 | `/cs-assess` | `/cs-loop` | When issues found, user chooses to fix them |
 | `/cs-review` | `/cs-loop` | When PR changes needed, user chooses to fix |
+| `/cs-loop` | `/cs-docs` | At COMMIT, when changed files need doc sync check |
+| `/cs-docs` | `/cs-loop` | After generating doc, user chooses to implement against spec |
 | `/cs-learn` | — | Standalone, appends to learnings.md |
 | `/cs-mcp` | — | Standalone, registers/validates MCP servers |
 | `/cs-ui` | `/cs-loop` | When UI issues found, user chooses to fix |

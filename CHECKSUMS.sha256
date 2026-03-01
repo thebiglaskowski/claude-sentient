@@ -1,19 +1,20 @@
 # Claude Sentient v1.4.0 — File Checksums
-# Generated: 2026-02-28T23:00:23Z
+# Generated: 2026-03-01T16:33:42Z
 
-87f763300c88db8cf68b63833951cde9092222ce385b56901ba1b544c7933846  .claude/commands/CLAUDE.md
+25153effebc9f72b21b0edf8f8790f3d7704c7e7a5bc0dbe1485d8c1e4ef9ba8  .claude/commands/CLAUDE.md
 39379473b1490d1fb733b748a4e830c47dea0fc7273bc39176db0147031b82dc  .claude/commands/cs-assess.md
 3d49a3b91b9f99310f35a8fe281b7b807e68e9974cfb409714d807f7e77b667e  .claude/commands/cs-deploy.md
-0b3b598683cca002598b304115641e2a18f0c45db8b02e0bb3faae4f52176f76  .claude/commands/cs-init.md
+a9c3676ce5a47291866e0a12399fc2d89d209b62aa87c02552eea07e4e0b2914  .claude/commands/cs-docs.md
+09e79cefd7d070307589508f5508a5cb0ae0fef2b1a081997c78924bba041e5e  .claude/commands/cs-init.md
 9006b814c0d2c796466b033f985cad7951222f67f6e61dbf96e1ddb855f99306  .claude/commands/cs-learn.md
-d1c6993fc347e75dd398349b64a349cadc66a6a44ab7f39f8b501214e4b660b8  .claude/commands/cs-loop.md
+d095544039037f5c0f31fbba6f415a6cdb4ad222886671c5374fd9cacfa918df  .claude/commands/cs-loop.md
 e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/commands/cs-mcp.md
 d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/commands/cs-plan.md
 65d25c139fab0357545d7de5220492154c454b113a442c1c9330e78331350cff  .claude/commands/cs-review.md
 0c55da82a857e9af241424b2ac8e52e87cdf9b1c4a0c2c2d1faed4bfcea3d571  .claude/commands/cs-status.md
 36a55d9a202408348efc0fbc9c967c81e2a7017b23dc7b1b5825ef60cad565cc  .claude/commands/cs-team.md
 5bbc2613ff10eadb2c6837faee678056a7c49926290706f9edae379db5cd244d  .claude/commands/cs-ui.md
-9e7d88908338c26338b69e69b9459a548a19c7e9195e1a96ae900ba6a2978cf0  .claude/commands/cs-validate.md
+3e7da6108ffe9280f4c45cda2267bc1003f393be6591a97fad88f948ea364866  .claude/commands/cs-validate.md
 5c2166d36073a735f154b478d9d8fe2fbc7a10b3a52a779eaa46eb21114f89ab  .claude/hooks/README.md
 9b734b2ebbda6bd030132b0dbe06fa9991c162e4d52f30280414ec1e45a31c5e  .claude/hooks/agent-synthesizer.cjs
 1f02007e1cd1f1dfd44e58fe422b906fa5d61604ce5913988f7163b68d3440b7  .claude/hooks/agent-tracker.cjs

@@ -79,6 +79,11 @@ Classify the task complexity to determine the right approach.
 - **Moderate**: Multiple files, clear path -> proceed
 - **Complex**: Architecture decisions -> use `EnterPlanMode`
 
+**Doc-First Check**: Before writing any code, check if `documentation/` exists in project root:
+1. If `documentation/_index.md` exists, scan it for an entry matching the task's feature/topic
+2. If a matching doc is found, read it fully — it contains business rules, data models, and edge cases that cannot be inferred from code alone
+3. If no doc exists for this feature, note that `/cs-docs "feature name"` can generate one after implementation
+
 For unfamiliar patterns: `mcp__github__search_code(q="{pattern} language:{lang}")`
 For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, database, testing strategy, etc.)
 
@@ -138,10 +143,11 @@ Run quality gates from profile. Follow the quality-gates skill procedure.
 
 1. Stage changes: `git add <files>`
 2. Create commit with conventional message (`feat:`, `fix:`, etc.)
-3. Auto-update STATUS.md and CHANGELOG.md (for `feat:`/`fix:` commits)
-4. MCP: github (link commits to issues, create PRs), memory (persist session state)
-5. Auto-capture non-obvious learnings via `/cs-learn`
-6. CI monitoring: check PR status, auto-fix if lint/test failure (max 2 attempts)
+3. **Doc sync check**: If changed files correspond to a feature in `documentation/`, check whether the doc needs updating — business rules, API shapes, or edge cases may have changed. If out of date, run `/cs-docs "feature name"` to update.
+4. Auto-update STATUS.md and CHANGELOG.md (for `feat:`/`fix:` commits)
+5. MCP: github (link commits to issues, create PRs), memory (persist session state)
+6. Auto-capture non-obvious learnings via `/cs-learn`
+7. CI monitoring: check PR status, auto-fix if lint/test failure (max 2 attempts)
 
 Report: `[COMMIT] Created checkpoint: {hash}`
 

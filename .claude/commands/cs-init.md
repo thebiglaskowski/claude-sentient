@@ -316,6 +316,37 @@ If "Cancel" → exit gracefully.
 - In optimize mode, use `Edit` to update root CLAUDE.md (don't overwrite)
 - In optimize mode, copy (don't cut) content to nested files unless user explicitly approves removal from root
 
+**Documentation handbook scaffold**: If `documentation/` does not already exist, create it with a stub `_index.md`:
+
+```markdown
+# Feature Documentation
+
+> One doc per feature. Claude reads the relevant doc before touching any code.
+> Working on a feature? Find it in the table below and read the doc first.
+
+## Lookup Table
+
+| Feature | Doc | Description |
+|---------|-----|-------------|
+| *(no docs yet)* | — | Run `/cs-docs "feature name"` to generate the first one |
+
+## Doc-First Workflow
+
+When working on a feature:
+1. Find the feature in the lookup table above
+2. Read the full doc before writing any code
+3. If no doc exists, run `/cs-docs "feature name"` to generate one
+4. Update the doc if implementation reveals a mismatch
+
+## Quality Bar
+
+A good feature doc lets Claude implement the feature correctly without reading source code.
+Business rules matter more than API shapes — Claude can infer patterns, but it cannot
+infer limits, cascade rules, permission gates, or state machines.
+```
+
+Report: `[GENERATE] Scaffolded: documentation/_index.md`
+
 ### 6. VERIFY
 
 1. **Confirm all planned files were created** — `Glob` for `**/CLAUDE.md` in target

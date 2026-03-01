@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 1.4.1
+> **Version:** 1.4.2
 > **Type:** Autonomous Development Orchestration Layer
 
 ---
@@ -33,6 +33,7 @@ Claude Sentient is an **orchestration layer** that leverages Claude Code's nativ
 /cs-init                                   # Create nested CLAUDE.md architecture
 /cs-ui                                     # UI/UX audit (web projects)
 /cs-team "refactor auth across packages"   # Parallel Agent Teams
+/cs-docs "feature name"                    # Generate feature documentation
 /cs-assess                                 # Full codebase health audit
 /cs-deploy                                 # Deployment readiness check
 ```
@@ -70,6 +71,7 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 | `/cs-init [dir]` | Create/optimize nested CLAUDE.md architecture |
 | `/cs-ui [dir] [--full]` | UI/UX audit for web projects |
 | `/cs-team [task] [--status] [--stop]` | Create/manage Agent Teams |
+| `/cs-docs ["feature"] [--audit]` | Generate and manage feature documentation |
 | `/cs-deploy [--ci] [--docker] [--env]` | Deployment readiness check |
 
 > Detailed command structure and skill chaining: `.claude/commands/CLAUDE.md`

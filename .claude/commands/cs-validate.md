@@ -58,7 +58,7 @@ Check if this is the claude-sentient repo (development) or a user project:
 
 **Commands (Required):**
 - Verify `.claude/commands/cs-*.md` files exist
-- Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md
+- Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md, cs-docs.md
 
 **Profiles (Required):**
 - Verify `profiles/*.yaml` files exist

@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.2-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -91,7 +91,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 12 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 13 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 5 | Governance file templates |
@@ -118,6 +118,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | `/cs-init` | Create/optimize nested CLAUDE.md architecture | [Command](.claude/commands/cs-init.md) |
 | `/cs-ui` | UI/UX audit for web projects | [Command](.claude/commands/cs-ui.md) |
 | `/cs-team` | Create/manage Agent Teams for parallel work | [Command](.claude/commands/cs-team.md) |
+| `/cs-docs` | Generate and manage feature documentation handbook | [Command](.claude/commands/cs-docs.md) |
 | `/cs-deploy` | Deployment readiness check (CI, Docker, env, migrations) | [Command](.claude/commands/cs-deploy.md) |
 
 ---
