@@ -8,7 +8,7 @@
 
 const path = require('path');
 const { execSync } = require('child_process');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, GIT_EXEC_OPTIONS } = require('./utils.cjs');
+const { loadState, saveState, logMessage, GIT_EXEC_OPTIONS } = require('./utils.cjs');
 
 // Extension-to-language mapping for change categorization
 const EXT_TO_LANG = {
@@ -64,7 +64,7 @@ function buildRecommendations(gitClean, fileChanges, changesByType) {
 function main() {
     logMessage('DoD verification started');
 
-    const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
+    const fileChanges = loadState('file_changes.json', []);
     const changesByType = categorizeChanges(fileChanges);
     const { gitClean, uncommittedChanges } = getGitState();
 
@@ -78,7 +78,7 @@ function main() {
         recommendations: buildRecommendations(gitClean, fileChanges, changesByType)
     };
 
-    saveJsonFile(getStateFilePath('last_verification.json'), verification);
+    saveState('last_verification.json', verification);
     console.log(JSON.stringify(verification));
 
     if (!gitClean && fileChanges.length > 0) process.exit(2);

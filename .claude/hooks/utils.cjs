@@ -126,6 +126,9 @@ const SECRET_PATTERNS = [
     /AccountKey=[a-zA-Z0-9+\/=]{40,}/g,   // Azure Storage account keys
     /npm_[a-zA-Z0-9]{36,}/g,              // npm automation tokens
     /pypi-[a-zA-Z0-9_\-]{100,}/g,         // PyPI API tokens
+    /SK[a-f0-9]{32}/g,                    // Twilio API keys (SK + 32 hex chars)
+    /SG\.[a-zA-Z0-9_\-]{66}/g,            // SendGrid API keys (SG. + 66 chars)
+    /hvs\.[a-zA-Z0-9_\-]{24,}/g,          // HashiCorp Vault service tokens
     /[a-zA-Z0-9\/+]{40}(?=\s|$)/g,    // AWS secret keys (40-char base64) — keep last
 ];
 

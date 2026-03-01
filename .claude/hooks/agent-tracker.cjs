@@ -10,9 +10,9 @@ const fs = require('fs');
 const path = require('path');
 const { parseHookInput, loadState, saveState, logMessage, MAX_ACTIVE_AGENTS } = require('./utils.cjs');
 
-// Known specialized roles — skip YAML scan when agentType matches a specific role name
-// Note: 'general-purpose' is NOT included here because it's the default type;
-// when agentType is general-purpose, we still want to scan YAML for description-based role matching
+// Known specialized roles — skip YAML scan when agentType matches a specific role name.
+// 'general-purpose' is intentionally excluded: when agentType is 'general-purpose',
+// YAML scanning must still run so description-based role detection works.
 const KNOWN_ROLES = ['implementer', 'reviewer', 'researcher', 'tester', 'architect'];
 
 /**

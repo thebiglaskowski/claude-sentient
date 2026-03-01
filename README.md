@@ -98,7 +98,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
 | 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 940 | Profiles (242), agents (108), hooks (252), commands (81), schemas (188), integration (69) |
+| 🧪 Tests | 1024 | Profiles (242), agents (159), hooks (255), commands (93), schemas (206), integration (69) |
 | 🤖 Agent Roles | 9 | Security, devops, frontend, backend, tester, architect, database, docs, build-resolver |
 
 ---

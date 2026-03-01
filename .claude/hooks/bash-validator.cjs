@@ -12,6 +12,8 @@ const { parseHookInput, logMessage, MAX_LOGGED_COMMAND_LENGTH, MAX_INPUT_SIZE } 
 const DANGEROUS_PATTERNS = [
     // Destructive file operations — block any rm with combined -r and -f flags regardless of path
     { pattern: /\brm\s+(-\w*r\w*f\w*|-\w*f\w*r\w*)/i, reason: 'Recursive force delete (rm -rf)' },
+    { pattern: /\brm\b.*--recursive\b/i, reason: 'Recursive force delete (rm --recursive long flag)' },
+    { pattern: /\brm\b.*--no-preserve-root\b/i, reason: 'Delete from root (rm --no-preserve-root)' },
 
     // Disk operations
     { pattern: />\s*\/dev\/sd/, reason: 'Direct write to disk device' },
@@ -54,7 +56,7 @@ const DANGEROUS_PATTERNS = [
     { pattern: /\bpython[23]?\s+-c\s+['"]?.*(?:import\s+os|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports' },
     { pattern: /\bperl\s+-e\s+['"]?.*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
     { pattern: /\bruby\s+-e\s+['"]?.*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
-    { pattern: /\bnode\s+-e\s+['"]?.*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },
+    { pattern: /\bnode\s+(?:-e|--eval)\s+['"]?.*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },
 
     // Supply-chain attacks — downloading then executing (chained with && or ;)
     { pattern: /curl\s.*>\s*\S+\.sh\s*[;&|]+\s*(sh|bash|zsh|source)\s/, reason: 'Downloading script then executing' },
@@ -111,6 +113,7 @@ const WARNING_PATTERNS = [
 function normalizeCommand(cmd) {
     let normalized = cmd;
     normalized = normalized.replace(/\s+/g, ' ').trim();
+    normalized = normalized.replace(/\$'((?:[^'\\]|\\.)*)'/g, '$1');
     normalized = normalized.replace(/\$\{(\w+)\}/g, '$1');
     normalized = normalized.replace(/\$(\w+)/g, '$1');
     normalized = normalized.replace(/(?:\/usr\/local\/s?bin|\/usr\/s?bin|\/s?bin)\/(\w+)/g, '$1');

@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadJsonFile, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory, MS_PER_MINUTE } = require('./utils.cjs');
+const { loadState, saveJsonFile, logMessage, getStateFilePath, getProjectRoot, MAX_ARCHIVES, pruneDirectory, MS_PER_MINUTE } = require('./utils.cjs');
 
 /**
  * Calculate session duration in minutes.
@@ -51,11 +51,8 @@ function main() {
     const archiveDir = path.join(stateDir, 'archive');
     if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
 
-    const sessionInfo = loadJsonFile(
-        getStateFilePath('session_start.json'),
-        { id: 'unknown', timestamp: new Date().toISOString() }
-    );
-    const fileChanges = loadJsonFile(getStateFilePath('file_changes.json'), []);
+    const sessionInfo = loadState('session_start.json', { id: 'unknown', timestamp: new Date().toISOString() });
+    const fileChanges = loadState('file_changes.json', []);
     const { endTime, durationMin } = calculateSessionDuration(sessionInfo);
 
     const archiveFile = path.join(archiveDir, `${sessionInfo.id || 'session'}.json`);
