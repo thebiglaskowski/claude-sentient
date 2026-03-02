@@ -903,6 +903,51 @@ suite('dod-verifier.js — Definition of Done verification', () => {
         const verFile = path.join(tmpStateDir, 'last_verification.json');
         assert.ok(fs.existsSync(verFile));
     });
+
+    test('integrityChecks is present in verification output', () => {
+        const result = runHook('dod-verifier.cjs');
+        assert.ok('integrityChecks' in result, 'should have integrityChecks');
+        assert.ok('gatesRan' in result.integrityChecks, 'should have gatesRan');
+        assert.ok('codeFilesModified' in result.integrityChecks, 'should have codeFilesModified');
+        assert.ok('codeModifiedWithoutGates' in result.integrityChecks, 'should have codeModifiedWithoutGates');
+    });
+
+    test('integrityChecks.codeModifiedWithoutGates is true when code changed but no gates ran', () => {
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'file_changes.json'),
+            JSON.stringify([{ path: 'src/app.ts', tool: 'Edit' }])
+        );
+        // No gate_history.json seeded — no gates ran
+        const result = runHook('dod-verifier.cjs');
+        assert.strictEqual(result.integrityChecks.codeFilesModified, true);
+        assert.strictEqual(result.integrityChecks.codeModifiedWithoutGates, true);
+    });
+
+    test('integrityChecks.codeModifiedWithoutGates is false when gates ran', () => {
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'file_changes.json'),
+            JSON.stringify([{ path: 'src/app.py', tool: 'Edit' }])
+        );
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'gate_history.json'),
+            JSON.stringify({ entries: [{ timestamp: new Date().toISOString(), command: 'pytest', exitCode: 0, passed: true }] })
+        );
+        const result = runHook('dod-verifier.cjs');
+        assert.strictEqual(result.integrityChecks.gatesRan, true);
+        assert.strictEqual(result.integrityChecks.codeModifiedWithoutGates, false);
+    });
+
+    test('integrityChecks.lastGatePassed reflects most recent gate result', () => {
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'gate_history.json'),
+            JSON.stringify({ entries: [
+                { timestamp: '2026-01-01T00:00:00Z', command: 'pytest', exitCode: 1, passed: false },
+                { timestamp: '2026-01-01T00:01:00Z', command: 'pytest', exitCode: 0, passed: true }
+            ] })
+        );
+        const result = runHook('dod-verifier.cjs');
+        assert.strictEqual(result.integrityChecks.lastGatePassed, true);
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -1481,6 +1526,74 @@ suite('pre-compact.js — compact context', () => {
         assert.ok(compact.sessionSummary.sessionIntent.includes('rate limiting'),
             'sessionIntent should reflect current task subject');
         assert.ok(compact.sessionSummary.nextSteps.length > 0, 'should have nextSteps from active task');
+    });
+
+    test('contextManifest is present in compact-context.json', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+            JSON.stringify({ profile: 'typescript' }));
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([{ file: 'src/app.ts', action: 'modified' }]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        assert.ok(compact.contextManifest, 'should have contextManifest');
+        assert.ok(Array.isArray(compact.contextManifest.includedFiles), 'includedFiles should be an array');
+        assert.ok(Array.isArray(compact.contextManifest.excludedFiles), 'excludedFiles should be an array');
+        assert.ok(typeof compact.contextManifest.selectionRationale === 'string', 'selectionRationale should be a string');
+    });
+
+    test('contextManifest.includedFiles lists reason for each backed-up file', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+            JSON.stringify({ profile: 'general' }));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        assert.ok(compact.contextManifest.includedFiles.length >= 1, 'should have at least one included file');
+        for (const entry of compact.contextManifest.includedFiles) {
+            assert.ok(entry.file, 'each entry should have a file name');
+            assert.ok(typeof entry.reason === 'string' && entry.reason.length > 0, 'each entry should have a non-empty reason');
+        }
+    });
+
+    test('contextManifest.excludedFiles captures state files not present on disk', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        // Remove files left by prior tests so only session_start.json is present
+        for (const f of ['file_changes.json', 'active_agents.json', 'prompts.json', 'current_task.json']) {
+            const fp = path.join(stateDir, f);
+            if (fs.existsSync(fp)) fs.unlinkSync(fp);
+        }
+        // Only write session_start.json — remaining FILES_TO_BACKUP should be excluded
+        fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+            JSON.stringify({ profile: 'general' }));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        const excluded = compact.contextManifest.excludedFiles;
+        assert.ok(excluded.length > 0, 'should list files not present in state dir');
+        assert.ok(excluded.every(e => e.file && typeof e.reason === 'string'), 'excluded entries should have file and reason');
+    });
+
+    test('contextManifest.selectionRationale mentions count when files are included', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'session_start.json'),
+            JSON.stringify({ profile: 'general' }));
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([{ file: 'src/main.ts', action: 'modified' }]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compactPath = path.join(stateDir, 'compact-context.json');
+        const compact = JSON.parse(fs.readFileSync(compactPath, 'utf8'));
+        assert.ok(compact.contextManifest.selectionRationale.includes('Preserved'),
+            'selectionRationale should mention "Preserved" when files were backed up');
     });
 });
 

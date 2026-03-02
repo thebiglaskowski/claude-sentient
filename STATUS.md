@@ -1,8 +1,8 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-03-01
+> **Last Updated:** 2026-03-02
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.5.0
+> **Version:** 1.5.1
 
 ---
 
@@ -25,7 +25,7 @@ Context Arch        [███████████████████�
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
 Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
 Native Agents       [████████████████████] 100% ✓ (9 native .claude/agents/*.md)
-Testing             [████████████████████] 100% ✓ (1024 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (1032 total across 6 suites)
 ```
 
 ---

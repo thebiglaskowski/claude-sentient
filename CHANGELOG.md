@@ -6,6 +6,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.1] — 2026-03-02
+
+### Added
+- **Context Manifest** (`pre-compact.cjs`) — `buildContextManifest()` records which state files were included/excluded and why when a compaction backup is created; implements the Constructor stage from context engineering literature; output stored in `compact-context.json` as `contextManifest` with `includedFiles`, `excludedFiles`, and `selectionRationale` fields
+- **Evaluator integrity checks** (`dod-verifier.cjs`) — `buildIntegrityChecks()` validates whether quality gates ran for any code files modified this session; implements the Evaluator stage ensuring output claims have supporting evidence; output stored in `last_verification.json` as `integrityChecks` with `gatesRan`, `lastGatePassed`, `codeFilesModified`, `codeModifiedWithoutGates` fields
+- **8 new hook tests** — 4 for `dod-verifier` integrityChecks (field presence, gate/no-gate scenarios, lastGatePassed propagation) and 4 for `pre-compact` contextManifest (field presence, includedFiles reasons, excludedFiles detection, selectionRationale format)
+
+---
+
 ## [1.5.0] — 2026-03-01
 
 ### Added

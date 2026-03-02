@@ -97,6 +97,40 @@ function extractRecentDecisions(backupBundle) {
     }));
 }
 
+// Rationale for each state file's contribution to context reconstruction
+const FILE_REASONS = {
+    'session_start.json': 'profile and environment context',
+    'file_changes.json': 'files modified this session',
+    'active_agents.json': 'active subagent tracking',
+    'prompts.json': 'recent prompt history and topic detection',
+    'current_task.json': 'active task state and progress'
+};
+
+/**
+ * Build a context manifest recording which state was selected and why.
+ * Implements the Constructor stage output from context engineering literature:
+ * the manifest makes context selection decisions explicit and auditable.
+ * @param {string[]} backedUp - State files that were loaded
+ * @returns {Object} Manifest with includedFiles, excludedFiles, selectionRationale
+ */
+function buildContextManifest(backedUp) {
+    const backedUpSet = new Set(backedUp);
+    const includedFiles = backedUp.map(file => ({
+        file, reason: FILE_REASONS[file] || 'session state'
+    }));
+    const excludedFiles = FILES_TO_BACKUP
+        .filter(file => !backedUpSet.has(file))
+        .map(file => ({ file, reason: 'not present in state directory' }));
+
+    // Derive high-level rationale from what was actually selected
+    const selectedReasons = includedFiles.map(f => f.reason);
+    const selectionRationale = includedFiles.length === 0
+        ? 'No state files found — starting with empty context'
+        : `Preserved ${includedFiles.length} state file(s) for context reconstruction: ${selectedReasons.join(', ')}`;
+
+    return { includedFiles, excludedFiles, selectionRationale };
+}
+
 /**
  * Build anchored iterative session summary for artifact trail preservation.
  * Structured format ensures the most important context survives compaction:
@@ -176,6 +210,7 @@ function main() {
         activeTask: extractActiveTask(backupBundle),
         recentDecisions: extractRecentDecisions(backupBundle),
         fileChanges: extractFileChanges(backupBundle),
+        contextManifest: buildContextManifest(backedUp),
         unresolved: []
     };
     saveJsonFile(path.join(stateDir, 'compact-context.json'), summary);

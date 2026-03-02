@@ -16,6 +16,27 @@ const EXT_TO_LANG = {
     '.js': 'javascript', '.jsx': 'javascript', '.go': 'go'
 };
 
+// Languages that require quality gates before sign-off
+const CODE_LANGS = ['python', 'typescript', 'javascript', 'go'];
+
+/**
+ * Check whether quality gates ran for code files modified this session.
+ * Implements the Evaluator stage from context engineering literature:
+ * validates that the model's output claims (gates passing) have evidence.
+ * @param {Object} changesByType - Changes categorized by language
+ * @returns {Object} Integrity check results
+ */
+function buildIntegrityChecks(changesByType) {
+    const gateHistory = loadState('gate_history.json', { entries: [] });
+    const entries = Array.isArray(gateHistory.entries) ? gateHistory.entries : [];
+    const gatesRan = entries.length > 0;
+    const lastGate = entries[entries.length - 1] || null;
+    const lastGatePassed = lastGate ? lastGate.passed : null;
+    const codeFilesModified = CODE_LANGS.some(lang => (changesByType[lang] || []).length > 0);
+    const codeModifiedWithoutGates = codeFilesModified && !gatesRan;
+    return { gatesRan, lastGatePassed, codeFilesModified, codeModifiedWithoutGates };
+}
+
 /**
  * Categorize file changes by language.
  * @param {Array} fileChanges - Array of change entries with .path
@@ -75,7 +96,8 @@ function main() {
             Object.entries(changesByType).map(([k, v]) => [k, v.length])
         ),
         git: { clean: gitClean, uncommittedChanges },
-        recommendations: buildRecommendations(gitClean, fileChanges, changesByType)
+        recommendations: buildRecommendations(gitClean, fileChanges, changesByType),
+        integrityChecks: buildIntegrityChecks(changesByType)
     };
 
     saveState('last_verification.json', verification);

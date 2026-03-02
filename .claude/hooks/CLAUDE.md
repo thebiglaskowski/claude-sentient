@@ -83,9 +83,9 @@ Hooks read/write to `.claude/state/`:
 | `active_agents.json` | Currently running subagents |
 | `agent_history.json` | Completed subagent history |
 | `prompts.json` | Recent prompt metadata |
-| `last_verification.json` | Last DoD verification |
+| `last_verification.json` | Last DoD verification (includes `integrityChecks` field) |
 | `gate_history.json` | Quality gate exit codes and durations |
-| `compact-context.json` | State snapshot before context compaction |
+| `compact-context.json` | State snapshot before context compaction (includes `contextManifest` and `sessionSummary`) |
 | `team-state.json` | Agent Teams: teammate tracking, file ownership |
 | `context_degradation.json` | Context depth warning state (medium/high) |
 | `gate-output/` | Large gate stdout saved as files (created on demand) |
