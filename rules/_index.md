@@ -38,21 +38,21 @@ These rules load every session regardless of task keywords:
 
 ## Available Rules
 
-| Rule | Focus |
-|------|-------|
-| `security` | OWASP, auth, secrets, validation |
-| `testing` | Coverage, mocks, TDD, naming |
-| `api-design` | REST, responses, versioning |
-| `database` | Schema, indexes, migrations |
-| `performance` | Caching, optimization, Web Vitals |
-| `code-quality` | Complexity, naming, dependencies |
-| `documentation` | README, changelog, comments |
-| `git-workflow` | Commits, branches, PRs |
-| `error-handling` | Error types, logging, recovery |
-| `logging` | Structured logs, levels, context |
-| `ui-ux-design` | Spacing, typography, a11y |
-| `terminal-ui` | Spinners, colors, progress |
-| `prompt-structure` | XML tags, command templates |
+| Rule | Focus | When to load |
+|------|-------|-------------|
+| `security` | OWASP, auth, secrets, validation | Auth flows, file uploads, external API calls, input validation, credential/key management, permission checks |
+| `testing` | Coverage, mocks, TDD, naming | Writing/fixing tests, test infrastructure, CI setup, coverage gaps, mocking external services, assertions |
+| `api-design` | REST, responses, versioning | Creating/modifying endpoints, request/response schemas, HTTP status codes, API versioning, pagination |
+| `database` | Schema, indexes, migrations | Schema changes, query optimization, ORM usage, data migrations, relationship modeling, connection pooling |
+| `performance` | Caching, optimization, Web Vitals | Slowness complaints, caching strategies, memory leaks, load optimization, Web Vitals, bundle size |
+| `code-quality` | Complexity, naming, dependencies | Refactoring, code reviews, dependency management, complexity reduction, naming conventions, duplication |
+| `documentation` | README, changelog, comments | Updating docs, writing changelogs, adding code comments, API documentation, docstrings |
+| `git-workflow` | Commits, branches, PRs | Committing changes, branching strategies, PR creation/review, merge conflicts, git hooks |
+| `error-handling` | Error types, logging, recovery | Error propagation design, exception handling, retry logic, graceful degradation, fallback behavior |
+| `logging` | Structured logs, levels, context | Adding log statements, log format standardization, debugging via logs, observability, tracing |
+| `ui-ux-design` | Spacing, typography, a11y | Frontend components, visual design, accessibility audit, responsive layout, CSS/Tailwind work |
+| `terminal-ui` | Spinners, colors, progress | CLI output design, terminal formatting, progress indicators, colored output, interactive prompts |
+| `prompt-structure` | XML tags, command templates | Writing Claude commands, prompt engineering, CLAUDE.md work, skill/template authoring |
 
 ## Usage
 

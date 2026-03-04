@@ -82,6 +82,32 @@ function buildRecommendations(gitClean, fileChanges, changesByType) {
     return recs;
 }
 
+/**
+ * Summarize which rule topics were detected during this session.
+ * Surfaces retrieval frequency to diagnose memory-loading effectiveness.
+ * Research finding: retrieval failure (11-46%) dominates over utilization failure (4-8%).
+ * Raw topic counts show which domains were active vs. which rules may have been missed.
+ * @returns {Object} Memory retrieval summary
+ */
+function buildMemoryEffectiveness() {
+    const prompts = loadState('prompts.json', []);
+    const entries = Array.isArray(prompts) ? prompts : [];
+    const topicCounts = {};
+    for (const entry of entries) {
+        for (const topic of (entry.topics || [])) {
+            topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+        }
+    }
+    const totalPrompts = entries.length;
+    const noTopicPrompts = entries.filter(p => !p.topics || p.topics.length === 0).length;
+    return {
+        totalPrompts,
+        topicsDetected: Object.keys(topicCounts).length,
+        topicCounts,
+        noTopicPrompts
+    };
+}
+
 function main() {
     logMessage('DoD verification started');
 
@@ -97,7 +123,8 @@ function main() {
         ),
         git: { clean: gitClean, uncommittedChanges },
         recommendations: buildRecommendations(gitClean, fileChanges, changesByType),
-        integrityChecks: buildIntegrityChecks(changesByType)
+        integrityChecks: buildIntegrityChecks(changesByType),
+        memoryEffectiveness: buildMemoryEffectiveness()
     };
 
     saveState('last_verification.json', verification);

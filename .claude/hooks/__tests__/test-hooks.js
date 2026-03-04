@@ -948,6 +948,42 @@ suite('dod-verifier.js — Definition of Done verification', () => {
         const result = runHook('dod-verifier.cjs');
         assert.strictEqual(result.integrityChecks.lastGatePassed, true);
     });
+
+    test('memoryEffectiveness is present in verification output', () => {
+        const result = runHook('dod-verifier.cjs');
+        assert.ok('memoryEffectiveness' in result, 'should have memoryEffectiveness');
+        assert.ok('totalPrompts' in result.memoryEffectiveness, 'should have totalPrompts');
+        assert.ok('topicsDetected' in result.memoryEffectiveness, 'should have topicsDetected');
+        assert.ok('topicCounts' in result.memoryEffectiveness, 'should have topicCounts');
+        assert.ok('noTopicPrompts' in result.memoryEffectiveness, 'should have noTopicPrompts');
+    });
+
+    test('memoryEffectiveness counts topics from prompts.json', () => {
+        fs.writeFileSync(
+            path.join(tmpStateDir, 'prompts.json'),
+            JSON.stringify([
+                { timestamp: '2026-01-01T00:00:00Z', topics: ['auth', 'api'], length: 50 },
+                { timestamp: '2026-01-01T00:01:00Z', topics: ['auth'], length: 30 },
+                { timestamp: '2026-01-01T00:02:00Z', topics: [], length: 20 }
+            ])
+        );
+        const result = runHook('dod-verifier.cjs');
+        assert.strictEqual(result.memoryEffectiveness.totalPrompts, 3);
+        assert.strictEqual(result.memoryEffectiveness.topicCounts.auth, 2);
+        assert.strictEqual(result.memoryEffectiveness.topicCounts.api, 1);
+        assert.strictEqual(result.memoryEffectiveness.noTopicPrompts, 1);
+        assert.strictEqual(result.memoryEffectiveness.topicsDetected, 2);
+    });
+
+    test('memoryEffectiveness returns zeros when prompts.json is absent', () => {
+        // Remove prompts.json if a prior test left it seeded
+        const promptsPath = path.join(tmpStateDir, 'prompts.json');
+        if (fs.existsSync(promptsPath)) fs.unlinkSync(promptsPath);
+        const result = runHook('dod-verifier.cjs');
+        assert.strictEqual(result.memoryEffectiveness.totalPrompts, 0);
+        assert.strictEqual(result.memoryEffectiveness.topicsDetected, 0);
+        assert.strictEqual(result.memoryEffectiveness.noTopicPrompts, 0);
+    });
 });
 
 // ─────────────────────────────────────────────────────────────
