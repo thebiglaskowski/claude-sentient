@@ -6,7 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — 2026-03-04
+## [1.5.2] — 2026-03-04
 
 ### Added
 - **Memory effectiveness tracking** (`dod-verifier.cjs`) — `buildMemoryEffectiveness()` tallies which rule topics were detected per prompt across the session; output stored in `last_verification.json` as `memoryEffectiveness` with `totalPrompts`, `topicsDetected`, `topicCounts`, `noTopicPrompts` fields; surfaces retrieval-frequency diagnostics for the INIT semantic pass

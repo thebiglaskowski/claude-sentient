@@ -1,5 +1,5 @@
-# Claude Sentient v1.5.0 — File Checksums
-# Generated: 2026-03-02T01:38:29Z
+# Claude Sentient v1.5.2 — File Checksums
+# Generated: 2026-03-04T18:58:02Z
 
 5df4f1bbe9ba7ee47ec248a703b1b88a411bd63852f9ac640130fc1a99823358  .claude/commands/CLAUDE.md
 39379473b1490d1fb733b748a4e830c47dea0fc7273bc39176db0147031b82dc  .claude/commands/cs-assess.md
@@ -22,7 +22,7 @@ d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/comman
 93baf2d289b7aef8c4203a8d2543df7a489539c93b10a296d807afe8f42644fe  .claude/hooks/agent-tracker.cjs
 323898223635942b35ca1e68dbd41d802918110ec7a1b21a964636f49f932ef3  .claude/hooks/bash-validator.cjs
 9231896303abf52a96829290ae77a2a097a17d3eb98063afe4f2146bdc6372a7  .claude/hooks/context-injector.cjs
-9ea8c5f1a60db53330ff82687383558fce881b348aabef71aea5638195bf59de  .claude/hooks/dod-verifier.cjs
+441033df751e237da0f4e9f60682faea844c5b7959f1ab8ef3af2d8e01bebfbc  .claude/hooks/dod-verifier.cjs
 59c2d0aa1246d8660037013d92bc40d7fc5a208d7e0c86317f16f754d3686a04  .claude/hooks/file-validator.cjs
 14217f888e3788f242675380635eb947cdacf9026c3c6ff24f9eea39f617b80b  .claude/hooks/gate-monitor.cjs
 bcc7e227061f927bc39279f9eab59d5c13d9b3c442a4f7c67d686c6859bd409a  .claude/hooks/post-edit.cjs
@@ -65,7 +65,7 @@ aa0edc20e0b884bf7323dbf972ebe91f1280f3652b0c7fd6807aeaffff9bae7f  schemas/gate.s
 a6e60d1499b141a11cb5b1c9fffc45c85a83f271992cca00db165f196652f839  schemas/skill.schema.json
 5e3a15af08295a71a8a19a300d2fe5e237021bafd6e1450b55f3156327588c0d  schemas/state.schema.json
 43fcaff7d2b737baa64d0148e5c507400e8c6598a3f73fca3891e5ec5ba9f9ca  schemas/team-state.schema.json
-4448ade1815901cba9bc0302d2a5964113773cdc8429d06f6534f1cb0a9e5886  rules/_index.md
+80ebff21fffb3a4456ded0075221245f7cd43f8a20f7857bdaafd120ea0253f1  rules/_index.md
 c66e71aab4dca4ffa186d7150a51b741a2ae4a349f1d816575c21b1b910301ec  rules/anthropic-patterns.md
 cf63e3dbe768eeac6b5206a80352532230ffed690a20670b0fb5326c1da632bb  rules/api-design.md
 293f04723ce0414dd3836e964c0b2df58530e0c673fce32359baa1db43bfc33a  rules/code-quality.md
