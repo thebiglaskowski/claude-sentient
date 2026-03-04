@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.3] — 2026-03-04
+
+### Added
+- **`worktree-lifecycle.cjs`** — New hook (WorktreeCreate/WorktreeRemove, async) writes `worktree-context.json` into new worktrees so `/cs-sessions` can show lineage; logs removals to session archive
+- **`config-watcher.cjs`** — New hook (ConfigChange, async) logs `config_changes.json` (capped at 20); alerts context if `hooks` section of `settings.json` was modified
+- **2 new JSON schemas** — `worktree-context.schema.json` and `config-change.schema.json` for new state shapes
+- **`async: true`** on 5 observer hooks in `templates/settings.json` (post-edit, gate-monitor, agent-tracker, agent-synthesizer, session-end) — fire-and-forget reduces round-trip latency
+
+### Changed
+- **`hookSpecificOutput` migration** — `bash-validator.cjs` and `file-validator.cjs` now use `hookSpecificOutput.permissionDecision` (`'allow'`/`'deny'`) and `hookSpecificOutput.permissionDecisionReason` per Claude Code v2.0.0 spec; top-level `decision`/`reason` fields removed
+- **`gate-monitor.cjs`** — Removed meaningless `{ decision: 'allow' }` from PostToolUse output; hook is observe-only and produces no stdout for non-gate commands
+- **`templates/settings.json`** — Added WorktreeCreate, WorktreeRemove, ConfigChange event entries
+- **`.claude/hooks/CLAUDE.md`** — Updated to 15 hooks (added Async column), documented `hookSpecificOutput` format with deprecation note, added Async Hooks section
+
+### Fixed
+- Test assertions in `test-hooks.js` and `integration/__tests__/test-integration.js` updated to match `hookSpecificOutput.permissionDecision` format
+
 ## [1.5.2] — 2026-03-04
 
 ### Added

@@ -52,7 +52,6 @@ function main() {
     // Early exit for non-gate commands — avoids sync disk ops per Bash call
     const isGate = GATE_PATTERNS.some(p => p.test(command));
     if (!isGate) {
-        console.log(JSON.stringify({ decision: 'allow' }));
         process.exit(0);
     }
 
@@ -91,8 +90,7 @@ function main() {
         logMessage(`Gate failed: ${command.substring(0, MAX_GATE_LOG_TRUNCATE)} (exit ${exitCode})`, 'WARNING');
     }
 
-    // Always allow — read-only observer
-    console.log(JSON.stringify({ decision: 'allow' }));
+    // PostToolUse is observe-only — no output needed
 }
 
 main();

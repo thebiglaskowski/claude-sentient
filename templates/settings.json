@@ -55,7 +55,8 @@
           {
             "type": "command",
             "command": "node .claude/hooks/post-edit.cjs",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           }
         ]
       },
@@ -65,7 +66,8 @@
           {
             "type": "command",
             "command": "node .claude/hooks/gate-monitor.cjs",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           }
         ]
       }
@@ -76,7 +78,8 @@
           {
             "type": "command",
             "command": "node .claude/hooks/agent-tracker.cjs",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           }
         ]
       }
@@ -87,7 +90,8 @@
           {
             "type": "command",
             "command": "node .claude/hooks/agent-synthesizer.cjs",
-            "timeout": 3000
+            "timeout": 3000,
+            "async": true
           }
         ]
       }
@@ -120,7 +124,44 @@
           {
             "type": "command",
             "command": "node .claude/hooks/session-end.cjs",
-            "timeout": 5000
+            "timeout": 5000,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/worktree-lifecycle.cjs",
+            "timeout": 3000,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/worktree-lifecycle.cjs",
+            "timeout": 3000,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/config-watcher.cjs",
+            "timeout": 2000,
+            "async": true
           }
         ]
       }

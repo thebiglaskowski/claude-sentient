@@ -86,7 +86,7 @@ function resolveRealPath(filePath) {
  * @param {string} filePath - Path being blocked
  */
 function blockPath(toolName, reason, filePath) {
-    console.log(JSON.stringify({ decision: 'block', reason: `BLOCKED: ${reason}`, path: filePath }));
+    console.log(JSON.stringify({ hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: `BLOCKED: ${reason}` }, path: filePath }));
     logMessage(`BLOCKED ${toolName}: ${reason} - ${filePath}`, 'BLOCKED');
     process.exit(0);
 }
@@ -210,7 +210,7 @@ function main() {
     }
 
     console.log(JSON.stringify({
-        decision: 'allow',
+        hookSpecificOutput: { permissionDecision: 'allow' },
         warnings: warnings.length > 0 ? warnings : undefined,
         path: filePath
     }));

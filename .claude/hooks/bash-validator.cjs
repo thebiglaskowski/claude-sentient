@@ -135,8 +135,7 @@ function rejectOversizedInput() {
     const hookInputStr = process.env.HOOK_INPUT;
     if (hookInputStr && hookInputStr.length > MAX_INPUT_SIZE) {
         console.log(JSON.stringify({
-            decision: 'block',
-            reason: 'BLOCKED: Hook input too large to process safely',
+            hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'BLOCKED: Hook input too large to process safely' },
             command: '[oversized input]'
         }));
         logMessage('BLOCKED: Oversized hook input rejected (potential bypass attempt)', 'BLOCKED');
@@ -155,8 +154,7 @@ function blockIfDangerous(command, rawCommand) {
     for (const { pattern, reason } of DANGEROUS_PATTERNS) {
         if (pattern.test(command) || pattern.test(rawCommand)) {
             console.log(JSON.stringify({
-                decision: 'block',
-                reason: `BLOCKED: ${reason}`,
+                hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: `BLOCKED: ${reason}` },
                 command: command.substring(0, MAX_LOGGED_COMMAND_LENGTH)
             }));
             logMessage(`BLOCKED dangerous command: ${reason}`, 'BLOCKED');
@@ -194,7 +192,7 @@ function main() {
     if (warnings.length > 0) { logMessage(warnings.join(', '), 'WARNING'); }
 
     console.log(JSON.stringify({
-        decision: 'allow',
+        hookSpecificOutput: { permissionDecision: 'allow', permissionDecisionReason: warnings.length > 0 ? warnings.join('; ') : undefined },
         warnings: warnings.length > 0 ? warnings : undefined
     }));
 }

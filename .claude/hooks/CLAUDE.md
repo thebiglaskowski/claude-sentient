@@ -2,23 +2,25 @@
 
 > Context for working on hook scripts in `.claude/hooks/`.
 
-## Hook Scripts (13 hooks)
+## Hook Scripts (15 hooks)
 
-| Script | Event | Purpose |
-|--------|-------|---------|
-| `session-start.cjs` | SessionStart | Initialize session, detect profile |
-| `session-end.cjs` | SessionEnd | Archive session, cleanup state |
-| `context-injector.cjs` | UserPromptSubmit | Detect topics, inject context |
-| `bash-validator.cjs` | PreToolUse (Bash) | Block dangerous commands |
-| `file-validator.cjs` | PreToolUse (Write/Edit) | Validate protected paths |
-| `post-edit.cjs` | PostToolUse (Write/Edit) | Track changes, suggest lint |
-| `agent-tracker.cjs` | SubagentStart | Track agent spawning |
-| `agent-synthesizer.cjs` | SubagentStop | Synthesize agent results |
-| `pre-compact.cjs` | PreCompact | Backup state before compaction |
-| `dod-verifier.cjs` | Stop | Verify DoD, save final state |
-| `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
-| `task-completed.cjs` | TaskCompleted | Validate deliverables, file ownership |
-| `gate-monitor.cjs` | PostToolUse (Bash) | Record gate exit codes and durations |
+| Script | Event | Async | Purpose |
+|--------|-------|-------|---------|
+| `session-start.cjs` | SessionStart | No | Initialize session, detect profile |
+| `session-end.cjs` | SessionEnd | Yes | Archive session, cleanup state |
+| `context-injector.cjs` | UserPromptSubmit | No | Detect topics, inject context |
+| `bash-validator.cjs` | PreToolUse (Bash) | No | Block dangerous commands |
+| `file-validator.cjs` | PreToolUse (Write/Edit) | No | Validate protected paths |
+| `post-edit.cjs` | PostToolUse (Write/Edit) | Yes | Track changes, suggest lint |
+| `gate-monitor.cjs` | PostToolUse (Bash) | Yes | Record gate exit codes and durations |
+| `agent-tracker.cjs` | SubagentStart | Yes | Track agent spawning |
+| `agent-synthesizer.cjs` | SubagentStop | Yes | Synthesize agent results |
+| `pre-compact.cjs` | PreCompact | No | Backup state before compaction |
+| `dod-verifier.cjs` | Stop | No | Verify DoD, save final state |
+| `teammate-idle.cjs` | TeammateIdle | No | Quality check before teammate goes idle |
+| `task-completed.cjs` | TaskCompleted | No | Validate deliverables, file ownership |
+| `worktree-lifecycle.cjs` | WorktreeCreate / WorktreeRemove | Yes | Write context into new worktrees; log removals |
+| `config-watcher.cjs` | ConfigChange | Yes | Log settings changes; alert on hooks section edits |
 
 All hooks use shared `utils.cjs` for JSON I/O, state management, and logging.
 
@@ -89,6 +91,8 @@ Hooks read/write to `.claude/state/`:
 | `team-state.json` | Agent Teams: teammate tracking, file ownership |
 | `context_degradation.json` | Context depth warning state (medium/high) |
 | `gate-output/` | Large gate stdout saved as files (created on demand) |
+| `worktree-context.json` | Created inside new worktrees by WorktreeCreate hook |
+| `config_changes.json` | Rolling log of ConfigChange events (capped at 20) |
 
 ---
 
@@ -117,15 +121,49 @@ const input = JSON.parse(process.env.HOOK_INPUT || '{}');
 // input.tool_name - which tool triggered
 ```
 
-Output JSON to stdout:
+**PreToolUse hooks** output `hookSpecificOutput` to allow or deny (Claude Code v2.0.0+):
 
 ```javascript
-// Block an operation
-console.log(JSON.stringify({ decision: 'block', reason: 'Why' }));
+// Deny an operation (was: { decision: 'block', reason: '...' })
+console.log(JSON.stringify({
+    hookSpecificOutput: {
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'Why this is blocked'
+    }
+}));
 
-// Allow with warnings
-console.log(JSON.stringify({ decision: 'allow', warnings: ['Warning'] }));
+// Allow with optional warnings
+console.log(JSON.stringify({
+    hookSpecificOutput: {
+        permissionDecision: 'allow',
+        permissionDecisionReason: 'Warning: doing X may cause Y'  // optional
+    }
+}));
 ```
+
+> **Note**: The top-level `decision`/`reason` fields are deprecated as of v2.0.0. Always use `hookSpecificOutput.permissionDecision` (`'allow'` or `'deny'`) and `hookSpecificOutput.permissionDecisionReason`.
+
+**PostToolUse, SessionStart, SubagentStart, etc.** are observe-only — no permission decision is meaningful. These hooks produce no stdout (or context-only output) and exit 0.
+
+---
+
+## Async Hooks
+
+Hooks marked `"async": true` in `settings.json` are fire-and-forget — Claude Code does not wait for their result before proceeding. The hook's output (if any) is delivered as a `HookResult` event on the *next* turn.
+
+Use async for pure observer hooks where the result is not needed immediately:
+
+| Hook | Rationale |
+|------|-----------|
+| `post-edit.cjs` | State tracking; result not needed before next tool |
+| `gate-monitor.cjs` | Observation only; persists to state files asynchronously |
+| `agent-tracker.cjs` | Logging only; no immediate response needed |
+| `agent-synthesizer.cjs` | State persistence; fire-and-forget |
+| `session-end.cjs` | Archive cleanup; fire-and-forget |
+| `worktree-lifecycle.cjs` | Context bootstrap; parent session continues immediately |
+| `config-watcher.cjs` | Change logging; no synchronous response needed |
+
+Do NOT mark async: `bash-validator`, `file-validator` (PreToolUse must block), `context-injector` (must inject before response), `session-start` (must init before first turn), `pre-compact` (must complete before compaction), `dod-verifier` (Stop hook must run synchronously), `teammate-idle`, `task-completed` (need synchronous state writes for coordination).
 
 ---
 

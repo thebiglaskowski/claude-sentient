@@ -368,7 +368,7 @@ suite('Hook smoke tests', () => {
             tool_input: { command: 'echo hello' }
         });
         assert.strictEqual(exitCode, 0);
-        assert.strictEqual(output.decision, 'allow');
+        assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'allow');
     });
 
     test('bash-validator.cjs blocks dangerous commands with decision:block', () => {
@@ -376,7 +376,7 @@ suite('Hook smoke tests', () => {
             tool_input: { command: 'rm -rf /' }
         });
         assert.strictEqual(exitCode, 0);
-        assert.strictEqual(output.decision, 'block');
+        assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
     });
 
     test('file-validator.cjs produces valid JSON for project files', () => {
@@ -385,7 +385,7 @@ suite('Hook smoke tests', () => {
             tool_name: 'Write'
         });
         assert.strictEqual(exitCode, 0);
-        assert.strictEqual(output.decision, 'allow');
+        assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'allow');
     });
 
     test('agent-tracker.cjs produces valid JSON output', () => {
@@ -474,12 +474,11 @@ suite('Hook smoke tests', () => {
         const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        const { exitCode, output } = runHookSafe('gate-monitor.cjs', {
+        const { exitCode } = runHookSafe('gate-monitor.cjs', {
             tool_input: { command: 'ls -la' },
             tool_result: { exit_code: 0 }
         });
         assert.strictEqual(exitCode, 0);
-        assert.strictEqual(output.decision, 'allow');
 
         // ls is not a gate command — gate_history should not be written
         if (fs.existsSync(historyFile)) {
@@ -493,12 +492,11 @@ suite('Hook smoke tests', () => {
         const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        const { exitCode, output } = runHookSafe('gate-monitor.cjs', {
+        const { exitCode } = runHookSafe('gate-monitor.cjs', {
             tool_input: { command: 'pytest tests/' },
             tool_result: { exit_code: 0 }
         });
         assert.strictEqual(exitCode, 0);
-        assert.strictEqual(output.decision, 'allow');
 
         assert.ok(fs.existsSync(historyFile), 'gate_history.json should exist after gate command');
         const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));

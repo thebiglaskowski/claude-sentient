@@ -1,6 +1,6 @@
 name: build-resolver
 description: "Build and CI specialist for diagnosing and fixing build failures, dependency issues, and pipeline problems"
-version: "1.5.0"
+version: "1.5.3"
 role: tester
 expertise:
   - Build system debugging (Make, Gradle, CMake, Cargo, npm)
