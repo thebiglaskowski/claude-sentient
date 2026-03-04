@@ -272,7 +272,7 @@ Run `/cs-validate` to see which plugins are installed and which are missing. The
 your-project/
 ├── .claude/
 │   ├── commands/cs-*.md    # 15 slash commands
-│   ├── hooks/*.cjs         # 13 hook scripts (security, teams, tracking)
+│   ├── hooks/*.cjs         # 15 hook scripts (security, teams, tracking)
 │   ├── agents/*.md         # 9 native agent definitions
 │   ├── skills/             # 3 skills (progressive disclosure)
 │   ├── settings.json       # Hook + team configuration
@@ -440,7 +440,7 @@ your-project/
 
 ## 🎣 Hooks
 
-Claude Sentient includes 13 hook scripts that integrate with Claude Code's hook system:
+Claude Sentient includes 15 hook scripts that integrate with Claude Code's hook system:
 
 | Hook | Event | Purpose |
 |------|-------|---------|

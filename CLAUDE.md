@@ -147,7 +147,7 @@ Detailed documentation lives in nested CLAUDE.md files that load only when neede
 
 | Location | Content | When Loaded |
 |----------|---------|-------------|
-| `.claude/hooks/CLAUDE.md` | All 13 hooks, configuration, security patterns, state files | Editing hooks |
+| `.claude/hooks/CLAUDE.md` | All 15 hooks, configuration, security patterns, state files | Editing hooks |
 | `profiles/CLAUDE.md` | Profile detection, model routing, gate structure, conventions | Editing profiles |
 | `.claude/commands/CLAUDE.md` | Command structure, documentation policy, rule auto-loading | Editing commands |
 | `agents/CLAUDE.md` | Agent role definitions, YAML structure, custom agents | Editing agent configs |
