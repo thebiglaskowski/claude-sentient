@@ -1,6 +1,6 @@
 name: database
 description: "Database specialist for schema design, migrations, and query optimization"
-version: "1.5.3"
+version: "1.5.6"
 role: implementer
 expertise:
   - SQL schema design and normalization

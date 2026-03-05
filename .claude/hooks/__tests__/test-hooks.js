@@ -1631,6 +1631,55 @@ suite('pre-compact.js — compact context', () => {
         assert.ok(compact.contextManifest.selectionRationale.includes('Preserved'),
             'selectionRationale should mention "Preserved" when files were backed up');
     });
+
+    test('staleFileReads lists files modified this session', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([
+                { file: 'src/auth.ts', action: 'modified' },
+                { file: 'src/session.ts', action: 'created' },
+                { file: 'src/auth.ts', action: 'modified' }  // duplicate — should deduplicate
+            ]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compact = JSON.parse(fs.readFileSync(path.join(stateDir, 'compact-context.json'), 'utf8'));
+        assert.ok(Array.isArray(compact.sessionSummary.staleFileReads), 'staleFileReads should be an array');
+        assert.ok(compact.sessionSummary.staleFileReads.includes('src/auth.ts'), 'modified file should be in staleFileReads');
+        assert.ok(compact.sessionSummary.staleFileReads.includes('src/session.ts'), 'created file should be in staleFileReads');
+        assert.strictEqual(compact.sessionSummary.staleFileReads.filter(f => f === 'src/auth.ts').length, 1, 'staleFileReads should deduplicate entries');
+    });
+
+    test('staleFileReads is empty when no file changes recorded', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        // Remove file_changes.json to simulate no activity
+        const fp = path.join(stateDir, 'file_changes.json');
+        if (fs.existsSync(fp)) fs.unlinkSync(fp);
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compact = JSON.parse(fs.readFileSync(path.join(stateDir, 'compact-context.json'), 'utf8'));
+        assert.ok(Array.isArray(compact.sessionSummary.staleFileReads), 'staleFileReads should be an array');
+        assert.strictEqual(compact.sessionSummary.staleFileReads.length, 0, 'staleFileReads should be empty when no changes');
+    });
+
+    test('recentActivitySummary counts modified and created files', () => {
+        const stateDir = path.join(tmpDir, '.claude', 'state');
+        fs.writeFileSync(path.join(stateDir, 'file_changes.json'),
+            JSON.stringify([
+                { file: 'a.ts', action: 'modified' },
+                { file: 'b.ts', action: 'modified' },
+                { file: 'c.ts', action: 'created' }
+            ]));
+
+        runHook('pre-compact.cjs', {}, { cwd: tmpDir });
+
+        const compact = JSON.parse(fs.readFileSync(path.join(stateDir, 'compact-context.json'), 'utf8'));
+        const summary = compact.sessionSummary.recentActivitySummary;
+        assert.ok(summary && typeof summary === 'object', 'recentActivitySummary should be an object');
+        assert.strictEqual(summary.modified, 2, 'modified count should be 2');
+        assert.strictEqual(summary.created, 1, 'created count should be 1');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────

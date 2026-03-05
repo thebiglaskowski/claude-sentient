@@ -1,7 +1,7 @@
 ---
 description: Autonomous development loop - init, plan, execute, verify, commit
 argument-hint: <task description>
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, ExitPlanMode, AskUserQuestion, WebSearch, WebFetch, Skill, TeamCreate, TeamDelete, SendMessage, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__issue_read, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__list_commits, mcp__github__search_code, mcp__github__search_issues, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, TaskStop, TaskOutput, EnterPlanMode, ExitPlanMode, EnterWorktree, AskUserQuestion, WebSearch, WebFetch, Skill, TeamCreate, TeamDelete, SendMessage, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs, mcp__github__issue_read, mcp__github__list_issues, mcp__github__create_pull_request, mcp__github__add_issue_comment, mcp__github__pull_request_read, mcp__github__pull_request_review_write, mcp__github__list_commits, mcp__github__search_code, mcp__github__search_issues, mcp__memory__read_graph, mcp__memory__create_entities, mcp__memory__add_observations, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__puppeteer__puppeteer_navigate, mcp__puppeteer__puppeteer_screenshot
 ---
 
 # /cs-loop
@@ -99,7 +99,12 @@ For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, d
 
 4. **Team eligibility** — Check three signals: scope (3+ independent tasks), independence (no overlapping file scopes), complexity (> simple bug fix). If all pass AND `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is enabled, offer team mode via `AskUserQuestion`. If env var not set, skip silently.
 
-5. **Auto-capture decisions** via `Skill(skill="cs-learn", args="decision ...")` for any architecture choices made during planning.
+5. **Worktree eligibility** — If >= 2 independent tasks span different top-level directories (e.g., `src/` and `tests/` and `docs/`), offer optional worktree binding via `AskUserQuestion`: "These tasks touch separate directory scopes. Bind each task to an isolated git worktree for branch-level isolation? (yes/no)". If approved:
+   - Use `EnterWorktree` to create a branch per task work stream (naming: `wt/{task-id}`)
+   - Store the worktree path in `TaskUpdate(metadata: { worktreePath: "<path>", worktreeBranch: "wt/{task-id}" })`
+   - Each EXECUTE step checks for `worktreePath` metadata before starting work
+
+6. **Auto-capture decisions** via `Skill(skill="cs-learn", args="decision ...")` for any architecture choices made during planning.
 
 ### 4. EXECUTE
 
@@ -109,9 +114,10 @@ For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, d
 2. `TaskGet(taskId)` -> fetch full description
 3. `TaskUpdate(status: in_progress)`
 4. Save `{taskId, subject, startedAt}` to `.claude/state/current_task.json`
-5. Do the work
-6. `TaskUpdate(status: completed)`
-7. Repeat until all complete
+5. If task metadata includes `worktreePath`, use `EnterWorktree` to switch to the task's isolated branch before starting work
+6. Do the work
+7. `TaskUpdate(status: completed)`
+8. Repeat until all complete
 
 **The task list is a living document.** If during execution you discover the plan needs adjustment — a task should be split, merged, reordered, or new work identified — update the task list. Tasks are a coordination tool, not a rigid contract.
 

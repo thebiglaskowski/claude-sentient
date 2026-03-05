@@ -6,6 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.6] — 2026-03-05
+
+### Added
+- **Micro-compact stale file tracking** (`pre-compact.cjs`) — `buildSessionSummary()` now outputs `staleFileReads` (deduplicated list of all files modified or created this session) and `recentActivitySummary` (modified/created counts) in `compact-context.json`; INIT recovery can use `staleFileReads` to know which cached tool results in the compacted transcript are stale and must be re-read from disk
+- **Worktree-task binding** (`cs-loop.md`) — PLAN phase step 5 offers optional git worktree isolation when >= 2 independent tasks span different top-level directories; approved tasks bind to `wt/{task-id}` branches via `EnterWorktree`; EXECUTE checks `worktreePath` metadata before starting work on each task
+- **Plan approval protocol** (`team-orchestration` skill) — Formal `plan_approval_request` / `plan_approval_response` handshake with `request_id` correlation; teammates must receive `decision: approved` before modifying files; covers when to require approval (> 3 files, architectural changes, ambiguous tasks), message format, lead review behavior, and teammate proceed/revise logic
+
+### Changed
+- **Version bump** — all agents and profiles updated to 1.5.6 (previously stalled at 1.5.3)
+
+---
+
 ## [1.5.5] — 2026-03-05
 
 ### Added

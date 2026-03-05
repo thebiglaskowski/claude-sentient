@@ -192,7 +192,27 @@ function buildSessionSummary(backupBundle) {
         nextSteps.push('Run VERIFY phase: lint, test, build');
     }
 
-    return { sessionIntent, filesModified, decisionsMade, currentState, nextSteps };
+    // Micro-compact: identify stale file reads.
+    // Any file modified this session means cached reads of it in conversation history
+    // are stale — INIT recovery must re-read these files from disk, not rely on
+    // prior tool_results in the compacted transcript.
+    const staleFileReads = [];
+    const activityCounts = { modified: 0, created: 0 };
+    if (Array.isArray(fileChanges)) {
+        const staleSet = new Set();
+        for (const f of fileChanges) {
+            const name = f.file || f.path;
+            const action = f.action || f.type || 'modified';
+            if (action === 'modified') activityCounts.modified++;
+            else if (action === 'created') activityCounts.created++;
+            if (name && !staleSet.has(name)) {
+                staleSet.add(name);
+                staleFileReads.push(name);
+            }
+        }
+    }
+
+    return { sessionIntent, filesModified, decisionsMade, currentState, nextSteps, staleFileReads, recentActivitySummary: activityCounts };
 }
 
 function main() {

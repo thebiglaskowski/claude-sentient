@@ -41,7 +41,70 @@ Teammate "{agent-name}":
 - Rule: Only modify files in your scope
 ```
 
-Require plan approval before teammates make changes.
+Require plan approval before teammates make changes (see [Plan Approval Protocol](#plan-approval-protocol) below).
+
+## Plan Approval Protocol
+
+Before a teammate makes any changes, they must submit a plan for lead approval. This prevents scope creep, architectural misalignment, and wasted work.
+
+### When to Require Approval
+
+Require approval when the teammate's planned work involves:
+- Modifying > 3 files
+- Architectural changes (new abstractions, interface changes, schema modifications)
+- Ambiguous task descriptions where multiple valid approaches exist
+- Changes that touch files outside the teammate's declared scope
+
+### Message Format
+
+**Teammate → Lead (request):**
+```json
+{
+  "type": "plan_approval_request",
+  "request_id": "approve-{task-id}-{timestamp}",
+  "task_id": "{task-id}",
+  "plan_summary": "Brief description of approach",
+  "files_to_modify": ["path/to/file1", "path/to/file2"],
+  "approach": "Detailed explanation of the implementation strategy",
+  "alternatives_considered": "Other approaches and why this was chosen"
+}
+```
+
+**Lead → Teammate (approval):**
+```json
+{
+  "type": "plan_approval_response",
+  "request_id": "{same request_id}",
+  "decision": "approved",
+  "feedback": "Optional guidance or constraints"
+}
+```
+
+**Lead → Teammate (rejection):**
+```json
+{
+  "type": "plan_approval_response",
+  "request_id": "{same request_id}",
+  "decision": "rejected",
+  "reason": "Why the plan was rejected",
+  "suggested_approach": "What to do instead"
+}
+```
+
+### Lead Behavior
+
+When reviewing a `plan_approval_request`:
+1. Check that `files_to_modify` are within the teammate's declared scope
+2. Verify the approach aligns with existing patterns (check DECISIONS.md if relevant)
+3. Approve with optional feedback, or reject with a specific reason and suggested approach
+4. Respond using the exact `request_id` from the request for correlation
+
+### Teammate Behavior
+
+- On **approval**: proceed with implementation as planned, incorporating any feedback
+- On **rejection**: revise the plan based on `suggested_approach`, then resubmit a new request with a new `request_id`
+- Do not begin any file modifications until `decision: "approved"` is received
+- If no response after reasonable wait, send a follow-up ping referencing the original `request_id`
 
 ## Progress Monitoring
 

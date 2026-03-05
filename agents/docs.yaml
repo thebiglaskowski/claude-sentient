@@ -1,6 +1,6 @@
 name: docs
 description: "Documentation specialist for technical writing, API docs, and changelog management"
-version: "1.5.3"
+version: "1.5.6"
 role: researcher
 expertise:
   - Technical writing and documentation structure
