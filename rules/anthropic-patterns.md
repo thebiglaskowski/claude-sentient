@@ -335,6 +335,36 @@ Never assume you remember the rules — verify them.
 
 ---
 
+### Neutral Prompting
+
+Avoids sycophancy bias by not framing prompts toward a predetermined outcome.
+
+```xml
+<neutral_prompting>
+Agents are designed to be helpful and follow instructions — this means they will
+try to deliver what you imply you expect, even if it requires stretching the truth.
+
+When investigating code or systems, frame prompts neutrally so the agent reports
+what it actually finds rather than confirming what you expect:
+
+- Instead of: "Find the bug in the database layer"
+  Use: "Trace through the database layer logic and report all findings"
+
+- Instead of: "What's wrong with this function?"
+  Use: "Describe what this function does and note anything unexpected"
+
+- Instead of: "Why is this test failing?"
+  Use: "Examine this code path and describe what you observe"
+
+Neutral prompts surface real issues without manufacturing them. Biased prompts
+produce confirmation, not investigation.
+</neutral_prompting>
+```
+
+**Use in:** `/cs-review`, `/cs-assess`, investigation tasks
+
+---
+
 ### Frontend Aesthetics
 
 Prevents generic "AI slop" design.
@@ -370,7 +400,8 @@ different aesthetics.
 | Task Type | Recommended Patterns |
 |-----------|---------------------|
 | **Code changes** | investigate_before_answering, explore_before_changing, avoid_overengineering, verify_architecture |
-| **Code review** | investigate_before_answering, avoid_excessive_markdown, never_dismiss_errors |
+| **Code review** | investigate_before_answering, neutral_prompting, avoid_excessive_markdown, never_dismiss_errors |
+| **Investigation/audit** | neutral_prompting, investigate_before_answering, never_dismiss_errors |
 | **Planning** | do_not_act_before_instructions, explore_before_changing, verify_architecture |
 | **Long tasks** | context_management, state_tracking, use_parallel_tool_calls |
 | **UI/Frontend** | frontend_aesthetics, avoid_overengineering |
@@ -387,7 +418,7 @@ These patterns are automatically loaded based on task context:
 | Keywords | Patterns Loaded |
 |----------|-----------------|
 | implement, build, create | default_to_action, avoid_overengineering |
-| review, audit, assess | investigate_before_answering, do_not_act_before_instructions |
+| review, audit, assess, investigate, find, search | investigate_before_answering, neutral_prompting, do_not_act_before_instructions |
 | frontend, ui, design | frontend_aesthetics |
 | refactor, fix, update | explore_before_changing, avoid_overengineering |
 

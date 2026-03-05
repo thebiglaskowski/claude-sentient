@@ -57,7 +57,11 @@ Gather all context needed for the task: profile, environment, rules, external da
 </thinking>
 
 Follow the profile-detection skill procedure:
-1. Recover from compaction if `.claude/state/compact-context.json` exists
+1. Recover from compaction if `.claude/state/compact-context.json` exists:
+   - Load the summary (`sessionIntent`, `currentState`, `nextSteps`, `filesModified`)
+   - Re-read the active task description from the task list (`TaskGet` on the in-progress task)
+   - Re-read the source files most relevant to the active task from `filesModified` — focus on files being actively modified, not the entire change history
+   - This step is mandatory: the compact-context tells you *what* was being worked on but does not restore the actual code into context
 2. Load profile from `.claude/state/session_start.json` (fall back to file scanning)
 3. Detect Python environment if applicable (conda/venv/poetry/pdm)
 4. Load rules based on task keywords (see `rules/_index.md`). Then do a second semantic pass: briefly review `rules/_index.md` to identify any additional rules not captured by keyword matching but semantically relevant to the task. Note: Rules with `paths:` frontmatter in `.claude/rules/` also auto-load for matching files
