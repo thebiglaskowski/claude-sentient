@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.4] — 2026-03-04
+
+### Added
+- **`documentation/` handbook** — 15 feature documentation stubs generated via `/cs-docs --audit`; covers all major Claude Sentient features (autonomous loop, session lifecycle, security gates, context injection, quality gates, agent teams, profile system, agent roles, rules system, command system, installation, worktree/config observability, planning, memory/learning, multi-model routing); `_index.md` provides lookup table for doc-first workflow
+
 ## [1.5.3] — 2026-03-04
 
 ### Added
