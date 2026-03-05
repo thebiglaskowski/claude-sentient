@@ -76,6 +76,22 @@ After user approves the plan:
 3. Report: `[PLAN] Created {n} tasks`
 4. Offer execution via `AskUserQuestion`
 
+## Worktree Eligibility
+
+After task creation, cs-loop checks whether independent tasks span different top-level directories (e.g., `src/`, `tests/`, `docs/`). If 2+ independent tasks do:
+
+```
+AskUserQuestion: "These tasks touch separate directory scopes. Bind each task to an
+isolated git worktree for branch-level isolation? (yes/no)"
+```
+
+If approved:
+- `EnterWorktree` creates a branch per task work stream (naming: `wt/{task-id}`)
+- `TaskUpdate(metadata: { worktreePath: "<path>", worktreeBranch: "wt/{task-id}" })`
+- Each EXECUTE step checks for `worktreePath` metadata and switches to that worktree before starting work
+
+**Business rule**: Worktree binding is optional — skip silently if tasks share files or the user declines. Never bind worktrees for tasks with `blockedBy` dependencies (sequential tasks need shared state).
+
 ### Dependency Patterns
 
 ```
