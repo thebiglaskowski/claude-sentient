@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
@@ -97,8 +97,8 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | 📄 Templates | 5 | Governance file templates |
 | 🚦 Quality Gates | 4 | Lint, test, build, git (with auto-fix) |
 | 🔄 Loop Phases | 7 | INIT → EVALUATE |
-| 🎣 Hooks | 13 | Session lifecycle, security, teams, tracking |
-| 🧪 Tests | 1024 | Profiles (242), agents (159), hooks (255), commands (93), schemas (206), integration (69) |
+| 🎣 Hooks | 15 | Session lifecycle, security, teams, tracking |
+| 🧪 Tests | 1043 | Profiles (242), agents (159), hooks (266), commands (93), schemas (214), integration (69) |
 | 🤖 Agent Roles | 9 | Security, devops, frontend, backend, tester, architect, database, docs, build-resolver |
 
 ---
@@ -457,6 +457,8 @@ Claude Sentient includes 15 hook scripts that integrate with Claude Code's hook 
 | `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
 | `task-completed.cjs` | TaskCompleted | Validate deliverables before task completion |
 | `gate-monitor.cjs` | PostToolUse (Bash) | Record gate exit codes and durations |
+| `worktree-lifecycle.cjs` | WorktreeCreate/WorktreeRemove | Write context into new worktrees; log removals |
+| `config-watcher.cjs` | ConfigChange | Log settings changes; alert on hooks section edits |
 
 Hooks are configured in `.claude/settings.json` and installed automatically.
 
@@ -470,16 +472,16 @@ Test suites validate hooks, profiles, commands, agents, schemas, and cross-modul
 # Profile validation (242 tests) — schema compliance, gates, infrastructure, cross-profile consistency
 node profiles/__tests__/test-profiles.js
 
-# Agent validation (108 tests) — YAML schema, roles, expertise, spawn_prompts
+# Agent validation (159 tests) — YAML schema, roles, expertise, spawn_prompts
 node agents/__tests__/test-agents.js
 
-# Hook tests (252 tests) — security, I/O contracts, Agent Teams, context predictions
+# Hook tests (266 tests) — security, I/O contracts, Agent Teams, context predictions
 node .claude/hooks/__tests__/test-hooks.js
 
-# Command validation (81 tests) — frontmatter, structure, auto-fix, deploy, skill chaining
+# Command validation (93 tests) — frontmatter, structure, auto-fix, deploy, skill chaining
 node .claude/commands/__tests__/test-commands.js
 
-# Schema validation (188 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
+# Schema validation (214 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
 node schemas/__tests__/test-schemas.js
 
 # Integration tests (69 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity, MCP degradation

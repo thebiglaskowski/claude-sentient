@@ -1,7 +1,7 @@
 # CLAUDE.md — Claude Sentient
 
 > **Project:** Claude Sentient
-> **Version:** 1.5.3
+> **Version:** 1.5.5
 > **Type:** Autonomous Development Orchestration Layer
 
 ---

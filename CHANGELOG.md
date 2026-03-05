@@ -6,6 +6,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.5] — 2026-03-05
+
+### Added
+- **`neutral_prompting` pattern** (`rules/anthropic-patterns.md`, `.claude/rules/anthropic-patterns.md`) — New prompt pattern preventing sycophancy bias during investigation tasks; agents tend to confirm what prompts imply rather than reporting what they actually find; neutral framing ("trace through the logic and report findings") surfaces real issues without manufacturing them; added to Pattern Selection Guide for `Investigation/audit` and `Code review` task types
+- **Post-compaction context recovery** (`cs-loop.md`) — INIT step 1 now provides four explicit sub-steps for recovering after Claude Code context compaction: load `compact-context.json` summary, re-read the active task via `TaskGet`, re-read source files from `filesModified`, with an explicit note that the compact-context tells *what* was being worked on but does not restore actual code into context
+
+### Changed
+- **Version bump** — CLAUDE.md, README badge, STATUS.md, generate-checksums.sh updated to v1.5.5
+- **Documentation accuracy** — README and STATUS.md test counts corrected: hooks 266, agents 159, commands 93, schemas 214, total 1043; hooks count updated to 15; README hooks table now includes `worktree-lifecycle.cjs` and `config-watcher.cjs` entries added in v1.5.3
+
 ## [1.5.4] — 2026-03-04
 
 ### Added

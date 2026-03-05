@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-03-04
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.5.4
+> **Version:** 1.5.5
 
 ---
 
@@ -25,7 +25,7 @@ Context Arch        [███████████████████�
 Infrastructure      [████████████████████] 100% ✓ (CI + deploy)
 Skills              [████████████████████] 100% ✓ (3 skills in .claude/skills/)
 Native Agents       [████████████████████] 100% ✓ (9 native .claude/agents/*.md)
-Testing             [████████████████████] 100% ✓ (1032 total across 6 suites)
+Testing             [████████████████████] 100% ✓ (1043 total across 6 suites)
 ```
 
 ---
@@ -134,7 +134,7 @@ Testing             [███████████████████�
 | Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
 | Agent Tests | `agents/__tests__/` | ✓ 108 tests |
-| Schema Tests | `schemas/__tests__/` | ✓ 188 tests |
+| Schema Tests | `schemas/__tests__/` | ✓ 214 tests |
 | Integration Tests | `integration/__tests__/` | ✓ 69 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 
@@ -149,12 +149,12 @@ Testing             [███████████████████�
 | Agent Roles | 9 | 9 ✓ |
 | Native Agents | 9 | 9 ✓ |
 | Skills | 3 | 3 ✓ |
-| Hooks | 13 | 13 ✓ |
-| Hook Tests | 252 | 252 ✓ |
+| Hooks | 15 | 15 ✓ |
+| Hook Tests | 266 | 266 ✓ |
 | Profile Tests | 242 | 242 ✓ |
-| Command Tests | 81 | 81 ✓ |
-| Agent Tests | 108 | 108 ✓ |
-| Schema Tests | 188 | 188 ✓ |
+| Command Tests | 93 | 93 ✓ |
+| Agent Tests | 159 | 159 ✓ |
+| Schema Tests | 214 | 214 ✓ |
 | Integration Tests | 69 | 69 ✓ |
 | Native tools leveraged | All | ✓ |
 | External dependencies | 0 | 0 ✓ |

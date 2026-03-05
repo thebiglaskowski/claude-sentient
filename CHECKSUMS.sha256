@@ -1,5 +1,5 @@
-# Claude Sentient v1.5.3 — File Checksums
-# Generated: 2026-03-04T19:40:17Z
+# Claude Sentient v1.5.5 — File Checksums
+# Generated: 2026-03-05T02:37:52Z
 
 5df4f1bbe9ba7ee47ec248a703b1b88a411bd63852f9ac640130fc1a99823358  .claude/commands/CLAUDE.md
 39379473b1490d1fb733b748a4e830c47dea0fc7273bc39176db0147031b82dc  .claude/commands/cs-assess.md
@@ -7,7 +7,7 @@
 a9c3676ce5a47291866e0a12399fc2d89d209b62aa87c02552eea07e4e0b2914  .claude/commands/cs-docs.md
 09e79cefd7d070307589508f5508a5cb0ae0fef2b1a081997c78924bba041e5e  .claude/commands/cs-init.md
 f6542c6fa0f139110c463993a8cef1d9debde1d0a07647dfb93d6e6be429542c  .claude/commands/cs-learn.md
-d095544039037f5c0f31fbba6f415a6cdb4ad222886671c5374fd9cacfa918df  .claude/commands/cs-loop.md
+3b2c52e885aa851dd84f8c1b711e1a6a379ce8c597c4b15dedd7f3c8fb6ab633  .claude/commands/cs-loop.md
 e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/commands/cs-mcp.md
 3ae7fda24ac25eb48e31bc7318f27456b823a97d8154d9dbe83840695cf400ca  .claude/commands/cs-multi.md
 d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/commands/cs-plan.md
@@ -70,7 +70,7 @@ a6e60d1499b141a11cb5b1c9fffc45c85a83f271992cca00db165f196652f839  schemas/skill.
 43fcaff7d2b737baa64d0148e5c507400e8c6598a3f73fca3891e5ec5ba9f9ca  schemas/team-state.schema.json
 48a6341ae705b080d1d37d53147be1c525331f32264f49227c3fb9905d83ac72  schemas/worktree-context.schema.json
 80ebff21fffb3a4456ded0075221245f7cd43f8a20f7857bdaafd120ea0253f1  rules/_index.md
-c66e71aab4dca4ffa186d7150a51b741a2ae4a349f1d816575c21b1b910301ec  rules/anthropic-patterns.md
+5273952bb4660d6480dcbda0e4e455850fcc90ac7f57d0447ff68f11baae1861  rules/anthropic-patterns.md
 cf63e3dbe768eeac6b5206a80352532230ffed690a20670b0fb5326c1da632bb  rules/api-design.md
 293f04723ce0414dd3836e964c0b2df58530e0c673fce32359baa1db43bfc33a  rules/code-quality.md
 e700afd4a8c73a66bffdd3eb15b7fcb675db52d6c772288087c26fa0799b3f72  rules/database.md
