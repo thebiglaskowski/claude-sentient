@@ -117,6 +117,13 @@ gates:
       - nbqa
       - nbval
 
+  security:
+    command: pip-audit
+    alternative: safety check
+    description: Audit Python dependencies for known vulnerabilities
+    requires:
+      - pip-audit
+
 # Thresholds
 thresholds:
   coverage: 80

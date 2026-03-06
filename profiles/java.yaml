@@ -62,6 +62,11 @@ gates:
     command: google-java-format -i **/*.java
     description: Format Java code
 
+  security:
+    command: mvn dependency-check:check
+    alternative: ./gradlew dependencyCheckAnalyze
+    description: Audit Java dependencies for known CVEs (OWASP Dependency Check)
+
 # Thresholds
 thresholds:
   coverage: 80

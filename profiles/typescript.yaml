@@ -68,6 +68,11 @@ gates:
     check_command: npx prettier --check .
     description: Format code
 
+  security:
+    command: npm audit --audit-level=high
+    fix_command: npm audit fix
+    description: Audit npm dependencies for known vulnerabilities
+
 # Thresholds
 thresholds:
   coverage: 80

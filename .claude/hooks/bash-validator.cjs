@@ -53,7 +53,7 @@ const DANGEROUS_PATTERNS = [
     // Scripting language one-liners (obfuscation risk)
     // Note: ['"]? makes the quote optional to catch ANSI-C quoting bypass ($'...') and
     // unquoted forms that survive normalizeCommand's quote-stripping pass.
-    { pattern: /\bpython[23]?\s+-c\s+['"]?.*(?:import\s+os|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports' },
+    { pattern: /\bpython[23]?\s+-c\s+['"]?.*(?:import\s+(?:os|socket|pty)|subprocess|eval|exec|__import__)/, reason: 'Python one-liner with dangerous imports or functions' },
     { pattern: /\bperl\s+-e\s+['"]?.*(?:system|exec|unlink)/, reason: 'Perl one-liner with dangerous functions' },
     { pattern: /\bruby\s+-e\s+['"]?.*(?:system|exec|File\.delete)/, reason: 'Ruby one-liner with dangerous functions' },
     { pattern: /\bnode\s+(?:-e|--eval)\s+['"]?.*(?:child_process|fs\.rm|fs\.unlink|fs\.writeFileSync|fs\.rmdirSync|fs\.unlinkSync|fs\.appendFileSync|fs\.chmod|fs\.mkdir|fs\.rename|fs\.copyFile|fs\.symlink|fs\.createWriteStream)/, reason: 'Node one-liner with dangerous modules' },

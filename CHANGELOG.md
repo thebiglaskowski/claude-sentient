@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.8] — 2026-03-06
+
+### Added
+- **Pre-write secret scanning** (`file-validator.cjs`) — `scanContentForSecrets()` scans file content before Write/Edit operations using `SECRET_PATTERNS` from utils.cjs; warns (advisory, non-blocking) when potential API keys or credentials are detected; covers both `content` (Write) and `new_string` (Edit) tool inputs
+- **Dependency audit security gate** — Added `security:` gate to 6 language profiles: Python (`pip-audit`), TypeScript (`npm audit --audit-level=high`), Go (`govulncheck ./...`), Rust (`cargo audit`), Ruby (`bundler-audit check --update`), Java (`mvn dependency-check:check`); advisory gate surfaced by `/cs-assess` Security dimension
+- **`/cs-assess` dependency vulnerability check** — Security dimension now runs the profile's security gate and reports CVE count and highest severity; critical/high CVEs flagged as Immediate priority recommendations
+- **`/cs-review` optional SAST integration** — New step 5 runs semgrep, bandit, or brakeman on changed files (when available) and surfaces findings as inline line-specific review comments
+- **`/cs-log` secret redaction suggestions** — When secrets/PII are flagged in log statements, concrete redaction patterns are suggested: `[REDACTED]` substitution, token prefix masking (`token.slice(0,4) + "..."`), email domain-only logging, `omit()` helper for structured objects
+- **`rules/_index.md` upload/storage keywords** — `upload`, `file`, `multipart`, `s3`, `bucket`, `storage` keywords now trigger the `security` rule auto-load
+- **bash-validator socket/pty coverage** — Python one-liner block pattern extended to cover `import socket` and `import pty` (used in network reverse shells), alongside the existing `import os`, `subprocess`, `exec`, `__import__` patterns
+- **`SECRET_PATTERNS` exported from utils.cjs** — Previously internal constant now exported in `module.exports` for use by other hooks
+
+---
+
 ## [1.5.7] — 2026-03-06
 
 ### Added

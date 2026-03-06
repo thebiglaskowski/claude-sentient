@@ -60,6 +60,12 @@ gates:
     command: bundle exec rubocop -a
     description: Auto-format Ruby code
 
+  security:
+    command: bundle exec bundler-audit check --update
+    description: Audit Ruby gems for known vulnerabilities
+    requires:
+      - bundler-audit
+
 # Thresholds
 thresholds:
   coverage: 80

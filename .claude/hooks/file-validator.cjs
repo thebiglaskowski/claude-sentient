@@ -9,7 +9,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { parseHookInput, logMessage, getProjectRoot, validateFilePath, LARGE_FILE_THRESHOLD } = require('./utils.cjs');
+const { parseHookInput, logMessage, getProjectRoot, validateFilePath, LARGE_FILE_THRESHOLD, SECRET_PATTERNS } = require('./utils.cjs');
 
 // Cached home directory (resolved once per process)
 const _cachedHomeDir = os.homedir();
@@ -179,6 +179,25 @@ function collectWarnings(normalizedPath, filePath, fileExists) {
     return warnings;
 }
 
+
+/**
+ * Scan file content for embedded secrets or API keys.
+ * Warns (does not block) when a potential secret pattern is detected.
+ * Covers both Write (full content) and Edit (new_string) tool inputs.
+ * @param {string} content - Content being written
+ * @returns {string[]} Warning messages if potential secrets detected
+ */
+function scanContentForSecrets(content) {
+    if (!content) return [];
+    for (const pattern of SECRET_PATTERNS) {
+        const regex = new RegExp(pattern.source, pattern.flags);
+        if (regex.test(content)) {
+            return ['Potential secret or API key detected in file content — review before committing'];
+        }
+    }
+    return [];
+}
+
 function main() {
     const parsed = parseHookInput();
     const filePath = parsed.tool_input?.file_path || parsed.tool_input?.path || '';
@@ -205,6 +224,8 @@ function main() {
     }
 
     const warnings = collectWarnings(normalizedPath, filePath, fileExists);
+    const fileContent = parsed.tool_input?.content || parsed.tool_input?.new_string || '';
+    warnings.push(...scanContentForSecrets(fileContent));
     if (warnings.length > 0) {
         logMessage(`${toolName}: ${warnings.join(', ')} - ${filePath}`, 'WARNING');
     }

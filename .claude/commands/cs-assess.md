@@ -156,6 +156,9 @@ For each dimension, systematically evaluate:
 - Check: Input validation, SQL injection, XSS, CSRF protection
 - Look for: Auth middleware, secrets management, rate limiting
 - Red flags: Hardcoded secrets, eval(), unsanitized user input
+- Dependency vulns: Run profile security gate (pip-audit, npm audit, cargo audit,
+  govulncheck, bundler-audit, mvn dependency-check) — report CVE count and highest
+  severity; flag any critical/high CVEs as Immediate priority
 ```
 
 #### Performance

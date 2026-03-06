@@ -61,7 +61,11 @@ Audit the codebase for logging quality issues across 5 dimensions. With --fix, r
 
 **Unstructured**: Find bare console.log/print with no structured key-value format. List each occurrence with file:line.
 
-**Secrets/PII**: Grep for dangerous patterns in log arguments — passwords, tokens, secrets, api_key, email, ssn, credit_card. List each occurrence. NEVER auto-fix these; always flag for human review.
+**Secrets/PII**: Grep for dangerous patterns in log arguments — passwords, tokens, secrets, api_key, email, ssn, credit_card. List each occurrence. NEVER auto-fix these; always flag for human review. For each flagged occurrence, suggest a concrete redaction pattern:
+  - String values → `redact(value)` helper or `"[REDACTED]"` substitution
+  - Token/key fields → log only the first 4 chars + `"..."` (e.g. `token.slice(0,4) + "..."`)
+  - Email → log domain only (`email.split("@")[1]`)
+  - Structured objects → suggest `omit(obj, ["password", "token"])` before logging
 
 **Missing Context**: In API/web projects, check that log statements include request context (req.id, trace_id, correlation_id). Count how many logs are context-free.
 

@@ -61,6 +61,12 @@ gates:
     check_command: gofmt -d .
     description: Format Go code
 
+  security:
+    command: govulncheck ./...
+    description: Scan Go modules for known vulnerabilities
+    requires:
+      - govulncheck
+
 # Thresholds
 thresholds:
   coverage: 80

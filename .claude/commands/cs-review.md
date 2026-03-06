@@ -67,7 +67,24 @@ mcp__github__search_code(q="{pattern} language:{lang}")
 → Note if PR deviates from standard patterns
 ```
 
-### 5. Generate Review
+### 5. SAST Scan (Optional)
+
+If semgrep, bandit, or brakeman is available in the project, run a targeted scan on changed files:
+
+```
+# Python (bandit)
+bandit -r {changed_files} -f json -q
+
+# Any language (semgrep)
+semgrep --config=auto {changed_files} --json --quiet
+
+# Ruby (brakeman)
+brakeman --no-pager -q --only-files {changed_files}
+```
+
+Surface any findings inline as line-specific comments in the review. If no SAST tool is available, skip this step silently.
+
+### 6. Generate Review
 
 Compile findings into a review (see output_format below).
 

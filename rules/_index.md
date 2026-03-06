@@ -11,6 +11,7 @@ During `/cs-loop` INIT, rules are loaded based on task keywords:
 | Keywords | Rules Loaded |
 |----------|--------------|
 | auth, login, password, jwt, oauth | `security`, `api-design` |
+| upload, file, multipart, s3, bucket, storage | `security` |
 | test, spec, coverage, mock | `testing` |
 | api, endpoint, route, rest | `api-design`, `error-handling` |
 | database, query, schema, migration | `database` |

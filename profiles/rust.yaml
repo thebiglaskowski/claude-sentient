@@ -60,6 +60,12 @@ gates:
     check_command: cargo fmt -- --check
     description: Format Rust code
 
+  security:
+    command: cargo audit
+    description: Audit Cargo dependencies for known vulnerabilities
+    requires:
+      - cargo-audit
+
 # Thresholds
 thresholds:
   coverage: 80
