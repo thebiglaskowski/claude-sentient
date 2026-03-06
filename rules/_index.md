@@ -23,6 +23,7 @@ During `/cs-loop` INIT, rules are loaded based on task keywords:
 | refactor, cleanup, quality | `code-quality` |
 | git, commit, branch, pr | `git-workflow` |
 | log, debug, trace | `logging` |
+| debug, bug, fix, reproduce, trace | `logging`, `error-handling` |
 | error, exception, catch | `error-handling` |
 | prompt, command, xml, template | `prompt-structure` |
 

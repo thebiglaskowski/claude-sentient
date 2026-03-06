@@ -6,6 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.7] — 2026-03-06
+
+### Added
+- **`/cs-debug`**: Structured debugging loop (reproduce → trace → isolate → fix → test → document) — systematic 6-phase workflow with root cause documentation
+- **`/cs-log`**: Logging audit — detects gaps in coverage, unstructured logs, secrets/PII in log arguments, missing correlation IDs, incorrect log levels; supports `--fix` and `--scaffold` flags
+
+---
+
 ## [1.5.6] — 2026-03-05
 
 ### Added

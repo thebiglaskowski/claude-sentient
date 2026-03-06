@@ -1,12 +1,14 @@
-# Claude Sentient v1.5.5 — File Checksums
-# Generated: 2026-03-05T10:36:01Z
+# Claude Sentient v1.5.7 — File Checksums
+# Generated: 2026-03-06T15:45:36Z
 
-5df4f1bbe9ba7ee47ec248a703b1b88a411bd63852f9ac640130fc1a99823358  .claude/commands/CLAUDE.md
+6d248861648d7e6ca17fc4d0dee9806c2c7de6d64cc749d84c64420e9886c9d0  .claude/commands/CLAUDE.md
 39379473b1490d1fb733b748a4e830c47dea0fc7273bc39176db0147031b82dc  .claude/commands/cs-assess.md
+f8c786e5e851252341253d36640c40e790cf914cf5c50602212606941bfe22bf  .claude/commands/cs-debug.md
 3d49a3b91b9f99310f35a8fe281b7b807e68e9974cfb409714d807f7e77b667e  .claude/commands/cs-deploy.md
 a9c3676ce5a47291866e0a12399fc2d89d209b62aa87c02552eea07e4e0b2914  .claude/commands/cs-docs.md
 09e79cefd7d070307589508f5508a5cb0ae0fef2b1a081997c78924bba041e5e  .claude/commands/cs-init.md
 f6542c6fa0f139110c463993a8cef1d9debde1d0a07647dfb93d6e6be429542c  .claude/commands/cs-learn.md
+39c410f2fd07d20f0cefb029e9a82c814481b9f6e574edb513ea31f6858a9490  .claude/commands/cs-log.md
 efd33d02a6bee0a36209ba44606acabe68444d7e8226a60668d06bb25e2f415d  .claude/commands/cs-loop.md
 e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/commands/cs-mcp.md
 3ae7fda24ac25eb48e31bc7318f27456b823a97d8154d9dbe83840695cf400ca  .claude/commands/cs-multi.md
@@ -16,7 +18,7 @@ d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/comman
 0c55da82a857e9af241424b2ac8e52e87cdf9b1c4a0c2c2d1faed4bfcea3d571  .claude/commands/cs-status.md
 36a55d9a202408348efc0fbc9c967c81e2a7017b23dc7b1b5825ef60cad565cc  .claude/commands/cs-team.md
 5bbc2613ff10eadb2c6837faee678056a7c49926290706f9edae379db5cd244d  .claude/commands/cs-ui.md
-0d73b53eac762526fd933074330a5a88a8b05fc8e65a647582743e960057b83d  .claude/commands/cs-validate.md
+81955d0cbad7942a84c32cb690735ea87fc5c48f803e363bff518d4a06561e4b  .claude/commands/cs-validate.md
 5c2166d36073a735f154b478d9d8fe2fbc7a10b3a52a779eaa46eb21114f89ab  .claude/hooks/README.md
 9b734b2ebbda6bd030132b0dbe06fa9991c162e4d52f30280414ec1e45a31c5e  .claude/hooks/agent-synthesizer.cjs
 93baf2d289b7aef8c4203a8d2543df7a489539c93b10a296d807afe8f42644fe  .claude/hooks/agent-tracker.cjs
@@ -69,7 +71,7 @@ a6e60d1499b141a11cb5b1c9fffc45c85a83f271992cca00db165f196652f839  schemas/skill.
 5e3a15af08295a71a8a19a300d2fe5e237021bafd6e1450b55f3156327588c0d  schemas/state.schema.json
 43fcaff7d2b737baa64d0148e5c507400e8c6598a3f73fca3891e5ec5ba9f9ca  schemas/team-state.schema.json
 48a6341ae705b080d1d37d53147be1c525331f32264f49227c3fb9905d83ac72  schemas/worktree-context.schema.json
-80ebff21fffb3a4456ded0075221245f7cd43f8a20f7857bdaafd120ea0253f1  rules/_index.md
+ab675202936777a8be0c9e1ac51edb31d248d2e9b347a61598eb8f8e4e42925f  rules/_index.md
 5273952bb4660d6480dcbda0e4e455850fcc90ac7f57d0447ff68f11baae1861  rules/anthropic-patterns.md
 cf63e3dbe768eeac6b5206a80352532230ffed690a20670b0fb5326c1da632bb  rules/api-design.md
 293f04723ce0414dd3836e964c0b2df58530e0c673fce32359baa1db43bfc33a  rules/code-quality.md

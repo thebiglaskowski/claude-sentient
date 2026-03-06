@@ -82,6 +82,8 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-deploy` | — | Standalone, read-only deployment readiness check |
 | `/cs-sessions` | `/cs-loop` | When user chooses to resume a previous session |
 | `/cs-multi` | — | Standalone, configures per-phase model routing |
+| `/cs-debug` | `/cs-loop` | When root cause requires implementation changes, user chooses to fix |
+| `/cs-log` | `/cs-loop` | When logging gaps/issues found, user chooses to fix |
 
 ---
 

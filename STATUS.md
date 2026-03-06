@@ -1,6 +1,6 @@
 # STATUS.md — Claude Sentient
 
-> **Last Updated:** 2026-03-04
+> **Last Updated:** 2026-03-06
 > **Current Phase:** Phase 4 — Enhancement & Integration
 > **Version:** 1.5.6
 
@@ -12,7 +12,7 @@
 
 ```
 Foundation          [████████████████████] 100% ✓
-Commands            [████████████████████] 100% ✓ (15 commands)
+Commands            [████████████████████] 100% ✓ (17 commands)
 Profiles            [████████████████████] 100% ✓ (9 profiles + infrastructure)
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
@@ -53,6 +53,8 @@ Testing             [███████████████████�
 - [x] `/cs-deploy` - Deployment readiness check (CI, Docker, env, migrations)
 - [x] `/cs-sessions` - Browse, search, and resume previous Claude Code sessions
 - [x] `/cs-multi` - Configure per-phase model routing for multi-model orchestration
+- [x] `/cs-debug` — Structured debugging loop (reproduce → trace → isolate → fix → test → document)
+- [x] `/cs-log` — Logging audit (gaps, unstructured, secrets/PII, missing correlation IDs)
 
 ### Profiles
 - [x] `python.yaml` - Python project profile
@@ -144,7 +146,7 @@ Testing             [███████████████████�
 
 | Metric | Target | Current |
 |--------|--------|---------|
-| Commands | 15 | 15 ✓ |
+| Commands | 17 | 17 ✓ |
 | Profiles | 9 | 9 ✓ |
 | Agent Roles | 9 | 9 ✓ |
 | Native Agents | 9 | 9 ✓ |

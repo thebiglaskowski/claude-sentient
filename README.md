@@ -91,7 +91,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 15 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 17 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 5 | Governance file templates |
@@ -122,6 +122,8 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 | `/cs-deploy` | Deployment readiness check (CI, Docker, env, migrations) | [Command](.claude/commands/cs-deploy.md) |
 | `/cs-sessions` | Browse, search, and resume previous Claude Code sessions | [Command](.claude/commands/cs-sessions.md) |
 | `/cs-multi` | Configure per-phase model routing for multi-model orchestration | [Command](.claude/commands/cs-multi.md) |
+| `/cs-debug` | Structured debug loop: reproduce → trace → isolate → fix → test | [Command](.claude/commands/cs-debug.md) |
+| `/cs-log` | Logging audit: gaps, unstructured logs, secrets, correlation IDs | [Command](.claude/commands/cs-log.md) |
 
 ---
 
