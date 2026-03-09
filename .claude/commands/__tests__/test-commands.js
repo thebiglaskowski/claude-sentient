@@ -318,12 +318,16 @@ suite('Path-scoped rules validation', () => {
 suite('cs-review multi-agent', () => {
     const reviewPath = path.join(commandsDir, 'cs-review.md');
 
+    test('cs-review.md exists', () => {
+        assert.ok(fs.existsSync(reviewPath), 'cs-review.md should exist');
+    });
+
     test('cs-review has Task in allowed-tools', () => {
         if (fs.existsSync(reviewPath)) {
             const content = fs.readFileSync(reviewPath, 'utf8');
             const parsed = parseFrontmatter(content);
             assert.ok(parsed && parsed.frontmatter['allowed-tools'] &&
-                parsed.frontmatter['allowed-tools'].includes('Task'),
+                /\bTask\b/.test(parsed.frontmatter['allowed-tools']),
                 'cs-review allowed-tools must include Task for agent spawning');
         }
     });
@@ -343,7 +347,7 @@ suite('cs-review multi-agent', () => {
     test('cs-review has synthesizer step', () => {
         if (fs.existsSync(reviewPath)) {
             const content = fs.readFileSync(reviewPath, 'utf8');
-            assert.ok(content.includes('ynthesizer') || content.includes('synthesize'),
+            assert.ok(content.includes('Synthesizer') || content.includes('synthesizer'),
                 'cs-review should have a synthesizer step to merge agent findings');
         }
     });
