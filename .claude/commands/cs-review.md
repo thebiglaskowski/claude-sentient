@@ -51,6 +51,11 @@ Each agent sees the full diff but reviews through a narrow lens only.
 Spawn all 5 in parallel — collect JSON from each before proceeding.
 </thinking>
 
+Before spawning agents, prepare the diff:
+- Fetch the full unified diff using the GitHub API or from the PR context loaded in Step 2
+- Replace `{diff}` in each agent prompt below with the actual diff text
+- If the diff exceeds 50,000 characters, truncate to the most significant changed files
+
 Spawn all 5 agents IN PARALLEL using the Agent tool. Pass each agent:
 - PR title, description, author, and base branch
 - Full diff text (all changed files in unified diff format)
@@ -63,20 +68,21 @@ Focus: hardcoded secrets, SQL/command injection, XSS, auth bypass, insecure
 deserialization, missing input validation, OWASP Top 10.
 Ignore style, performance, and test coverage.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON — no prose, no markdown fences:
 {
   "agent": "security",
   "findings": [
     {
       "severity": "CRITICAL|HIGH|MEDIUM|LOW",
-      "file": "path/to/file",
-      "line": 42,
-      "title": "Short title",
+      "file": "path/to/file.ts",
+      "line": 42,  // use null for file-level findings
+      "title": "Short descriptive title",
       "body": "Specific explanation with suggested fix",
       "confidence": 0.95
     }
   ]
 }
+If no findings, return: {"agent": "security", "findings": []}
 
 PR Diff:
 {diff}
@@ -89,7 +95,21 @@ Focus: N+1 queries, loops inside loops, missing database indexes, unbounded memo
 growth, blocking I/O in hot paths, missing caching.
 Ignore style, security, and test coverage.
 
-Return ONLY valid JSON with agent: "performance". Same schema as above.
+Return ONLY valid JSON — no prose, no markdown fences:
+{
+  "agent": "performance",
+  "findings": [
+    {
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+      "file": "path/to/file.ts",
+      "line": 42,  // use null for file-level findings
+      "title": "Short descriptive title",
+      "body": "Specific explanation with suggested fix",
+      "confidence": 0.95
+    }
+  ]
+}
+If no findings, return: {"agent": "performance", "findings": []}
 
 PR Diff:
 {diff}
@@ -102,7 +122,21 @@ Focus: null/undefined dereference, off-by-one errors, unchecked error returns,
 race conditions, edge case failures, broken error propagation, type mismatches.
 Ignore style, performance, and security.
 
-Return ONLY valid JSON with agent: "logic". Same schema as above.
+Return ONLY valid JSON — no prose, no markdown fences:
+{
+  "agent": "logic",
+  "findings": [
+    {
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+      "file": "path/to/file.ts",
+      "line": 42,  // use null for file-level findings
+      "title": "Short descriptive title",
+      "body": "Specific explanation with suggested fix",
+      "confidence": 0.95
+    }
+  ]
+}
+If no findings, return: {"agent": "logic", "findings": []}
 
 PR Diff:
 {diff}
@@ -115,7 +149,21 @@ Focus: new code paths without tests, missing edge case tests, assertions that
 don't validate behavior, tests that pass even with broken implementation.
 Ignore implementation style and security.
 
-Return ONLY valid JSON with agent: "tests". Same schema as above.
+Return ONLY valid JSON — no prose, no markdown fences:
+{
+  "agent": "tests",
+  "findings": [
+    {
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+      "file": "path/to/file.ts",
+      "line": 42,  // use null for file-level findings
+      "title": "Short descriptive title",
+      "body": "Specific explanation with suggested fix",
+      "confidence": 0.95
+    }
+  ]
+}
+If no findings, return: {"agent": "tests", "findings": []}
 
 PR Diff:
 {diff}
@@ -128,7 +176,21 @@ Focus: unclear naming, functions >50 lines, cyclomatic complexity >10, duplicate
 logic, dead code, missing public API docstrings, magic numbers.
 Ignore correctness, security, and performance.
 
-Return ONLY valid JSON with agent: "style". Same schema as above.
+Return ONLY valid JSON — no prose, no markdown fences:
+{
+  "agent": "style",
+  "findings": [
+    {
+      "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+      "file": "path/to/file.ts",
+      "line": 42,  // use null for file-level findings
+      "title": "Short descriptive title",
+      "body": "Specific explanation with suggested fix",
+      "confidence": 0.95
+    }
+  ]
+}
+If no findings, return: {"agent": "style", "findings": []}
 
 PR Diff:
 {diff}
@@ -152,7 +214,8 @@ You have received findings from 5 specialist review agents. Your job:
 
 3. FILTER: Mark findings with confidence < 0.7 as "advisory: true"
    (shown but not blocking verdict). If agents conflict on the same
-   line (one flags, one clears), surface both perspectives.
+   line (one flags, one clears), set "conflict": true and include
+   both perspectives in the "body" field.
 
 4. VERDICT:
    - Any CRITICAL or HIGH → REQUEST_CHANGES
@@ -167,10 +230,11 @@ Return a single JSON object:
     {
       "severity": "HIGH",
       "file": "src/auth.ts",
-      "line": 45,
+      "line": 45,  // use null for file-level findings
       "title": "Hardcoded JWT secret",
       "body": "Secret committed in plaintext. Use process.env.JWT_SECRET.",
       "advisory": false,
+      "conflict": false,
       "agents": ["security"]
     }
   ]
