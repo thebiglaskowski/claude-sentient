@@ -1,5 +1,5 @@
 # Claude Sentient v1.5.8 — File Checksums
-# Generated: 2026-03-06T16:29:52Z
+# Generated: 2026-03-09T23:43:28Z
 
 6d248861648d7e6ca17fc4d0dee9806c2c7de6d64cc749d84c64420e9886c9d0  .claude/commands/CLAUDE.md
 284c76850d2eedce8f95395e336b90e2ec8ad137467e320ea06269f602d17dd7  .claude/commands/cs-assess.md
@@ -13,7 +13,7 @@ efd33d02a6bee0a36209ba44606acabe68444d7e8226a60668d06bb25e2f415d  .claude/comman
 e207b8785f5bf6e8d8f33beed2a919b10b0a13a6687c6f3c1816a14ec3497cdf  .claude/commands/cs-mcp.md
 3ae7fda24ac25eb48e31bc7318f27456b823a97d8154d9dbe83840695cf400ca  .claude/commands/cs-multi.md
 d7a8a9be7a1c9bb83198a8596bd73311db96770c8306cf9f4b03c594448cfe61  .claude/commands/cs-plan.md
-8719bb2c21ba551633b106a86a57923df451c1acbc468e51bc023dda8896f4bd  .claude/commands/cs-review.md
+1d8aa8b7d3839981ee0fa5af2c2c6fe4f2d4750c17d91638bc8ef8b390687101  .claude/commands/cs-review.md
 37eebce6cbf5d18446fb22585c3c25d002b952ea547b250f1198f3e029ea7d30  .claude/commands/cs-sessions.md
 0c55da82a857e9af241424b2ac8e52e87cdf9b1c4a0c2c2d1faed4bfcea3d571  .claude/commands/cs-status.md
 36a55d9a202408348efc0fbc9c967c81e2a7017b23dc7b1b5825ef60cad565cc  .claude/commands/cs-team.md
