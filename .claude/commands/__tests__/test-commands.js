@@ -315,6 +315,57 @@ suite('Path-scoped rules validation', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+suite('cs-review multi-agent', () => {
+    const reviewPath = path.join(commandsDir, 'cs-review.md');
+
+    test('cs-review has Task in allowed-tools', () => {
+        if (fs.existsSync(reviewPath)) {
+            const content = fs.readFileSync(reviewPath, 'utf8');
+            const parsed = parseFrontmatter(content);
+            assert.ok(parsed && parsed.frontmatter['allowed-tools'] &&
+                parsed.frontmatter['allowed-tools'].includes('Task'),
+                'cs-review allowed-tools must include Task for agent spawning');
+        }
+    });
+
+    test('cs-review spawns specialist agents in parallel', () => {
+        if (fs.existsSync(reviewPath)) {
+            const content = fs.readFileSync(reviewPath, 'utf8');
+            assert.ok(content.includes('Security Agent') || content.includes('security agent'),
+                'cs-review should reference Security agent spawn');
+            assert.ok(content.includes('Performance Agent') || content.includes('performance agent'),
+                'cs-review should reference Performance agent spawn');
+            assert.ok(content.includes('Logic Agent') || content.includes('logic agent'),
+                'cs-review should reference Logic agent spawn');
+        }
+    });
+
+    test('cs-review has synthesizer step', () => {
+        if (fs.existsSync(reviewPath)) {
+            const content = fs.readFileSync(reviewPath, 'utf8');
+            assert.ok(content.includes('ynthesizer') || content.includes('synthesize'),
+                'cs-review should have a synthesizer step to merge agent findings');
+        }
+    });
+
+    test('cs-review defines severity levels', () => {
+        if (fs.existsSync(reviewPath)) {
+            const content = fs.readFileSync(reviewPath, 'utf8');
+            assert.ok(content.includes('CRITICAL') || content.includes('severity'),
+                'cs-review should define severity levels for findings');
+        }
+    });
+
+    test('cs-review defines confidence threshold', () => {
+        if (fs.existsSync(reviewPath)) {
+            const content = fs.readFileSync(reviewPath, 'utf8');
+            assert.ok(content.includes('confidence') || content.includes('false positive'),
+                'cs-review should handle confidence filtering / false positives');
+        }
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
 // Report
 summary(`Commands tested: ${commandFiles.length}`);
 process.exit(getResults().failed > 0 ? 1 : 0);
