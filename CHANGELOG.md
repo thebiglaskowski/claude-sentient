@@ -6,6 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.9] — 2026-03-09
+
+### Added
+- `/cs-review` now spawns 5 specialist agents in parallel (Security, Performance, Logic, Tests, Style)
+- Synthesizer agent deduplicates cross-agent findings, ranks by severity (CRITICAL→HIGH→MEDIUM→LOW), filters false positives
+- Confidence scoring: findings below 0.7 confidence surfaced as advisory-only
+- Conflict detection: when agents disagree on same line, both perspectives surfaced with `conflict: true`
+- Diff substitution instructions: large PRs (>50k chars) truncated to most significant files
+
+---
+
 ## [1.5.8] — 2026-03-06
 
 ### Added
