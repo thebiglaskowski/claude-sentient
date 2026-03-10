@@ -190,8 +190,7 @@ function collectWarnings(normalizedPath, filePath, fileExists) {
 function scanContentForSecrets(content) {
     if (!content) return [];
     for (const pattern of SECRET_PATTERNS) {
-        const regex = new RegExp(pattern.source, pattern.flags);
-        if (regex.test(content)) {
+        if (pattern.test(content)) {
             return ['Potential secret or API key detected in file content — review before committing'];
         }
     }
