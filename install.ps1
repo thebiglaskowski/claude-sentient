@@ -153,6 +153,11 @@ Get-ChildItem "$TempDir/.claude/skills" -Directory | ForEach-Object {
     $skillDir = ".claude/skills/$($_.Name)"
     New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
     Copy-Item "$($_.FullName)/SKILL.md" -Destination "$skillDir/" -Force
+    $refsDir = "$($_.FullName)/references"
+    if (Test-Path $refsDir) {
+        New-Item -ItemType Directory -Force -Path "$skillDir/references" | Out-Null
+        Copy-Item "$refsDir/*.md" -Destination "$skillDir/references/" -Force
+    }
 }
 Write-Host "  Installed skills (.claude/skills/)"
 
@@ -302,7 +307,7 @@ Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md       (15 commands)'
-Write-Host '  .claude/hooks/*.cjs             (15 hook scripts)'
+Write-Host '  .claude/hooks/*.cjs             (16 hook scripts)'
 Write-Host '  .claude/hooks/__tests__/       (266 hook tests)'
 Write-Host '  .claude/settings.json          (hook configuration)'
 Write-Host '  profiles/*.yaml                (9 profiles + schema)'

@@ -2,7 +2,7 @@
 
 > Context for working on hook scripts in `.claude/hooks/`.
 
-## Hook Scripts (15 hooks)
+## Hook Scripts (16 hooks)
 
 | Script | Event | Async | Purpose |
 |--------|-------|-------|---------|
@@ -11,6 +11,7 @@
 | `context-injector.cjs` | UserPromptSubmit | No | Detect topics, inject context |
 | `bash-validator.cjs` | PreToolUse (Bash) | No | Block dangerous commands |
 | `file-validator.cjs` | PreToolUse (Write/Edit) | No | Validate protected paths |
+| `skill-tracker.cjs` | PreToolUse (Skill) | Yes | Log skill invocations for usage tracking |
 | `post-edit.cjs` | PostToolUse (Write/Edit) | Yes | Track changes, suggest lint |
 | `gate-monitor.cjs` | PostToolUse (Bash) | Yes | Record gate exit codes and durations |
 | `agent-tracker.cjs` | SubagentStart | Yes | Track agent spawning |
@@ -93,6 +94,7 @@ Hooks read/write to `.claude/state/`:
 | `gate-output/` | Large gate stdout saved as files (created on demand) |
 | `worktree-context.json` | Created inside new worktrees by WorktreeCreate hook |
 | `config_changes.json` | Rolling log of ConfigChange events (capped at 20) |
+| `skill-usage.json` | Skill invocation history: skill name + timestamp (capped at 200) |
 
 ---
 
@@ -162,6 +164,7 @@ Use async for pure observer hooks where the result is not needed immediately:
 | `session-end.cjs` | Archive cleanup; fire-and-forget |
 | `worktree-lifecycle.cjs` | Context bootstrap; parent session continues immediately |
 | `config-watcher.cjs` | Change logging; no synchronous response needed |
+| `skill-tracker.cjs` | Usage logging only; no blocking decision needed |
 
 Do NOT mark async: `bash-validator`, `file-validator` (PreToolUse must block), `context-injector` (must inject before response), `session-start` (must init before first turn), `pre-compact` (must complete before compaction), `dod-verifier` (Stop hook must run synchronously), `teammate-idle`, `task-completed` (need synchronous state writes for coordination).
 

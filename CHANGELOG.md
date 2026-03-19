@@ -6,7 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [1.5.9] — 2026-03-09
+## [1.5.9] — 2026-03-19
 
 ### Added
 - `/cs-review` now spawns 5 specialist agents in parallel (Security, Performance, Logic, Tests, Style)
@@ -14,6 +14,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Confidence scoring: findings below 0.7 confidence surfaced as advisory-only
 - Conflict detection: when agents disagree on same line, both perspectives surfaced with `conflict: true`
 - Diff substitution instructions: large PRs (>50k chars) truncated to most significant files
+- **Skill enhancements** (Thariq's "Lessons from Building Claude Code" best practices):
+  - `## Gotchas` sections added to all 3 skills — failure modes from learnings.md surfaced at point of use
+  - Skill descriptions rewritten as trigger conditions ("Use when...") for better auto-discovery
+  - Progressive disclosure: `references/` subdirectories with detailed reference materials (6 new files)
+  - `skill-tracker.cjs` — new PreToolUse hook (16th hook) logs Skill invocations to `.claude/state/skill-usage.json` for undertriggering detection
 
 ---
 

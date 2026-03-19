@@ -96,6 +96,7 @@ const CONTEXT_DEGRADATION_THRESHOLD = 20; // context-injector.cjs: high warning 
 const CONTEXT_DEGRADATION_EARLY = 15;     // context-injector.cjs: medium warning threshold
 const MAX_OBSERVATION_SIZE = 8000;    // gate-monitor.cjs: max stdout chars before masking to file
 const MAX_GATE_OUTPUTS = 20;          // gate-monitor.cjs: cap on saved gate output files
+const MAX_SKILL_USAGE = 200;          // skill-tracker.cjs: cap on skill usage history
 
 const MIN_SHELL_FILES = 3;              // session-start.cjs: threshold for shell profile detection
 const SESSION_ID_SUFFIX_LEN = 9;        // session-start.cjs: random suffix length for session IDs
@@ -428,4 +429,5 @@ module.exports = {
     MAX_OBSERVATION_SIZE,
     MAX_GATE_OUTPUTS,
     SECRET_PATTERNS,
+    MAX_SKILL_USAGE,
 };

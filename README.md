@@ -274,9 +274,9 @@ Run `/cs-validate` to see which plugins are installed and which are missing. The
 your-project/
 ├── .claude/
 │   ├── commands/cs-*.md    # 15 slash commands
-│   ├── hooks/*.cjs         # 15 hook scripts (security, teams, tracking)
+│   ├── hooks/*.cjs         # 16 hook scripts (security, teams, tracking)
 │   ├── agents/*.md         # 9 native agent definitions
-│   ├── skills/             # 3 skills (progressive disclosure)
+│   ├── skills/*/           # 3 skills with references/ subdirectories
 │   ├── settings.json       # Hook + team configuration
 │   └── rules/*.md          # Path-scoped rules + learnings
 ├── profiles/*.yaml          # 9 language profiles + schema

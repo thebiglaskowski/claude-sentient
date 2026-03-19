@@ -46,6 +46,17 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/node /home/joe/github/claude-sentient/.claude/hooks/skill-tracker.cjs",
+            "timeout": 2000,
+            "async": true
+          }
+        ]
       }
     ],
     "PostToolUse": [

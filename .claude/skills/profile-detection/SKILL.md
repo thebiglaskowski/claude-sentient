@@ -1,6 +1,6 @@
 ---
 name: profile-detection
-description: Profile and environment detection for the INIT phase. Covers session state loading, Python environment detection (conda/venv/poetry/pdm), web project detection, rule auto-loading, and MCP context gathering.
+description: Use when starting a cs-loop session, when profile detection fails or returns the wrong profile, when environment-specific commands (pytest, ruff, conda) aren't running correctly, or when session state needs recovery after context compaction.
 user-invocable: false
 ---
 
@@ -34,7 +34,7 @@ Report: `[INIT] Environment: conda (myenv)` or `[INIT] Environment: system pytho
 
 ## Rule Auto-Loading
 
-Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code based on file context. For supplementary keyword-based loading, see `rules/_index.md` for the full keyword-to-rule mapping.
+Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code based on file context. For supplementary keyword-based loading, see `rules/_index.md` for the full keyword-to-rule mapping. The INIT phase does keyword matching first, then a semantic pass over `rules/_index.md` to catch logically relevant rules that keywords missed.
 
 ## MCP Context Gathering
 
@@ -54,3 +54,11 @@ Trigger keywords: "update", "upgrade", "migrate", "bump". Use WebFetch to load C
 Check these exist, create from `templates/` if missing: `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`.
 
 Check for `CLAUDE.md` — if missing, report: `[INIT] No CLAUDE.md found. Run /cs-init to create context architecture.`
+
+## Gotchas
+
+- **Conda env not activated**: If `environment.yml` exists but commands run in system Python, the `conda run -n <env>` prefix was not applied. Always check for this indicator before running any Python commands.
+- **nvm FUNCNEST explosion**: On zsh systems with nvm, bare `node` triggers recursive shell function loading (500+ `_nvm_load command not found` lines). Hook commands must use absolute node paths via `process.execPath`. The `fixHookPaths()` function in session-start.cjs self-heals this, but if hooks fail with FUNCNEST errors, check that `settings.json` hook commands use absolute paths.
+- **session_start.json stale or missing**: The `profile` field in session state may be from a previous session or absent on first run. Always fall back to scanning indicator files (`pyproject.toml`, `tsconfig.json`, `go.mod`, etc.) when the state file seems stale.
+- **Two-step rule loading**: Keyword matching alone misses logically relevant rules (e.g., `error-handling` for a debug task that uses no keyword triggers). The semantic pass over `rules/_index.md` catches these — don't skip it.
+- **Windows MCP servers**: MCP servers require `cmd /c npx` wrapper on Windows, not direct `npx`. See learnings.md for the `add-json` pattern.

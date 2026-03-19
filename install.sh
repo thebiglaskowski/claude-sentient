@@ -118,6 +118,10 @@ for skill_dir in "$TEMP_DIR"/.claude/skills/*/; do
     skill_name=$(basename "$skill_dir")
     mkdir -p ".claude/skills/$skill_name"
     cp "$skill_dir"SKILL.md ".claude/skills/$skill_name/"
+    if [ -d "$skill_dir"references ]; then
+        mkdir -p ".claude/skills/$skill_name/references"
+        cp "$skill_dir"references/*.md ".claude/skills/$skill_name/references/"
+    fi
 done
 echo "  Installed skills (.claude/skills/)"
 
@@ -249,7 +253,7 @@ echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
 echo "  .claude/commands/cs-*.md       (15 commands)"
-echo "  .claude/hooks/*.cjs             (15 hook scripts)"
+echo "  .claude/hooks/*.cjs             (16 hook scripts)"
 echo "  .claude/hooks/__tests__/       (266 hook tests)"
 echo "  .claude/settings.json          (hook configuration)"
 echo "  profiles/*.yaml                (9 profiles + schema)"

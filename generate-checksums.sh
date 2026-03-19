@@ -2,7 +2,7 @@
 # Generates CHECKSUMS.sha256 for installer verification
 set -euo pipefail
 
-echo "# Claude Sentient v1.5.8 — File Checksums" > CHECKSUMS.sha256
+echo "# Claude Sentient v1.5.9 — File Checksums" > CHECKSUMS.sha256
 echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> CHECKSUMS.sha256
 echo "" >> CHECKSUMS.sha256
 
@@ -18,7 +18,7 @@ find examples -name "*.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
 find .claude-plugin -name "*.json" | sort | xargs sha256sum >> CHECKSUMS.sha256
 find .cursor -name "*.mdc" | sort | xargs sha256sum >> CHECKSUMS.sha256
 find .codex -name "*.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
-find .claude/skills -name "SKILL.md" | sort | xargs sha256sum >> CHECKSUMS.sha256
+find .claude/skills -name "SKILL.md" -o -name "*.md" -path "*/references/*" | sort | xargs sha256sum >> CHECKSUMS.sha256
 sha256sum test-utils.js >> CHECKSUMS.sha256
 
 echo "Checksums written to CHECKSUMS.sha256"

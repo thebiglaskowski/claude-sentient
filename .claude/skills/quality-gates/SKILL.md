@@ -1,6 +1,6 @@
 ---
 name: quality-gates
-description: Quality gate execution patterns and auto-fix procedures for the VERIFY phase. Covers lint, test, build gate execution, error classification, auto-fix sub-loops, and WebSearch fallback strategies.
+description: Use when a lint, test, or build gate fails during the VERIFY phase and you need the auto-fix procedure, when you need to classify an error and choose a fix strategy, or when WebSearch fallback is needed after repeated gate failures.
 user-invocable: false
 ---
 
@@ -73,3 +73,11 @@ After committing on a branch with a PR:
    - Pending -> `[COMMIT] CI running...` (continue)
    - Failing -> Auto-fix if lint/test/type error (max 2 attempts)
    - Infrastructure failure -> Report for manual review
+
+## Gotchas
+
+- **Never dismiss errors as "pre-existing"**: Fix ALL lint issues during VERIFY — even if they existed before your changes. If ruff reports it, fix it. This is an Integrity Rule.
+- **Never modify test assertions**: When tests fail, fix the source logic, not the expected values. If tests are genuinely wrong, report to the user rather than "fixing" assertions.
+- **gate-monitor null exit_code**: Claude Code's PostToolUse may omit `exit_code` (yields null). gate-monitor treats null as inconclusive (`passed: null`), not failure. Don't log spurious "Gate failed (exit null)" entries.
+- **Large gate output truncation**: Stdout > 8000 chars is saved to `.claude/state/gate-output/` and replaced with a reference. If you see `outputRef` in gate_history.json instead of raw output, read the referenced file.
+- **Error count regression**: If auto-fix attempt increases the error count, revert immediately. Don't try to "fix forward" — the fix introduced new problems.

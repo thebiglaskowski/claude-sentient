@@ -1,5 +1,5 @@
-# Claude Sentient v1.5.8 — File Checksums
-# Generated: 2026-03-10T00:14:00Z
+# Claude Sentient v1.5.9 — File Checksums
+# Generated: 2026-03-19T09:11:37Z
 
 6d248861648d7e6ca17fc4d0dee9806c2c7de6d64cc749d84c64420e9886c9d0  .claude/commands/CLAUDE.md
 284c76850d2eedce8f95395e336b90e2ec8ad137467e320ea06269f602d17dd7  .claude/commands/cs-assess.md
@@ -32,9 +32,10 @@ bcc7e227061f927bc39279f9eab59d5c13d9b3c442a4f7c67d686c6859bd409a  .claude/hooks/
 8c319475a1349630992f274f503188e70caac29f05ebcbac83e7ae84260fc848  .claude/hooks/pre-compact.cjs
 b38804a107f3469dedbf4b091973f5305dcc74cce7cc95718486f3006b9c6f16  .claude/hooks/session-end.cjs
 5e1f0d8c33d7f7e0a1d3af8419592381f880fe0838d967c0edf25e4b886563f0  .claude/hooks/session-start.cjs
+935b5edeee91bc02f0fca99cf228ff85fb5ca9b9fbac5aeb0f2a3cd8cef1aa34  .claude/hooks/skill-tracker.cjs
 dcabc837627ed144adbf1a55a69f47a7a0b2a673f2bbf457f839a9969765a2e4  .claude/hooks/task-completed.cjs
 a022eefdcb7bdd8b7b92e2c9ad9bd2e2e5b6ba3508150771ff2039ff8eda0f14  .claude/hooks/teammate-idle.cjs
-7dfae8d90f3843dae318f5c1350f244e9c150c4fc06a2201f8532df871ca3c4f  .claude/hooks/utils.cjs
+3368b3f7dd345cde63879123638c8c9445ba003096ffbadf7a043528d077d32f  .claude/hooks/utils.cjs
 4ec36c0d39558be14389f0a09e0622d0644275080c69516a7b610dd4ef68cf17  .claude/hooks/worktree-lifecycle.cjs
 652d98752fcaa2c1aaf85d5b8245987d6a818062caa3aa561dd79623a3615d3f  profiles/CLAUDE.md
 832a6e548488578cf508b738599f708500be1716a6bac4a8cd1515fb453527ea  profiles/_profile.schema.yaml
@@ -99,7 +100,13 @@ f31c718ceb606e3244b770c9214f514cab166b229effdaa78eecc6553ef447fb  examples/rust-
 db0ad6c19c333c2009d4f251b24daae0aa14d21bf9a85195e44292257c843c79  .claude-plugin/plugin.json
 e2e09519a24bd9262b8a17f7325dc28801b8c900fb3155f56f3dfa822d9ab513  .cursor/rules/claude-sentient.mdc
 7079495bcf57284814e07609a61b0c3c0594eb26d73120ea5e263bf1d843e641  .codex/instructions.md
-720d151ea333de7c168496cc749700df8d9aa18f2d23d2b41b6af3e22c719510  .claude/skills/profile-detection/SKILL.md
-a3bfaf7cbc4d907d3121235d2ba6b4790c78594b5840c9ca817364ecf5616c91  .claude/skills/quality-gates/SKILL.md
-8e603cc5afd339886d6db05e89c40e19223a97d5211e69a838802f4835557941  .claude/skills/team-orchestration/SKILL.md
+ad15f48231487ac57e975e2d9e0ede68c4e2e600a739bdce282b9f12c2d1f817  .claude/skills/profile-detection/SKILL.md
+24001535e4449747b3db1b6d0cb0ef55e5e62cb7c38a29bf9d7ebec850f10895  .claude/skills/profile-detection/references/environment-matrix.md
+746a7d03beb2bbeecf7e1412a4ea5e3add7a17f16c134f8753847ffd0b69c699  .claude/skills/profile-detection/references/indicator-files.md
+95603883e80c6a576ed08b71df7b2bccafa928df80a48271770a2d0bc004bf34  .claude/skills/quality-gates/SKILL.md
+f963d53a15397836bb976bd0ab908bbb760fe9a9bf2b2a17a061f44e657a437b  .claude/skills/quality-gates/references/error-classification.md
+39be7c0d6e703c546811d8ee4bedb6e4066f90c9248588b55dc382088fc0bce9  .claude/skills/quality-gates/references/gate-commands.md
+f5b0f8e2e9edf742ccb4cabbea3f90af44ac2e5e536c7456695446a96d6b80de  .claude/skills/team-orchestration/SKILL.md
+097d34b14a5d41435c39fcaafc395ec3ae6fd58362594072d94e781c3e4c0078  .claude/skills/team-orchestration/references/agent-roles.md
+bb778cedf0987182add41f1f23ba65777fccc11dcf73124221ec4b0f54815960  .claude/skills/team-orchestration/references/file-ownership.md
 7ebea5692ee8e64581c70fbdd130e8f4bc3017824faa7f1e3a9fa6f15ee1190f  test-utils.js

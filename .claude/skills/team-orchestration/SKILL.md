@@ -1,6 +1,6 @@
 ---
 name: team-orchestration
-description: Agent Teams workflow for the EXECUTE phase. Covers team eligibility evaluation, agent matching, teammate spawning, progress monitoring, and result collection.
+description: Use when evaluating whether to spawn agent teammates for a task, when managing an active team during the EXECUTE phase, or when file ownership conflicts or teammate coordination issues arise.
 user-invocable: false
 ---
 
@@ -125,9 +125,11 @@ When all teammate tasks complete:
 4. Report: `[EXECUTE] Team complete: {completed}/{total} tasks`
 5. Proceed to VERIFY with all changes
 
-## Key Lessons
+## Gotchas
 
-- Carefully partition file ownership to avoid edit conflicts on shared files
-- If a teammate modifies a file, re-read before editing ("File modified since read" errors)
-- Send shutdown_request and wait for shutdown_approved before TeamDelete
-- TeamDelete fails if any members are still active
+- **File ownership conflicts**: Carefully partition file ownership — two teammates editing the same file causes "File modified since read" errors. If a teammate modifies a file you need, re-read before editing. The `task-completed.cjs` hook tracks file ownership and rejects tasks that create conflicts.
+- **Teammate shutdown protocol**: Always send `shutdown_request` and wait for `shutdown_approved` before calling TeamDelete. TeamDelete fails if any members are still active — this is a hard requirement, not a suggestion.
+- **MAX_TEAMMATES cap**: `teammate-idle.cjs` caps tracked teammates at 50, pruning oldest entries. If you see unexpected teammate state loss, this cap may have been hit.
+- **team-state.json default shape**: Both `teammate-idle.cjs` and `task-completed.cjs` must use identical defaults (`teammates`, `completed_tasks`, `file_ownership`). Mismatched defaults cause crashes when the wrong hook creates the file first.
+- **CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS**: Team mode silently degrades to solo mode if this env var is not set. Don't report "team not eligible" when the real issue is the missing env var.
+- **completed_tasks cap**: Capped at 100 entries in team-state.json. Long-running team sessions may lose early task history.

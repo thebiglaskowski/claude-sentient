@@ -64,6 +64,16 @@
   - **COMMIT**: github for PR creation and issue linking, memory for state persistence
 - **Rationale**: MCP servers are native Claude Code capabilities — use them to their full potential rather than leaving features on the table
 
+### 2026-03-18: Skill design principles from Thariq's "Lessons from Building Claude Code"
+- **Context**: Thariq (Anthropic, Claude Code team lead) published skill design best practices on 2026-03-17. Key insights mapped to Claude Sentient improvements.
+- **Decision**: Apply 5 principles to our 3 skills (profile-detection, quality-gates, team-orchestration):
+  1. **Gotchas sections are highest-signal content** — Added `## Gotchas` to each skill, populated from learnings.md failure patterns. Update these as new failures surface.
+  2. **Descriptions drive discovery** — Rewrote skill `description` fields as trigger conditions ("Use when...") not summaries ("Covers..."). This improves Claude Code's skill auto-triggering.
+  3. **Progressive disclosure via folder structure** — Added `references/` subdirectories to each skill with detailed reference materials Claude can discover on-demand, keeping SKILL.md concise.
+  4. **Don't state the obvious** — Focused skill content on project-specific conventions and failure modes, not baseline Claude knowledge.
+  5. **Track skill usage** — Extended context-injector.cjs to log Skill tool invocations to `.claude/state/skill-usage.json` for undertriggering detection.
+- **Rule**: When creating or updating skills, prioritize gotchas (failure modes) over procedures (how-to). Write descriptions as "Use when..." trigger conditions. Keep SKILL.md concise; put details in `references/` subdirectories.
+
 ---
 
 ## Patterns
