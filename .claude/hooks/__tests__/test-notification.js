@@ -23,31 +23,43 @@ suite('notification.cjs — module loading', () => {
     });
 });
 
-const { buildDesktopCommand, resolveEvent, notify } = require('../notification.cjs');
+const { buildDesktopCommand, resolveEvent, notify, TITLES, getBody } = require('../notification.cjs');
 
 suite('buildDesktopCommand', () => {
-    test('returns platform-appropriate string', () => {
+    test('returns platform-appropriate array', () => {
         const cmd = buildDesktopCommand('Test Title', 'Test Body');
-        const platform = os.platform();
+        const platform = process.platform;
         if (platform === 'linux') {
-            assert.ok(cmd.includes('notify-send'), 'Linux should use notify-send');
+            assert.ok(Array.isArray(cmd), 'should return an array');
+            assert.strictEqual(cmd[0], 'notify-send');
+            assert.strictEqual(cmd[1], 'Test Title');
+            assert.strictEqual(cmd[2], 'Test Body');
         } else if (platform === 'darwin') {
-            assert.ok(cmd.includes('osascript'), 'macOS should use osascript');
+            assert.ok(Array.isArray(cmd), 'should return an array');
+            assert.strictEqual(cmd[0], 'osascript');
         } else if (platform === 'win32') {
-            assert.ok(cmd.includes('powershell'), 'Windows should use powershell');
+            assert.strictEqual(cmd, null, 'win32 should return null');
         }
-        // On any platform, the command should be a non-empty string
-        assert.strictEqual(typeof cmd, 'string');
-        assert.ok(cmd.length > 0);
     });
 
-    test('escapes single quotes in title and body', () => {
+    test('returns null on win32', () => {
+        // buildDesktopCommand uses process.platform which we cannot mock easily,
+        // but we can verify the function handles the unsupported case
+        const cmd = buildDesktopCommand('Title', 'Body');
+        if (process.platform === 'win32') {
+            assert.strictEqual(cmd, null);
+        } else {
+            assert.ok(Array.isArray(cmd), 'non-win32 should return array');
+        }
+    });
+
+    test('includes title and body in command array', () => {
         const cmd = buildDesktopCommand("it's a test", "don't panic");
-        assert.ok(cmd, 'command should not be null');
-        // The raw unescaped single quotes should not appear as-is in a way
-        // that would break the shell command
-        assert.ok(!cmd.includes("it's a test"), 'title single quote should be escaped');
-        assert.ok(!cmd.includes("don't panic"), 'body single quote should be escaped');
+        if (process.platform === 'linux') {
+            assert.strictEqual(cmd[1], "it's a test", 'title preserved as array element');
+            assert.strictEqual(cmd[2], "don't panic", 'body preserved as array element');
+        }
+        // execFileSync with array args does not need shell escaping
     });
 });
 
@@ -80,6 +92,93 @@ suite('resolveEvent', () => {
     test('passes unknown events through unchanged', () => {
         const result = resolveEvent('SomeRandomEvent', {});
         assert.strictEqual(result, 'SomeRandomEvent');
+    });
+
+    test('handles null input without crashing', () => {
+        const result = resolveEvent(null, null);
+        assert.strictEqual(result, 'unknown');
+    });
+
+    test('handles undefined input without crashing', () => {
+        const result = resolveEvent(undefined, undefined);
+        assert.strictEqual(result, 'unknown');
+    });
+
+    test('handles empty string hookEvent', () => {
+        const result = resolveEvent('', {});
+        assert.strictEqual(result, 'unknown');
+    });
+});
+
+suite('TITLES and getBody', () => {
+    test('TITLES has entries for known events', () => {
+        assert.strictEqual(TITLES['Stop'], 'Claude Sentient: Done');
+        assert.strictEqual(TITLES['gate-failure'], 'Claude Sentient: Gate Failed');
+        assert.strictEqual(TITLES['task-completed'], 'Claude Sentient: Task Complete');
+        assert.strictEqual(TITLES['session-end'], 'Claude Sentient: Session Ended');
+    });
+
+    test('getBody returns human-readable message for Stop', () => {
+        assert.strictEqual(getBody('Stop', {}), 'Work loop completed.');
+    });
+
+    test('getBody returns human-readable message for session-end', () => {
+        assert.strictEqual(getBody('session-end', {}), 'Session has ended.');
+    });
+
+    test('getBody returns human-readable message for task-completed', () => {
+        assert.strictEqual(getBody('task-completed', {}), 'A task was marked complete.');
+    });
+
+    test('getBody includes exit code for gate-failure', () => {
+        assert.strictEqual(getBody('gate-failure', { exit_code: 1 }), 'Gate failed (exit 1)');
+    });
+
+    test('getBody uses ? for gate-failure with no exit code', () => {
+        assert.strictEqual(getBody('gate-failure', {}), 'Gate failed (exit ?)');
+    });
+
+    test('getBody falls back to event name for unknown events', () => {
+        assert.strictEqual(getBody('SomeEvent', {}), 'SomeEvent');
+    });
+});
+
+suite('notify', () => {
+    test('bell type writes bell character to stdout', () => {
+        let written = '';
+        const origWrite = process.stdout.write;
+        process.stdout.write = (str) => { written += str; return true; };
+        try {
+            notify({ type: 'bell' }, 'Stop', {});
+            assert.strictEqual(written, '\x07');
+        } finally {
+            process.stdout.write = origWrite;
+        }
+    });
+
+    test('defaults to bell when type is not set', () => {
+        let written = '';
+        const origWrite = process.stdout.write;
+        process.stdout.write = (str) => { written += str; return true; };
+        try {
+            notify({}, 'Stop', {});
+            assert.strictEqual(written, '\x07');
+        } finally {
+            process.stdout.write = origWrite;
+        }
+    });
+
+    test('desktop type does not crash on unsupported platform', () => {
+        // On win32 buildDesktopCommand returns null, so notify should just return
+        assert.doesNotThrow(() => {
+            notify({ type: 'desktop' }, 'Stop', {});
+        });
+    });
+
+    test('command type with missing command does not crash', () => {
+        assert.doesNotThrow(() => {
+            notify({ type: 'command' }, 'Stop', {});
+        });
     });
 });
 

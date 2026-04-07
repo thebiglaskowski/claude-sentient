@@ -116,6 +116,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notification.cjs",
+            "timeout": 3000,
+            "async": true
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -125,6 +135,16 @@
             "type": "command",
             "command": "node .claude/hooks/session-end.cjs",
             "timeout": 5000,
+            "async": true
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notification.cjs",
+            "timeout": 3000,
             "async": true
           }
         ]
@@ -186,9 +206,7 @@
             "timeout": 5000
           }
         ]
-      }
-    ],
-    "Notification": [
+      },
       {
         "hooks": [
           {

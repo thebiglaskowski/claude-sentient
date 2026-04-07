@@ -12,9 +12,8 @@
  *   - command: Custom command with {title} and {body} placeholders
  */
 
-const { execSync } = require('child_process');
-const os = require('os');
-const { getNotificationConfig, logMessage } = require('./utils.cjs');
+const { execFileSync } = require('child_process');
+const { getNotificationConfig, parseHookInput, logMessage } = require('./utils.cjs');
 
 /**
  * Resolve the hook event name to a notification event.
@@ -24,6 +23,7 @@ const { getNotificationConfig, logMessage } = require('./utils.cjs');
  * @returns {string} Resolved event name
  */
 function resolveEvent(hookEvent, input) {
+    if (!hookEvent) return 'unknown';
     if (hookEvent === 'PostToolUse') {
         const exitCode = input && input.exit_code;
         if (exitCode !== null && exitCode !== undefined && exitCode !== 0) {
@@ -37,26 +37,51 @@ function resolveEvent(hookEvent, input) {
 }
 
 /**
- * Build the platform-appropriate desktop notification command.
+ * Human-readable title for each notification event.
+ */
+const TITLES = {
+    'Stop': 'Claude Sentient: Done',
+    'gate-failure': 'Claude Sentient: Gate Failed',
+    'task-completed': 'Claude Sentient: Task Complete',
+    'session-end': 'Claude Sentient: Session Ended'
+};
+
+/**
+ * Human-readable body for each notification event.
+ * @param {string} event - Resolved event name
+ * @param {Object} input - Parsed hook input (used for exit code in gate-failure)
+ * @returns {string}
+ */
+function getBody(event, input) {
+    if (event === 'gate-failure') {
+        const exitCode = input && input.exit_code;
+        return 'Gate failed (exit ' + (exitCode || '?') + ')';
+    }
+    const bodies = {
+        'Stop': 'Work loop completed.',
+        'task-completed': 'A task was marked complete.',
+        'session-end': 'Session has ended.'
+    };
+    return bodies[event] || event;
+}
+
+/**
+ * Build the platform-appropriate desktop notification command as an
+ * array suitable for execFileSync(parts[0], parts.slice(1)).
  * @param {string} title - Notification title
  * @param {string} body - Notification body
- * @returns {string|null} Shell command string, or null if unsupported
+ * @returns {string[]|null} Command array, or null if unsupported
  */
 function buildDesktopCommand(title, body) {
-    const platform = os.platform();
-    // Escape single quotes for shell safety
-    const safeTitle = title.replace(/'/g, "'\\''");
-    const safeBody = body.replace(/'/g, "'\\''");
+    const platform = process.platform;
 
     if (platform === 'linux') {
-        return "notify-send '" + safeTitle + "' '" + safeBody + "'";
+        return ['notify-send', title, body];
     }
     if (platform === 'darwin') {
-        return "osascript -e 'display notification \"" + safeBody.replace(/"/g, '\\"') + "\" with title \"" + safeTitle.replace(/"/g, '\\"') + "\"'";
+        return ['osascript', '-e', 'display notification "' + body.replace(/"/g, '\\"') + '" with title "' + title.replace(/"/g, '\\"') + '"'];
     }
-    if (platform === 'win32') {
-        return 'powershell -Command "New-BurntToastNotification -Text \'' + safeTitle + '\', \'' + safeBody + '\'"';
-    }
+    // win32: no reliable built-in; return null to fall back to bell
     return null;
 }
 
@@ -64,10 +89,11 @@ function buildDesktopCommand(title, body) {
  * Send a notification based on the configured type.
  * @param {Object} config - Notification config
  * @param {string} event - Resolved event name
+ * @param {Object} input - Parsed hook input (for context like exit codes)
  */
-function notify(config, event) {
-    const title = 'Claude Sentient';
-    const body = event;
+function notify(config, event, input) {
+    const title = TITLES[event] || 'Claude Sentient';
+    const body = getBody(event, input);
     const type = config.type || 'bell';
 
     if (type === 'bell') {
@@ -79,7 +105,7 @@ function notify(config, event) {
         const cmd = buildDesktopCommand(title, body);
         if (cmd) {
             try {
-                execSync(cmd, { stdio: 'ignore', timeout: 2000 });
+                execFileSync(cmd[0], cmd.slice(1), { stdio: 'ignore', timeout: 2000 });
             } catch (_) {
                 // Desktop notification failed silently
             }
@@ -88,13 +114,17 @@ function notify(config, event) {
     }
 
     if (type === 'command' && config.command) {
-        const userCmd = config.command
+        const parts = config.command
             .replace(/\{title\}/g, title)
-            .replace(/\{body\}/g, body);
-        try {
-            execSync(userCmd, { stdio: 'ignore', timeout: 2000 });
-        } catch (_) {
-            // Custom command failed silently
+            .replace(/\{body\}/g, body)
+            .split(/\s+/)
+            .filter(Boolean);
+        if (parts.length > 0) {
+            try {
+                execFileSync(parts[0], parts.slice(1), { stdio: 'ignore', timeout: 2000 });
+            } catch (_) {
+                // Custom command failed silently
+            }
         }
         return;
     }
@@ -107,10 +137,7 @@ if (require.main === module) {
         if (!config) process.exit(0);
 
         const hookEvent = process.env.HOOK_EVENT || '';
-        let input = {};
-        try {
-            input = JSON.parse(process.env.HOOK_INPUT || '{}');
-        } catch (_) {}
+        const input = parseHookInput() || {};
 
         const event = resolveEvent(hookEvent, input);
 
@@ -119,11 +146,11 @@ if (require.main === module) {
             process.exit(0);
         }
 
-        notify(config, event);
+        notify(config, event, input);
     } catch (e) {
         logMessage('Notification hook error: ' + e.message, 'WARNING');
     }
     process.exit(0);
 }
 
-module.exports = { buildDesktopCommand, resolveEvent, notify };
+module.exports = { buildDesktopCommand, resolveEvent, notify, TITLES, getBody };
