@@ -75,8 +75,14 @@ function detectAgentRole(agentType, description) {
             const roleName = file.replace('.md', '');
             if (!searchText.includes(roleName)) continue;
             const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-            const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);
-            return { agentRole: roleName, rulesLoaded: sections.rules_to_load, expertise: sections.expertise };
+            // .md agents have skills: and tools: in frontmatter instead of rules_to_load: and expertise:
+            const sections = parseYamlListSections(content, ['skills', 'tools']);
+            // Extract rule names from markdown body "Apply rules from: `rule1`, `rule2`" pattern
+            const rulesMatch = content.match(/Apply rules from:\s*(.+)/);
+            const rulesLoaded = rulesMatch
+                ? rulesMatch[1].match(/`([^`]+)`/g).map(r => r.replace(/`/g, ''))
+                : sections.skills;
+            return { agentRole: roleName, rulesLoaded, expertise: sections.tools };
         }
     } catch (e) {
         logMessage(`agent-tracker: error: ${e.message}`, 'DEBUG');
