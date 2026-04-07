@@ -6,6 +6,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## v1.6.0 - Best Practice Enhancements
+
+### Added
+- Notification hook (notification.cjs): Optional audio/visual lifecycle notifications
+- /cs-batch: Fan-out tasks to parallel worktree agents with quality gates
+- /cs-schedule: Create recurring autonomous agents via native /schedule
+- CLAUDE.local.md template: Installer scaffolds personal preferences (gitignored)
+- Agent memory: All 9 agents have memory: frontmatter for persistent knowledge
+- Commit strategies: atomic (default), per-file, per-task
+- Worktree-first team mode: Default strategy for /cs-team
+- MCP recommendations: Added DeepWiki, Excalidraw, Playwright
+- Browser verification: Advisory gate in VERIFY for web projects
+- Cross-model workflow: Claude + Codex QA review reference
+- Worked examples: Progressive disclosure for all 3 skills
+- Native tips doc: /btw, /branch, /voice, /loop, /batch, --bare, --add-dir
+
+### Changed
+- /cs-loop COMMIT phase supports commit strategy selection
+- Team orchestration defaults to worktree-per-teammate
+- Profile detection suggests CLAUDE.local.md creation
+
+### Source
+Enhancements from comparing with shanraisshan/claude-code-best-practice (32K+ stars).
+
+---
+
 ## [1.5.9] — 2026-03-19
 
 ### Added

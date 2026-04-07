@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2026-03-09
 > **Current Phase:** Phase 4 — Enhancement & Integration
-> **Version:** 1.5.9
+> **Version:** 1.6.0
 
 ---
 
@@ -12,11 +12,11 @@
 
 ```
 Foundation          [████████████████████] 100% ✓
-Commands            [████████████████████] 100% ✓ (17 commands)
+Commands            [████████████████████] 100% ✓ (19 commands)
 Profiles            [████████████████████] 100% ✓ (9 profiles + infrastructure)
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
-Hooks               [████████████████████] 100% ✓ (16 hooks, enhanced)
+Hooks               [████████████████████] 100% ✓ (17 hooks, enhanced)
 Agent Teams         [████████████████████] 100% ✓ (cs-team + 9 agent roles)
 Self-Healing        [████████████████████] 100% ✓ (auto-fix sub-loop)
 Agent Roles         [████████████████████] 100% ✓ (9 specialized agents)
