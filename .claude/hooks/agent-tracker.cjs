@@ -56,7 +56,7 @@ function buildAgentEntry(agentId, { type, description, model, runInBackground })
 }
 
 /**
- * Detect agent role by matching against YAML definitions in agents/.
+ * Detect agent role by matching against native agent definitions in .claude/agents/.
  * @param {string} agentType - Agent subtype
  * @param {string} description - Agent task description
  * @returns {{agentRole: string|null, rulesLoaded: string[], expertise: string[]}}
@@ -66,13 +66,13 @@ function detectAgentRole(agentType, description) {
         return { agentRole: agentType, rulesLoaded: [], expertise: [] };
     }
     try {
-        const agentsDir = path.resolve(__dirname, '..', '..', 'agents');
+        const agentsDir = path.resolve(__dirname, '..', 'agents');
         if (!fs.existsSync(agentsDir)) return { agentRole: null, rulesLoaded: [], expertise: [] };
 
-        const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml'));
+        const agentFiles = fs.readdirSync(agentsDir).filter(f => f.endsWith('.md'));
         const searchText = (description + ' ' + agentType).toLowerCase();
         for (const file of agentFiles) {
-            const roleName = file.replace('.yaml', '');
+            const roleName = file.replace('.md', '');
             if (!searchText.includes(roleName)) continue;
             const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
             const sections = parseYamlListSections(content, ['rules_to_load', 'expertise']);

@@ -11,7 +11,7 @@ const path = require('path');
 const os = require('os');
 
 // Shared test infrastructure
-const { test, suite, summary, getResults } = require('../../../test-utils');
+const { test, suite, summary, getResults } = require('../../../.claude-sentient/test-utils');
 
 suite('notification.cjs — module loading', () => {
     test('module loads without error', () => {

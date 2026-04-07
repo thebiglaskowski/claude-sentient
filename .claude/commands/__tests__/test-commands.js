@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Shared test infrastructure
-const { test, suite, summary, getResults } = require('../../../test-utils');
+const { test, suite, summary, getResults } = require('../../../.claude-sentient/test-utils');
 
 /**
  * Parse YAML frontmatter from a markdown file.

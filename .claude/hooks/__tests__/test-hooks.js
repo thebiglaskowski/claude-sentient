@@ -15,7 +15,7 @@ const path = require('path');
 const os = require('os');
 
 // Shared test infrastructure
-const { test, suite, skip, summary, getResults } = require('../../../test-utils');
+const { test, suite, skip, summary, getResults } = require('../../../.claude-sentient/test-utils');
 
 /**
  * Run a hook script with JSON input via env var, return parsed stdout.
