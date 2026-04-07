@@ -29,17 +29,19 @@ All three must be true AND `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be enable
 
 ## Teammate Spawning
 
-Create an Agent Team with agent-specific configuration:
+**Default strategy: worktree-per-teammate** (eliminates file ownership conflicts).
 
-```
-Teammate "{agent-name}":
-- Prompt: {spawn_prompt from agent definition}
-- Scope: {file_scope_hints, or directory/package they own}
-- Tasks: {specific task IDs and descriptions}
-- Rules: {rules_to_load from agent}
-- Quality gates: {lint command}, {test command}
-- Rule: Only modify files in your scope
-```
+1. Partition tasks into independent work streams (no overlapping files)
+2. For each stream, create an isolated worktree:
+   - Branch: `team/{agent-name}-{stream-id}`
+   - Path: `.worktrees/team-{agent-name}`
+3. Spawn teammate agent in the worktree directory
+4. Agent receives: task list, quality gates, file scope, rules
+5. On completion: run gates in worktree, merge if passing
+
+**Fallback**: If tasks share files or worktrees unavailable, fall back to shared workspace with file ownership tracking (original behavior).
+
+See `references/worktree-strategy.md` for full details, conflict resolution, and merge order.
 
 Require plan approval before teammates make changes (see [Plan Approval Protocol](#plan-approval-protocol) below).
 
@@ -133,3 +135,5 @@ When all teammate tasks complete:
 - **team-state.json default shape**: Both `teammate-idle.cjs` and `task-completed.cjs` must use identical defaults (`teammates`, `completed_tasks`, `file_ownership`). Mismatched defaults cause crashes when the wrong hook creates the file first.
 - **CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS**: Team mode silently degrades to solo mode if this env var is not set. Don't report "team not eligible" when the real issue is the missing env var.
 - **completed_tasks cap**: Capped at 100 entries in team-state.json. Long-running team sessions may lose early task history.
+- Worktree cleanup: Always `git worktree remove` after merge, even on failure - leaked worktrees consume disk
+- Merge order matters: Merge agents that touch foundational files (types, interfaces) first

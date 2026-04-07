@@ -155,6 +155,15 @@ Teammates are configured with the project's profile and quality gates:
          description: "Use standard /cs-loop instead"
    ```
 
+### Worktree Isolation (default)
+
+When spawning teammates, prefer worktree-per-teammate:
+1. `git worktree add -b team/{agent} .worktrees/team-{agent}`
+2. Spawn agent in the worktree directory
+3. Merge results back after gates pass
+
+This eliminates file ownership conflicts. Fall back to shared workspace only when tasks must modify the same files.
+
 6. **CREATE TEAM**
 
    For each teammate, check if a matching agent definition exists in `agents/*.yaml`:
