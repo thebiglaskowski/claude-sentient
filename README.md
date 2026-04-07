@@ -8,10 +8,10 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](.claude-sentient/CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
-[![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](profiles/)
+[![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](.claude-sentient/profiles/)
 
 ---
 
@@ -129,19 +129,19 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 
 ## 📋 Profile Detection
 
-Sentient auto-detects your project type and loads appropriate tooling. See [`profiles/`](profiles/) for full configurations.
+Sentient auto-detects your project type and loads appropriate tooling. See [`.claude-sentient/profiles/`](.claude-sentient/profiles/) for full configurations.
 
 | Profile | Detected By | Tools | Config |
 |---------|-------------|-------|--------|
-| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright | [python.yaml](profiles/python.yaml) |
-| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc | [typescript.yaml](profiles/typescript.yaml) |
-| Go | `go.mod`, `*.go` | golangci-lint, go test | [go.yaml](profiles/go.yaml) |
-| Rust | `Cargo.toml` | clippy, cargo test | [rust.yaml](profiles/rust.yaml) |
-| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit | [java.yaml](profiles/java.yaml) |
-| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest | [cpp.yaml](profiles/cpp.yaml) |
-| Ruby | `Gemfile` | rubocop, rspec | [ruby.yaml](profiles/ruby.yaml) |
-| Shell | `*.sh`, `*.ps1` | shellcheck | [shell.yaml](profiles/shell.yaml) |
-| General | (fallback) | auto-detect | [general.yaml](profiles/general.yaml) |
+| Python | `pyproject.toml`, `*.py` | ruff, pytest, pyright | [python.yaml](.claude-sentient/profiles/python.yaml) |
+| TypeScript | `tsconfig.json`, `*.ts` | eslint, vitest, tsc | [typescript.yaml](.claude-sentient/profiles/typescript.yaml) |
+| Go | `go.mod`, `*.go` | golangci-lint, go test | [go.yaml](.claude-sentient/profiles/go.yaml) |
+| Rust | `Cargo.toml` | clippy, cargo test | [rust.yaml](.claude-sentient/profiles/rust.yaml) |
+| Java | `pom.xml`, `build.gradle` | checkstyle, JUnit | [java.yaml](.claude-sentient/profiles/java.yaml) |
+| C/C++ | `CMakeLists.txt`, `Makefile` | clang-tidy, ctest | [cpp.yaml](.claude-sentient/profiles/cpp.yaml) |
+| Ruby | `Gemfile` | rubocop, rspec | [ruby.yaml](.claude-sentient/profiles/ruby.yaml) |
+| Shell | `*.sh`, `*.ps1` | shellcheck | [shell.yaml](.claude-sentient/profiles/shell.yaml) |
+| General | (fallback) | auto-detect | [general.yaml](.claude-sentient/profiles/general.yaml) |
 
 ### Python Environment Detection
 
@@ -279,12 +279,13 @@ your-project/
 │   ├── skills/*/           # 3 skills with references/ subdirectories
 │   ├── settings.json       # Hook + team configuration
 │   └── rules/*.md          # Path-scoped rules + learnings
-├── profiles/*.yaml          # 9 language profiles + schema
-├── agents/*.yaml            # 9 specialized agent roles
-├── schemas/*.json           # 12 JSON schemas (validation)
-├── templates/*.md           # Governance templates
-├── test-utils.js            # Shared test infrastructure
-└── rules/*.md               # 15 topic rules
+├── .claude-sentient/        # Claude Sentient project files
+│   ├── profiles/*.yaml      # 9 language profiles
+│   ├── schemas/*.json       # 12+ JSON schemas
+│   ├── templates/           # Governance templates
+│   ├── documentation/       # Feature documentation
+│   ├── examples/            # Example CLAUDE.md templates
+│   └── test-utils.js        # Shared test infrastructure
 ```
 
 ---
@@ -472,10 +473,7 @@ Test suites validate hooks, profiles, commands, agents, schemas, and cross-modul
 
 ```bash
 # Profile validation (242 tests) — schema compliance, gates, infrastructure, cross-profile consistency
-node profiles/__tests__/test-profiles.js
-
-# Agent validation (159 tests) — YAML schema, roles, expertise, spawn_prompts
-node agents/__tests__/test-agents.js
+node .claude-sentient/profiles/__tests__/test-profiles.js
 
 # Hook tests (266 tests) — security, I/O contracts, Agent Teams, context predictions
 node .claude/hooks/__tests__/test-hooks.js
@@ -484,13 +482,13 @@ node .claude/hooks/__tests__/test-hooks.js
 node .claude/commands/__tests__/test-commands.js
 
 # Schema validation (214 tests) — JSON schema structure, profile/agent/gate compliance, cross-module integrity
-node schemas/__tests__/test-schemas.js
+node .claude-sentient/schemas/__tests__/test-schemas.js
 
 # Integration tests (69 tests) — cross-file references, hook chain flow, install/uninstall parity, doc consistency, plugin parity, MCP degradation
-node integration/__tests__/test-integration.js
+node .claude-sentient/integration/__tests__/test-integration.js
 ```
 
-All core test suites use shared `test-utils.js` with built-in `assert` — zero external dependencies.
+All core test suites use shared `.claude-sentient/test-utils.js` with built-in `assert` — zero external dependencies.
 
 ---
 
@@ -523,16 +521,16 @@ Learnings are stored in [`.claude/rules/learnings.md`](.claude/rules/learnings.m
 | File | Purpose |
 |------|---------|
 | [CLAUDE.md](CLAUDE.md) | Main instructions (comprehensive reference) |
-| [STATUS.md](STATUS.md) | Current progress |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [DECISIONS.md](DECISIONS.md) | Architecture decisions |
+| [STATUS.md](.claude-sentient/STATUS.md) | Current progress |
+| [CHANGELOG.md](.claude-sentient/CHANGELOG.md) | Version history |
+| [DECISIONS.md](.claude-sentient/DECISIONS.md) | Architecture decisions |
 
 ### Reference
 | Directory | Contents |
 |-----------|----------|
-| [profiles/](profiles/) | Language-specific quality gate configurations |
-| [rules/](rules/) | Topic-specific coding standards (API design, security, etc.) |
-| [templates/](templates/) | Governance file templates |
+| [profiles/](.claude-sentient/profiles/) | Language-specific quality gate configurations |
+| [rules/](.claude/rules/) | Topic-specific coding standards (API design, security, etc.) |
+| [templates/](.claude-sentient/templates/) | Governance file templates |
 
 ---
 

@@ -104,7 +104,7 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 | Shell | `*.sh`, `*.ps1` | shellcheck |
 | General | (fallback) | auto-detect |
 
-> Profile details, model routing, gate structure: `profiles/CLAUDE.md`
+> Profile details, model routing, gate structure: `.claude-sentient/profiles/CLAUDE.md`
 
 ---
 
@@ -121,7 +121,7 @@ Before committing, these must pass:
 
 Advisory (report only): TYPE, DOCS, SECURITY.
 
-> Gate definitions live in each `profiles/*.yaml` file. See `profiles/CLAUDE.md` for structure.
+> Gate definitions live in each `.claude-sentient/profiles/*.yaml` file. See `.claude-sentient/profiles/CLAUDE.md` for structure.
 
 ---
 
@@ -142,11 +142,11 @@ Advisory (report only): TYPE, DOCS, SECURITY.
 | Topic | Location |
 |-------|----------|
 | Memory system | `/cs-learn` command, `.claude/rules/learnings.md` |
-| Governance files | `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md` |
+| Governance files | `.claude-sentient/STATUS.md`, `.claude-sentient/CHANGELOG.md`, `.claude-sentient/DECISIONS.md` |
 | Native tools used | `TaskCreate`, `EnterPlanMode`, `Task`, `.claude/hooks/*.cjs`, MCP servers |
-| Native tips | `documentation/16-native-tips.md` |
+| Native tips | `.claude-sentient/documentation/16-native-tips.md` |
 
-See @rules/_index.md for keyword-to-rule mappings and the full rules catalog.
+See @.claude/rules/_index.md for keyword-to-rule mappings and the full rules catalog.
 
 ---
 
@@ -157,9 +157,8 @@ Detailed documentation lives in nested CLAUDE.md files that load only when neede
 | Location | Content | When Loaded |
 |----------|---------|-------------|
 | `.claude/hooks/CLAUDE.md` | All 16 hooks, configuration, security patterns, state files | Editing hooks |
-| `profiles/CLAUDE.md` | Profile detection, model routing, gate structure, conventions | Editing profiles |
+| `.claude-sentient/profiles/CLAUDE.md` | Profile detection, model routing, gate structure, conventions | Editing profiles |
 | `.claude/commands/CLAUDE.md` | Command structure, documentation policy, rule auto-loading | Editing commands |
-| `agents/CLAUDE.md` | Agent role definitions, YAML structure, custom agents | Editing agent configs |
 
 ---
 
