@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](.claude-sentient/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](.claude-sentient/CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](.claude-sentient/profiles/)
@@ -91,7 +91,7 @@ By default, `learnings.md` (your decisions/patterns) is preserved and `settings.
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| 🎯 Commands | 17 | Slash commands (`/cs-*`) |
+| 🎯 Commands | 19 | Slash commands (`/cs-*`) |
 | 📋 Profiles | 9 | Language-specific quality gates |
 | 📏 Rules | 15 | Topic-specific standards |
 | 📄 Templates | 5 | Governance file templates |
