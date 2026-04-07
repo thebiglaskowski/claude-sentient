@@ -141,6 +141,9 @@ Test Results:
 | puppeteer | `@modelcontextprotocol/server-puppeteer` | - | Browser automation |
 | postgres | `@modelcontextprotocol/server-postgres` | DATABASE_URL | PostgreSQL |
 | brave-search | `@modelcontextprotocol/server-brave-search` | BRAVE_API_KEY | Web search |
+| deepwiki | `@anthropic-ai/deepwiki-mcp` | - | Wiki-style docs for any GitHub repo |
+| excalidraw | `@anthropic-ai/excalidraw-mcp` | - | Generate architecture diagrams |
+| playwright | Plugin (official) | - | Browser automation (recommended over puppeteer) |
 
 ## /cs-loop Integration
 
@@ -152,6 +155,17 @@ Test Results:
 | **memory** | INIT | Checks for previous session state |
 | **memory** | COMMIT | Saves session state for resumability |
 | **puppeteer** | VERIFY | Screenshots web apps after UI changes |
+| **deepwiki** | INIT | Fetch repo documentation for unfamiliar dependencies |
+| **excalidraw** | COMMIT | Generate architecture diagrams for /cs-docs |
+| **playwright** | VERIFY | Screenshot web apps after UI changes (preferred over puppeteer) |
+
+## Recommended Setup
+
+Most projects need 4-5 MCP servers. Don't install 15 - each adds startup overhead.
+
+**Essential**: context7 (library docs), github (PRs/issues)
+**Recommended**: playwright or puppeteer (web projects), deepwiki (open source exploration)
+**Optional**: excalidraw (diagrams), memory (session persistence), filesystem (file access)
 </context>
 
 <constraints>
