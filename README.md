@@ -8,7 +8,7 @@
 
 Claude Sentient coordinates Claude Code's native capabilities into an autonomous development workflow. It's not a replacement — it's a thin orchestration layer that makes built-in tools work together cohesively.
 
-[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](.claude-sentient/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)](.claude-sentient/CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://claude.ai)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 [![Profiles](https://img.shields.io/badge/profiles-9-orange.svg)](.claude-sentient/profiles/)
@@ -274,7 +274,7 @@ Run `/cs-validate` to see which plugins are installed and which are missing. The
 your-project/
 ├── .claude/
 │   ├── commands/cs-*.md    # 15 slash commands
-│   ├── hooks/*.cjs         # 16 hook scripts (security, teams, tracking)
+│   ├── hooks/*.cjs         # 15 hook scripts (security, teams, tracking)
 │   ├── agents/*.md         # 9 native agent definitions
 │   ├── skills/*/           # 3 skills with references/ subdirectories
 │   ├── settings.json       # Hook + team configuration
@@ -452,14 +452,13 @@ Claude Sentient includes 15 hook scripts that integrate with Claude Code's hook 
 | `context-injector.cjs` | UserPromptSubmit | Detect topics (auth, test, API), inject context |
 | `bash-validator.cjs` | PreToolUse (Bash) | Block dangerous commands (`rm -rf /`, fork bombs) |
 | `file-validator.cjs` | PreToolUse (Write/Edit) | Protect system paths, SSH keys, credentials |
-| `post-edit.cjs` | PostToolUse (Write/Edit) | Track file changes, suggest lint |
+| `post-tool-observer.cjs` | PostToolUse (Write/Edit/Bash) | Track changes, suggest lint, record gate results |
 | `agent-tracker.cjs` | SubagentStart | Track subagent spawning |
 | `agent-synthesizer.cjs` | SubagentStop | Synthesize agent results, record history |
 | `pre-compact.cjs` | PreCompact | Backup state before context compaction |
 | `dod-verifier.cjs` | Stop | Verify Definition of Done, save final state |
 | `teammate-idle.cjs` | TeammateIdle | Quality check before teammate goes idle |
 | `task-completed.cjs` | TaskCompleted | Validate deliverables before task completion |
-| `gate-monitor.cjs` | PostToolUse (Bash) | Record gate exit codes and durations |
 | `worktree-lifecycle.cjs` | WorktreeCreate/WorktreeRemove | Write context into new worktrees; log removals |
 | `config-watcher.cjs` | ConfigChange | Log settings changes; alert on hooks section edits |
 

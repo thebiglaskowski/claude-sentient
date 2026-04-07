@@ -162,6 +162,9 @@ function checkProtectedPaths(normalizedPath, filePath, toolName) {
  * Collect warning strings for sensitive files and large files.
  * @returns {string[]} Array of warning messages (may be empty)
  */
+// Extensions that are always small — skip statSync size check for these
+const SKIP_SIZE_CHECK = new Set(['.md', '.json', '.yaml', '.yml', '.toml', '.txt', '.css', '.cjs', '.mjs']);
+
 function collectWarnings(normalizedPath, filePath, fileExists) {
     const warnings = [];
     for (const pattern of SENSITIVE_FILES) {
@@ -170,11 +173,13 @@ function collectWarnings(normalizedPath, filePath, fileExists) {
             break;
         }
     }
-    if (fileExists) {
-        const stats = fs.statSync(filePath);
-        if (stats.size > LARGE_FILE_THRESHOLD) {
-            warnings.push('Large file modification');
-        }
+    if (fileExists && !SKIP_SIZE_CHECK.has(path.extname(filePath).toLowerCase())) {
+        try {
+            const stats = fs.statSync(filePath);
+            if (stats.size > LARGE_FILE_THRESHOLD) {
+                warnings.push('Large file modification');
+            }
+        } catch (_) {}
     }
     return warnings;
 }

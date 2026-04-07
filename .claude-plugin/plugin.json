@@ -67,7 +67,7 @@
     "bash-validator",
     "file-validator",
     "agent-tracker",
-    "gate-monitor",
+    "post-tool-observer",
     "context-injector",
     "task-completed",
     "teammate-idle",

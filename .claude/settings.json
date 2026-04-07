@@ -61,22 +61,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/node /home/joe/github/claude-sentient/.claude/hooks/post-edit.cjs",
-            "timeout": 3000,
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/usr/bin/node /home/joe/github/claude-sentient/.claude/hooks/gate-monitor.cjs",
+            "command": "/usr/bin/node /home/joe/github/claude-sentient/.claude/hooks/post-tool-observer.cjs",
             "timeout": 3000,
             "async": true
           }

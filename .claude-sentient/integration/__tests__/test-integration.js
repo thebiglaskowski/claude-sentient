@@ -233,21 +233,21 @@ suite('Hook chain state flow', () => {
         assert.ok('timestamp' in state, 'State file should contain timestamp');
     });
 
-    test('post-edit.js produces valid JSON output with mock file path', () => {
-        const output = runHook('post-edit.cjs', {
+    test('post-tool-observer.js produces valid JSON output with mock file path', () => {
+        const output = runHook('post-tool-observer.cjs', {
             tool_name: 'Write',
             tool_input: { file_path: '/tmp/test-file.js' },
             tool_result: { success: true },
         });
 
-        assert.ok(output, 'post-edit should produce output');
+        assert.ok(output, 'post-tool-observer should produce output');
         assert.strictEqual(typeof output, 'object', 'Output should be an object');
         assert.strictEqual(output.tracked, true, 'Should track the file change');
         assert.ok('path' in output, 'Output should contain path field');
     });
 
-    test('post-edit.js returns tracked:false for failed operations', () => {
-        const output = runHook('post-edit.cjs', {
+    test('post-tool-observer.js returns tracked:false for failed operations', () => {
+        const output = runHook('post-tool-observer.cjs', {
             tool_name: 'Write',
             tool_input: { file_path: '/tmp/test-file.js' },
             tool_result: { success: false },
@@ -430,11 +430,12 @@ suite('Hook smoke tests', () => {
         assert.ok(state.teammates.smoker.idle_count >= 1, 'should increment idle count');
     });
 
-    test('gate-monitor.cjs allows non-gate commands without writing gate_history', () => {
+    test('post-tool-observer.cjs allows non-gate commands without writing gate_history', () => {
         const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        const { exitCode } = runHookSafe('gate-monitor.cjs', {
+        const { exitCode } = runHookSafe('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'ls -la' },
             tool_result: { exit_code: 0 }
         });
@@ -448,11 +449,12 @@ suite('Hook smoke tests', () => {
         }
     });
 
-    test('gate-monitor.cjs records gate command in gate_history', () => {
+    test('post-tool-observer.cjs records gate command in gate_history', () => {
         const historyFile = path.join(tmpDir, '.claude', 'state', 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        const { exitCode } = runHookSafe('gate-monitor.cjs', {
+        const { exitCode } = runHookSafe('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'pytest tests/' },
             tool_result: { exit_code: 0 }
         });

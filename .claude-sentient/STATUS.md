@@ -16,7 +16,7 @@ Commands            [███████████████████�
 Profiles            [████████████████████] 100% ✓ (9 profiles + infrastructure)
 Templates           [████████████████████] 100% ✓
 Documentation       [████████████████████] 100% ✓
-Hooks               [████████████████████] 100% ✓ (17 hooks, enhanced)
+Hooks               [████████████████████] 100% ✓ (15 hooks, optimized)
 Agent Teams         [████████████████████] 100% ✓ (cs-team + 9 agent roles)
 Self-Healing        [████████████████████] 100% ✓ (auto-fix sub-loop)
 Agent Roles         [████████████████████] 100% ✓ (9 specialized agents)
@@ -131,7 +131,7 @@ Testing             [███████████████████�
 | Agent Roles | `.claude/agents/*.md` | ✓ 9 created |
 | Native Agents | `.claude/agents/*.md` | ✓ 9 native agent definitions |
 | Skills | `.claude/skills/` | ✓ 3 skills (quality-gates, profile-detection, team-orchestration) |
-| Hooks | `.claude/hooks/*.cjs` | ✓ 16 hooks + utils.cjs |
+| Hooks | `.claude/hooks/*.cjs` | ✓ 15 hooks + utils.cjs |
 | Hook Tests | `.claude/hooks/__tests__/` | ✓ 269 tests |
 | Profile Tests | `.claude-sentient/profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |

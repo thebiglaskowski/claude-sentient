@@ -639,11 +639,11 @@ suite('context-injector.js — topic detection', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// post-edit.js tests
+// post-tool-observer.js — Write/Edit tracking tests
 // ─────────────────────────────────────────────────────────────
-suite('post-edit.js — file change tracking', () => {
+suite('post-tool-observer.js — file change tracking', () => {
     test('tracks a file change', () => {
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/src/index.ts' },
             tool_name: 'Write',
             tool_result: { success: true }
@@ -653,7 +653,7 @@ suite('post-edit.js — file change tracking', () => {
     });
 
     test('suggests lint for Python files', () => {
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/main.py' },
             tool_name: 'Write',
             tool_result: { success: true }
@@ -662,7 +662,7 @@ suite('post-edit.js — file change tracking', () => {
     });
 
     test('suggests lint for TypeScript files', () => {
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/app.tsx' },
             tool_name: 'Edit',
             tool_result: { success: true }
@@ -671,7 +671,7 @@ suite('post-edit.js — file change tracking', () => {
     });
 
     test('does not track failed operations', () => {
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/fail.ts' },
             tool_name: 'Write',
             tool_result: { success: false }
@@ -680,7 +680,7 @@ suite('post-edit.js — file change tracking', () => {
     });
 
     test('does not track when path is missing', () => {
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: {},
             tool_name: 'Write',
             tool_result: { success: true }
@@ -690,13 +690,13 @@ suite('post-edit.js — file change tracking', () => {
 
     test('updates existing file entry instead of duplicating', () => {
         // First write
-        runHook('post-edit.cjs', {
+        runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/dup.ts' },
             tool_name: 'Write',
             tool_result: { success: true }
         });
         // Second write to same file
-        const result = runHook('post-edit.cjs', {
+        const result = runHook('post-tool-observer.cjs', {
             tool_input: { file_path: '/project/dup.ts' },
             tool_name: 'Edit',
             tool_result: { success: true }
@@ -1736,15 +1736,16 @@ suite('agent-tracker.js — agent role detection', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// gate-monitor.js tests
+// post-tool-observer.js — Bash gate monitoring tests
 // ─────────────────────────────────────────────────────────────
-suite('gate-monitor.js — gate result tracking', () => {
+suite('post-tool-observer.js — gate result tracking', () => {
     test('non-gate Bash command — no gate recorded', () => {
         // Clear any prior gate history
         const historyFile = path.join(tmpStateDir, 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'ls .' },
             tool_result: { exit_code: 0 }
         });
@@ -1761,7 +1762,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         const historyFile = path.join(tmpStateDir, 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'jest --coverage' },
             tool_result: { exit_code: 0 }
         });
@@ -1778,7 +1780,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         const historyFile = path.join(tmpStateDir, 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'pytest' },
             tool_result: { exit_code: 1 }
         });
@@ -1805,7 +1808,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         fs.writeFileSync(historyFile, JSON.stringify({ entries }));
 
         // Run hook to trigger truncation
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'ruff check .' },
             tool_result: { exit_code: 0 }
         });
@@ -1819,7 +1823,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         const historyFile = path.join(tmpStateDir, 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'cargo test' },
             tool_result: { exit_code: 0, duration_ms: 1234 }
         });
@@ -1831,16 +1836,17 @@ suite('gate-monitor.js — gate result tracking', () => {
     });
 
     test('missing HOOK_INPUT — no crash', () => {
-        // gate-monitor is observe-only, produces no stdout — just verify it exits cleanly
-        const result = runHook('gate-monitor.cjs', {});
-        assert.ok(result !== null, 'gate-monitor should not crash on empty input');
+        // observe-only, produces no stdout — just verify it exits cleanly
+        const result = runHook('post-tool-observer.cjs', { tool_name: 'Bash' });
+        assert.ok(result !== null, 'post-tool-observer should not crash on empty input');
     });
 
     test('small stdout — no masking, no outputRef in entry', () => {
         const historyFile = path.join(tmpStateDir, 'gate_history.json');
         if (fs.existsSync(historyFile)) fs.unlinkSync(historyFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'pytest' },
             tool_result: { exit_code: 0, stdout: 'short output' }
         });
@@ -1857,7 +1863,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         // Build stdout > 8000 chars
         const largeOutput = 'x'.repeat(9000);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'jest --coverage' },
             tool_result: { exit_code: 0, stdout: largeOutput }
         });
@@ -1879,7 +1886,8 @@ suite('gate-monitor.js — gate result tracking', () => {
         const logFile = path.join(tmpDir, '.claude', 'session.log');
         if (fs.existsSync(logFile)) fs.unlinkSync(logFile);
 
-        runHook('gate-monitor.cjs', {
+        runHook('post-tool-observer.cjs', {
+            tool_name: 'Bash',
             tool_input: { command: 'jest --coverage' },
             tool_result: {}   // no exit_code key — mimics Claude Code PostToolUse
         });

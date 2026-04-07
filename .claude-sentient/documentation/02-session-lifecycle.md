@@ -105,8 +105,8 @@ cs-loop INIT reads this file at startup if it exists, restoring session context 
   session_start.json       # Written by session-start (every session)
   current_task.json        # Written by cs-loop EXECUTE
   compact-context.json     # Written by pre-compact
-  file_changes.json        # Written by post-edit
-  gate_history.json        # Written by gate-monitor
+  file_changes.json        # Written by post-tool-observer
+  gate_history.json        # Written by post-tool-observer
   team-state.json          # Written by teammate-idle/task-completed
   context_degradation.json # Written by context-injector
   config_changes.json      # Written by config-watcher (capped at 20)

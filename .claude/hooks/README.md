@@ -11,7 +11,7 @@ This directory contains hook scripts that integrate with Claude Code's hook syst
 | `context-injector.cjs` | UserPromptSubmit | Detect topics, inject context |
 | `bash-validator.cjs` | PreToolUse (Bash) | Block dangerous commands |
 | `file-validator.cjs` | PreToolUse (Write/Edit) | Validate file paths |
-| `post-edit.cjs` | PostToolUse (Write/Edit) | Track changes, suggest lint |
+| `post-tool-observer.cjs` | PostToolUse (Write/Edit/Bash) | Track changes, suggest lint, record gate results |
 | `agent-tracker.cjs` | SubagentStart | Track agent spawning |
 | `agent-synthesizer.cjs` | SubagentStop | Synthesize agent results |
 | `pre-compact.cjs` | PreCompact | Backup state before compaction |

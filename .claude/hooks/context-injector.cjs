@@ -115,8 +115,9 @@ function main() {
         // No input available
     }
 
-    const detectedTopics = detectTopics(promptText.toLowerCase());
-    const filePredictions = buildFilePredictions(detectedTopics);
+    const promptLower = promptText.toLowerCase();
+    const detectedTopics = promptLower.length >= 5 ? detectTopics(promptLower) : [];
+    const filePredictions = detectedTopics.length > 0 ? buildFilePredictions(detectedTopics) : [];
 
     // Only persist prompt metadata and log when there is actual content
     // appendCapped returns the new array length — pass it to checkContextDegradation

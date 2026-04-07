@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## v1.7.1 - Performance Optimization
+
+### Changed
+- file-validator.cjs: Skip statSync for known-small file extensions (.md, .json, .yaml, etc.)
+- session-start.cjs: Single readdirSync + Set lookup replaces 13 sequential existsSync calls
+- context-injector.cjs: Skip topic detection for short prompts (< 5 chars)
+- Merged post-edit.cjs + gate-monitor.cjs into post-tool-observer.cjs (16 → 15 hooks, one fewer process spawn per PostToolUse)
+- Trimmed command token waste in cs-loop (commit strategy details, avoid section)
+
+### Fixed
+- dod-verifier.cjs: Removed process.exit(2) on dirty git state — was causing infinite stop-hook retry loop
+
+### Removed
+- post-edit.cjs (merged into post-tool-observer.cjs)
+- gate-monitor.cjs (merged into post-tool-observer.cjs)
+
+---
+
 ## v1.7.0 - Directory Restructuring
 
 ### Changed

@@ -306,7 +306,7 @@ Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
 Write-Host '  .claude/commands/cs-*.md              (15 commands)'
-Write-Host '  .claude/hooks/*.cjs                    (16 hook scripts)'
+Write-Host '  .claude/hooks/*.cjs                    (15 hook scripts)'
 Write-Host '  .claude/hooks/__tests__/              (266 hook tests)'
 Write-Host '  .claude/settings.json                 (hook configuration)'
 Write-Host '  .claude/agents/*.md                   (9 native agent definitions)'

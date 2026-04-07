@@ -17,23 +17,20 @@ const { ensureStateDir, saveState, logMessage, GIT_EXEC_OPTIONS, getProjectRoot,
 
 /**
  * Detect project profile from root-level marker files.
- * @param {string} cwd - Current working directory
+ * Uses a pre-built Set of filenames (single readdirSync) instead of 13 individual existsSync calls.
+ * @param {Set<string>} rootFiles - Set of filenames in the project root
  * @returns {string|null} Profile name or null if not detected
  */
-function detectRootProfile(cwd) {
-    if (fs.existsSync(path.join(cwd, 'pyproject.toml')) || fs.existsSync(path.join(cwd, 'setup.py')) || fs.existsSync(path.join(cwd, 'requirements.txt'))) {
+function detectRootProfile(rootFiles) {
+    if (rootFiles.has('pyproject.toml') || rootFiles.has('setup.py') || rootFiles.has('requirements.txt')) {
         return 'python';
     }
-    if (fs.existsSync(path.join(cwd, 'tsconfig.json'))) return 'typescript';
-    if (fs.existsSync(path.join(cwd, 'go.mod'))) return 'go';
-    if (fs.existsSync(path.join(cwd, 'Cargo.toml'))) return 'rust';
-    if (fs.existsSync(path.join(cwd, 'pom.xml')) || fs.existsSync(path.join(cwd, 'build.gradle'))) {
-        return 'java';
-    }
-    if (fs.existsSync(path.join(cwd, 'CMakeLists.txt')) || fs.existsSync(path.join(cwd, 'Makefile'))) {
-        return 'cpp';
-    }
-    if (fs.existsSync(path.join(cwd, 'Gemfile'))) return 'ruby';
+    if (rootFiles.has('tsconfig.json')) return 'typescript';
+    if (rootFiles.has('go.mod')) return 'go';
+    if (rootFiles.has('Cargo.toml')) return 'rust';
+    if (rootFiles.has('pom.xml') || rootFiles.has('build.gradle')) return 'java';
+    if (rootFiles.has('CMakeLists.txt') || rootFiles.has('Makefile')) return 'cpp';
+    if (rootFiles.has('Gemfile')) return 'ruby';
     return null;
 }
 
@@ -69,15 +66,18 @@ function scanMonorepoDir(dirPath) {
 /**
  * Detect project profile by scanning common monorepo directory structures.
  * @param {string} cwd - Current working directory
+ * @param {Set<string>} rootFiles - Set of filenames in the project root
  * @returns {string|null} Profile name or null if not detected
  */
-function detectMonorepoProfile(cwd) {
+function detectMonorepoProfile(cwd, rootFiles) {
     const monorepoLocations = ['packages', 'apps', 'src'];
-    // Early exit: if none of the monorepo dirs exist, skip scanning entirely
-    if (!monorepoLocations.some(dir => fs.existsSync(path.join(cwd, dir)))) return null;
+    if (!monorepoLocations.some(dir => rootFiles.has(dir))) return null;
     for (const dir of monorepoLocations) {
+        if (!rootFiles.has(dir)) continue;
         const dirPath = path.join(cwd, dir);
-        if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) continue;
+        try {
+            if (!fs.statSync(dirPath).isDirectory()) continue;
+        } catch (_) { continue; }
         const result = scanMonorepoDir(dirPath);
         if (result) return result;
     }
@@ -89,9 +89,9 @@ function detectMonorepoProfile(cwd) {
  * @param {string} cwd - Current working directory
  * @returns {string|null} 'typescript' if TypeScript is listed, 'general' if package.json exists, null otherwise
  */
-function detectFromPackageJson(cwd) {
+function detectFromPackageJson(cwd, rootFiles) {
+    if (!rootFiles.has('package.json')) return null;
     const pkgPath = path.join(cwd, 'package.json');
-    if (!fs.existsSync(pkgPath)) return null;
 
     try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
@@ -109,13 +109,11 @@ function detectFromPackageJson(cwd) {
  * @param {string} cwd - Current working directory
  * @returns {string|null} 'shell' if enough shell scripts found, null otherwise
  */
-function detectShellProfile(cwd) {
-    try {
-        const files = fs.readdirSync(cwd);
-        const shellFiles = files.filter(f => f.endsWith('.sh') || f.endsWith('.ps1'));
-        if (shellFiles.length >= MIN_SHELL_FILES) return 'shell';
-    } catch (e) {
-        // Ignore read errors
+function detectShellProfile(rootFiles) {
+    let shellCount = 0;
+    for (const f of rootFiles) {
+        if (f.endsWith('.sh') || f.endsWith('.ps1')) shellCount++;
+        if (shellCount >= MIN_SHELL_FILES) return 'shell';
     }
     return null;
 }
@@ -127,10 +125,12 @@ function detectShellProfile(cwd) {
  */
 function detectProfile() {
     const cwd = process.cwd();
-    return detectRootProfile(cwd)
-        || detectMonorepoProfile(cwd)
-        || detectFromPackageJson(cwd)
-        || detectShellProfile(cwd)
+    let rootFiles;
+    try { rootFiles = new Set(fs.readdirSync(cwd)); } catch (_) { rootFiles = new Set(); }
+    return detectRootProfile(rootFiles)
+        || detectMonorepoProfile(cwd, rootFiles)
+        || detectFromPackageJson(cwd, rootFiles)
+        || detectShellProfile(rootFiles)
         || 'general';
 }
 

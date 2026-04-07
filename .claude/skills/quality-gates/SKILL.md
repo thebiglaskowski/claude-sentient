@@ -90,6 +90,6 @@ Default is `atomic` (single checkpoint commit). Override via `--commit-strategy`
 
 - **Never dismiss errors as "pre-existing"**: Fix ALL lint issues during VERIFY — even if they existed before your changes. If ruff reports it, fix it. This is an Integrity Rule.
 - **Never modify test assertions**: When tests fail, fix the source logic, not the expected values. If tests are genuinely wrong, report to the user rather than "fixing" assertions.
-- **gate-monitor null exit_code**: Claude Code's PostToolUse may omit `exit_code` (yields null). gate-monitor treats null as inconclusive (`passed: null`), not failure. Don't log spurious "Gate failed (exit null)" entries.
+- **post-tool-observer null exit_code**: Claude Code's PostToolUse may omit `exit_code` (yields null). post-tool-observer treats null as inconclusive (`passed: null`), not failure. Don't log spurious "Gate failed (exit null)" entries.
 - **Large gate output truncation**: Stdout > 8000 chars is saved to `.claude/state/gate-output/` and replaced with a reference. If you see `outputRef` in gate_history.json instead of raw output, read the referenced file.
 - **Error count regression**: If auto-fix attempt increases the error count, revert immediately. Don't try to "fix forward" — the fix introduced new problems.

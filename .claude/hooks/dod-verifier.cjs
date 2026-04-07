@@ -129,8 +129,6 @@ function main() {
 
     saveState('last_verification.json', verification);
     console.log(JSON.stringify(verification));
-
-    if (!gitClean && fileChanges.length > 0) process.exit(2);
 }
 
 main();

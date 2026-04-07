@@ -11,18 +11,18 @@ status: draft
 
 # Quality Gates
 
-> Two hooks enforce quality: gate-monitor (async PostToolUse) observes gate command outcomes and records them; dod-verifier (sync Stop hook) checks that gates actually ran against changed code before the session ends.
+> Two hooks enforce quality: post-tool-observer (async PostToolUse) observes gate command outcomes and records them; dod-verifier (sync Stop hook) checks that gates actually ran against changed code before the session ends.
 
 ## Hook Overview
 
 | Hook | Event | Sync | Purpose |
 |------|-------|------|---------|
-| `gate-monitor.cjs` | PostToolUse/Bash | async | Record gate command outcomes to gate_history.json |
+| `post-tool-observer.cjs` | PostToolUse (Write/Edit/Bash) | async | Track file changes, suggest lint, record gate outcomes |
 | `dod-verifier.cjs` | Stop | sync | Verify gates ran against code files modified this session |
 
 ---
 
-## gate-monitor.cjs
+## post-tool-observer.cjs (gate monitoring)
 
 ### Gate Pattern Detection
 
@@ -70,7 +70,7 @@ Gate stdout exceeding `MAX_OBSERVATION_SIZE = 8000` chars is saved to a file ins
 
 ### Async Delivery
 
-gate-monitor is `async: true` — it fires after the Bash command completes and does not block Claude's next turn. Gate results are available in `gate_history.json` for dod-verifier to read.
+post-tool-observer is `async: true` — it fires after the tool call completes and does not block Claude's next turn. Gate results are available in `gate_history.json` for dod-verifier to read.
 
 ---
 
@@ -143,8 +143,8 @@ Append-only array stored at `.claude/state/gate_history.json`:
 
 ## Business Rules
 
-- **gate-monitor early exit**: Non-gate commands return immediately — eliminates 3-4 sync file ops per Bash PostToolUse
+- **post-tool-observer early exit**: Non-gate Bash commands return immediately — eliminates 3-4 sync file ops per Bash PostToolUse
 - **null exit_code**: Treated as `passed: null` (inconclusive), not failure — prevents spurious "Gate failed (exit null)" log entries
 - **dod-verifier always exits 0**: It reports warnings but never blocks Claude from responding
-- **Async delivery semantics**: With `async: true`, HookResult delivers on the next turn. gate-monitor errors are silent — kept minimal (pure state writer) to avoid silent failures
+- **Async delivery semantics**: With `async: true`, HookResult delivers on the next turn. post-tool-observer errors are silent — kept minimal (pure state writer) to avoid silent failures
 - **Quality gate sources**: Gate definitions come from `.claude-sentient/profiles/*.yaml`, not hard-coded in hooks

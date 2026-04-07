@@ -99,12 +99,12 @@ const MS_PER_SECOND = 1000;           // agent-synthesizer.cjs: milliseconds-to-
 const MAX_PATH_LENGTH = 4096;         // file-validator.cjs: maximum file path length (internal only)
 const MAX_INPUT_SIZE = 1048576;       // parseHookInput: max HOOK_INPUT size (1MB)
 const MAX_SANITIZE_DEPTH = 50;        // sanitizeJson: max recursion depth
-const MAX_GATE_HISTORY = 200;         // gate-monitor.cjs: cap on gate history entries
-const MAX_GATE_LOG_TRUNCATE = 80;     // gate-monitor.cjs: truncation for gate log messages
+const MAX_GATE_HISTORY = 200;         // post-tool-observer.cjs: cap on gate history entries
+const MAX_GATE_LOG_TRUNCATE = 80;     // post-tool-observer.cjs: truncation for gate log messages
 const CONTEXT_DEGRADATION_THRESHOLD = 20; // context-injector.cjs: high warning threshold (prompt count)
 const CONTEXT_DEGRADATION_EARLY = 15;     // context-injector.cjs: medium warning threshold
-const MAX_OBSERVATION_SIZE = 8000;    // gate-monitor.cjs: max stdout chars before masking to file
-const MAX_GATE_OUTPUTS = 20;          // gate-monitor.cjs: cap on saved gate output files
+const MAX_OBSERVATION_SIZE = 8000;    // post-tool-observer.cjs: max stdout chars before masking to file
+const MAX_GATE_OUTPUTS = 20;          // post-tool-observer.cjs: cap on saved gate output files
 const MAX_SKILL_USAGE = 200;          // skill-tracker.cjs: cap on skill usage history
 
 const MIN_SHELL_FILES = 3;              // session-start.cjs: threshold for shell profile detection

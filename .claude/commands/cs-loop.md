@@ -175,27 +175,9 @@ Run quality gates from profile. Follow the quality-gates skill procedure.
 | `per-file` | Separate commit per modified file (each must pass lint) |
 | `per-task` | One commit per completed task |
 
-See `quality-gates/references/commit-strategies.md` for detailed rules.
+See `quality-gates/references/commit-strategies.md` for detailed rules per strategy.
 
-**Strategy: atomic** (default)
-1. Stage all changes: `git add <files>`
-2. Create commit with conventional message (`feat:`, `fix:`, etc.)
-
-**Strategy: per-file**
-1. For each modified file (ordered by dependency - foundational types first):
-   a. Stage single file: `git add <file>`
-   b. Run linter on that file (must pass independently)
-   c. Commit: `git commit -m "feat(<scope>): <what changed>"`
-   d. If lint fails, stage the fix too and commit together
-2. Tightly coupled files (changing one breaks the other) get committed together
-
-**Strategy: per-task**
-1. After each `TaskUpdate(status: completed)` in EXECUTE (not here):
-   a. Stage files for that task: `git add <task-files>`
-   b. Commit: `git commit -m "feat: <task subject>"`
-2. In COMMIT phase, only handle remaining unstaged changes
-
-**Post-commit (all strategies):**
+**Post-commit:**
 3. **Doc sync check**: If changed files correspond to a feature in `documentation/`, check whether the doc needs updating — business rules, API shapes, or edge cases may have changed. If out of date, run `/cs-docs "feature name"` to update.
 4. Auto-update STATUS.md and CHANGELOG.md (for `feat:`/`fix:` commits)
 5. MCP: github (link commits to issues, create PRs), memory (persist session state)
@@ -224,15 +206,10 @@ Report: `[COMMIT] Created checkpoint: {hash} (strategy: {strategy})`
 </constraints>
 
 <avoid>
-- **Overengineering**: Don't add features beyond what was asked. Don't create abstractions for one-time operations.
-- **Speculation**: Don't propose changes to code you haven't read. Read and understand files before editing.
-- **Test hacking**: Don't hard-code values or create workarounds. Implement general solutions.
-- **Skipping verification**: Don't skip quality gates. Fix issues, don't bypass.
-- **Context abandonment**: Don't stop early. Save progress and continue.
-- **Dismissing errors**: Don't claim errors are "pre-existing" without proof (git blame). Own mistakes.
-- **Quick-fix workarounds**: Solve root causes, not symptoms.
-- **Ignoring architecture**: Match existing patterns. Check DECISIONS.md.
-- **Gaslighting**: Don't claim things that aren't true. If uncertain, say so.
+- Skipping quality gates or dismissing errors as "pre-existing"
+- Adding features/abstractions beyond what was asked
+- Proposing changes to code you haven't read
+- Hard-coding values or workarounds instead of general solutions
 </avoid>
 
 <output_format>
