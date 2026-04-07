@@ -35,8 +35,8 @@ Claude Sentient can be used in two modes:
 | Component | Required? | Notes |
 |-----------|-----------|-------|
 | `.claude/commands/cs-*.md` | ✓ Required | Core commands must exist |
-| `profiles/*.yaml` | ✓ Required | At least general.yaml |
-| `rules/*.md` | ✓ Required | Topic rules for guidance |
+| `.claude-sentient/profiles/*.yaml` | ✓ Required | At least general.yaml |
+| `.claude/rules/*.md` | ✓ Required | Topic rules for guidance |
 | `.claude/rules/learnings.md` | ✓ Required | Memory file |
 | `.claude/settings.json` | ✓ Required | Hook configuration |
 | `STATUS.md` | Optional | For larger projects |
@@ -61,12 +61,12 @@ Check if this is the claude-sentient repo (development) or a user project:
 - Required: cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md, cs-docs.md, cs-sessions.md, cs-multi.md, cs-debug.md, cs-log.md
 
 **Profiles (Required):**
-- Verify `profiles/*.yaml` files exist
+- Verify `.claude-sentient/profiles/*.yaml` files exist
 - Required: general.yaml (others are optional but recommended)
 - Check that profiles have `name` and `gates` fields
 
 **Rules (Required):**
-- Verify `rules/*.md` files exist
+- Verify `.claude/rules/*.md` files exist
 - Check for `_index.md`
 
 **Memory (Required):**
@@ -84,7 +84,7 @@ Check if this is the claude-sentient repo (development) or a user project:
 
 **Governance Files (Optional):**
 - Check for STATUS.md, CHANGELOG.md, DECISIONS.md in root
-- If missing, note as "available in templates/" not as an error
+- If missing, note as "available in .claude-sentient/templates/" not as an error
 - These are **optional** for most projects
 
 **Source Commands (Development Only):**
@@ -159,10 +159,10 @@ REQUIRED COMPONENTS:
     ✓ cs-loop.md, cs-plan.md, cs-status.md, cs-learn.md, cs-validate.md, cs-init.md, cs-team.md
     + bonus: cs-assess.md, cs-mcp.md, cs-review.md, cs-ui.md
 
-  Profiles (profiles/):
+  Profiles (.claude-sentient/profiles/):
     ✓ python.yaml, typescript.yaml, go.yaml, shell.yaml, general.yaml
 
-  Rules (rules/):
+  Rules (.claude/rules/):
     ✓ 15 rule files, _index.md present
 
   Memory:
@@ -172,12 +172,12 @@ REQUIRED COMPONENTS:
 OPTIONAL COMPONENTS:
 
   Governance Files:
-    ○ STATUS.md      (available: templates/STATUS.md)
-    ○ CHANGELOG.md   (available: templates/CHANGELOG.md)
-    ○ DECISIONS.md   (available: templates/DECISIONS.md)
+    ○ STATUS.md      (available: .claude-sentient/templates/STATUS.md)
+    ○ CHANGELOG.md   (available: .claude-sentient/templates/CHANGELOG.md)
+    ○ DECISIONS.md   (available: .claude-sentient/templates/DECISIONS.md)
 
     These are optional. Use /cs-validate --setup to create them,
-    or copy manually from templates/ when needed.
+    or copy manually from .claude-sentient/templates/ when needed.
 
 PLUGINS (advisory):
   ✓ security-guidance

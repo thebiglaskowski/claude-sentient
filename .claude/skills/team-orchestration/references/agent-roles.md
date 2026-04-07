@@ -29,4 +29,4 @@ The `agent-tracker.cjs` hook has a `KNOWN_ROLES` set for these built-in roles: `
 
 ## Custom Agents
 
-Projects can define custom agents in `agents/*.yaml` or `.claude/agents/*.md`. Custom agents follow the same YAML schema but can have project-specific expertise arrays and spawn prompts.
+Projects can define custom agents in `.claude/agents/*.md`. Custom agents can have project-specific expertise arrays and spawn prompts.

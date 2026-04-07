@@ -23,7 +23,7 @@ None.
 
 ### 1. Detect Profile
 
-Load profile from `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field. If state file missing or stale, fall back to scanning for project files (see `profiles/CLAUDE.md`).
+Load profile from `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field. If state file missing or stale, fall back to scanning for project files (see `.claude-sentient/profiles/CLAUDE.md`).
 
 ### 2. Get Task Status
 

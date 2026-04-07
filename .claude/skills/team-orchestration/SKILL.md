@@ -22,7 +22,7 @@ All three must be true AND `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be enable
 
 ## Agent Matching
 
-1. Read `agents/*.yaml` files (or use `.claude/agents/*.md` native agents)
+1. Read `.claude/agents/*.md` agent definition files
 2. Match each work stream to the best-fit agent based on `expertise` arrays
 3. Use the agent's `spawn_prompt`, `rules_to_load`, and `file_scope_hints`
 4. Fall back to generic role prompts if no matching agent exists

@@ -55,7 +55,7 @@ Claude Sentient automates documentation based on task context:
 ## Rule Auto-Loading
 
 During `/cs-loop` INIT, rules are loaded by task keywords.
-Full mapping: `rules/_index.md`
+Full mapping: `.claude/rules/_index.md`
 
 ---
 

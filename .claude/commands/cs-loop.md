@@ -64,9 +64,9 @@ Follow the profile-detection skill procedure:
    - This step is mandatory: the compact-context tells you *what* was being worked on but does not restore the actual code into context
 2. Load profile from `.claude/state/session_start.json` (fall back to file scanning)
 3. Detect Python environment if applicable (conda/venv/poetry/pdm)
-4. Load rules based on task keywords (see `rules/_index.md`). Then do a second semantic pass: briefly review `rules/_index.md` to identify any additional rules not captured by keyword matching but semantically relevant to the task. Note: Rules with `paths:` frontmatter in `.claude/rules/` also auto-load for matching files
+4. Load rules based on task keywords (see `.claude/rules/_index.md`). Then do a second semantic pass: briefly review `.claude/rules/_index.md` to identify any additional rules not captured by keyword matching but semantically relevant to the task. Note: Rules with `paths:` frontmatter in `.claude/rules/` also auto-load for matching files
 5. Detect web project, auto-load ui-ux-design rules
-6. Check governance files exist, create from `templates/` if missing
+6. Check governance files exist, create from `.claude-sentient/templates/` if missing
 7. Check for CLAUDE.md, suggest `/cs-init` if missing
 8. MCP: context7 (library docs), github (issues/PRs), memory (prior decisions, cross-project learnings)
 9. WebFetch dependency changelogs for update/upgrade/migrate tasks
@@ -127,7 +127,7 @@ For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, d
 **Team Mode** (when approved in PLAN):
 
 Follow the team-orchestration skill procedure:
-1. Load agent definitions from `agents/*.yaml` or `.claude/agents/*.md`
+1. Load agent definitions from `.claude/agents/*.md`
 2. Match agents to work streams by `expertise` arrays
 3. Spawn teammates with agent-specific prompts, scopes, and quality gates
 4. Monitor via shared task list, redirect scope drift, unblock issues

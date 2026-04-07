@@ -1,6 +1,6 @@
 # Per-Profile Gate Commands
 
-Quick reference for gate commands across all profiles. Read from `profiles/{name}.yaml` at runtime.
+Quick reference for gate commands across all profiles. Read from `.claude-sentient/profiles/{name}.yaml` at runtime.
 
 ## Gate Command Matrix
 

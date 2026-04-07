@@ -185,5 +185,5 @@ To change routing:
 
 - Default routing is optimized for ~75% cost reduction vs all-opus
 - Keyword overrides escalate to opus for security-critical tasks automatically
-- Model routing docs in `profiles/CLAUDE.md` show the full routing table
+- Model routing docs in `.claude-sentient/profiles/CLAUDE.md` show the full routing table
 - Config persists across sessions in `.claude/state/multi-model.json`

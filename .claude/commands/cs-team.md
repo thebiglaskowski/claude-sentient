@@ -69,7 +69,7 @@ Teams are stored in `~/.claude/teams/{team-name}/config.json` and tasks in `~/.c
 
 ### Specialized Agent Definitions
 
-Agent definitions in `agents/*.yaml` provide role-specific expertise, spawn prompts, and quality gate requirements. During team design, load all agent YAML files and match their `expertise` arrays against work stream requirements.
+Agent definitions in `.claude/agents/*.md` provide role-specific expertise, spawn prompts, and quality gate requirements. During team design, load all agent definition files and match their `expertise` arrays against work stream requirements.
 
 Available agents: `security`, `devops`, `frontend`, `backend`, `tester`, `architect`.
 
@@ -111,8 +111,8 @@ Teammates are configured with the project's profile and quality gates:
 
 2. **DETECT PROFILE**
    - Read `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field.
-   - If state file missing or stale, fall back to scanning for project files (see `profiles/CLAUDE.md`)
-   - Load quality gate commands (lint, test, build) from matching `profiles/{name}.yaml`
+   - If state file missing or stale, fall back to scanning for project files (see `.claude-sentient/profiles/CLAUDE.md`)
+   - Load quality gate commands (lint, test, build) from matching `.claude-sentient/profiles/{name}.yaml`
    - Report: `[TEAM] Profile: {name}, Gates: {lint}, {test}`
 
 3. **ANALYZE TASK**
@@ -130,7 +130,7 @@ Teammates are configured with the project's profile and quality gates:
    - What's the right teammate-to-task ratio? (aim for 5-6 tasks per teammate)
    </thinking>
 
-   **Load agent definitions:** Read all `agents/*.yaml` files. For each work stream, match against agent `expertise` arrays to find the best-fit agent. Use the agent's `spawn_prompt`, `rules_to_load`, and `file_scope_hints` when configuring the teammate.
+   **Load agent definitions:** Read all `.claude/agents/*.md` files. For each work stream, match against agent `expertise` arrays to find the best-fit agent. Use the agent's `spawn_prompt`, `rules_to_load`, and `file_scope_hints` when configuring the teammate.
 
    Rules for team sizing:
    | Independent Streams | Teammates | Rationale |
@@ -166,7 +166,7 @@ This eliminates file ownership conflicts. Fall back to shared workspace only whe
 
 6. **CREATE TEAM**
 
-   For each teammate, check if a matching agent definition exists in `agents/*.yaml`:
+   For each teammate, check if a matching agent definition exists in `.claude/agents/*.md`:
    - If matched: use the agent's `spawn_prompt` as the base prompt, load `rules_to_load`, and use `file_scope_hints` for scope
    - If no match: fall back to a generic role-based prompt
 

@@ -12,7 +12,7 @@ Reference material for the `/cs-loop` INIT phase — detecting project profile, 
 
 1. **Compaction recovery** — Check `.claude/state/compact-context.json` (written by pre-compact hook). If present, restore current task ID, recent file changes, decisions, and phase context.
 
-2. **Profile loading** — Read `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field. If missing or stale, fall back to scanning for project indicator files (see `profiles/CLAUDE.md`). For gate commands, read `profiles/{name}.yaml`.
+2. **Profile loading** — Read `.claude/state/session_start.json` (created by session-start hook). Use the `profile` field. If missing or stale, fall back to scanning for project indicator files (see `.claude-sentient/profiles/CLAUDE.md`). For gate commands, read `.claude-sentient/profiles/{name}.yaml`.
 
 ## Python Environment Detection
 
@@ -34,7 +34,7 @@ Report: `[INIT] Environment: conda (myenv)` or `[INIT] Environment: system pytho
 
 ## Rule Auto-Loading
 
-Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code based on file context. For supplementary keyword-based loading, see `rules/_index.md` for the full keyword-to-rule mapping. The INIT phase does keyword matching first, then a semantic pass over `rules/_index.md` to catch logically relevant rules that keywords missed.
+Rules with `paths:` frontmatter in `.claude/rules/` are loaded automatically by Claude Code based on file context. For supplementary keyword-based loading, see `.claude/rules/_index.md` for the full keyword-to-rule mapping. The INIT phase does keyword matching first, then a semantic pass over `.claude/rules/_index.md` to catch logically relevant rules that keywords missed.
 
 ## MCP Context Gathering
 
@@ -51,11 +51,11 @@ Trigger keywords: "update", "upgrade", "migrate", "bump". Use WebFetch to load C
 
 ## Governance Files
 
-Check these exist, create from `templates/` if missing: `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`.
+Check these exist, create from `.claude-sentient/templates/` if missing: `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md`, `.claude/rules/learnings.md`.
 
 Check for `CLAUDE.md` — if missing, report: `[INIT] No CLAUDE.md found. Run /cs-init to create context architecture.`
 
-Check for `CLAUDE.local.md` in project root. If missing and first session, note: `[INIT] Tip: Create CLAUDE.local.md for personal preferences (gitignored). Template: templates/CLAUDE.local.md`
+Check for `CLAUDE.local.md` in project root. If missing and first session, note: `[INIT] Tip: Create CLAUDE.local.md for personal preferences (gitignored). Template: .claude-sentient/templates/CLAUDE.local.md`
 
 - **Cross-model workflow**: For high-stakes changes, consider Claude + Codex QA review. See `references/cross-model.md`
 

@@ -138,7 +138,7 @@ Determine if this is create mode (no CLAUDE.md) or optimize mode (existing CLAUD
    **Generation steps:**
    1. Scan for quality tool config files from the table above
    2. Detect conventions from existing source files (naming, structure)
-   3. Generate `profiles/{name}.yaml` following the profile schema:
+   3. Generate `.claude-sentient/profiles/{name}.yaml` following the profile schema:
       ```yaml
       name: {language}
       version: "1.0"
