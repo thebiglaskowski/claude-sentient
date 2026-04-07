@@ -17,9 +17,10 @@ const path = require('path');
 const { test, suite, summary, getResults } = require('../../test-utils');
 
 const schemasDir = path.resolve(__dirname, '..');
-const projectRoot = path.resolve(__dirname, '../..');
-const profilesDir = path.join(projectRoot, 'profiles');
-const agentsDir = path.join(projectRoot, 'agents');
+const projectRoot = path.resolve(__dirname, '../../..');
+const csDir = path.join(projectRoot, '.claude-sentient');
+const profilesDir = path.join(csDir, 'profiles');
+const agentsDir = path.join(projectRoot, '.claude', 'agents');
 const commandsDir = path.join(projectRoot, '.claude', 'commands');
 
 /**
@@ -101,7 +102,7 @@ const profileFiles = fs.existsSync(profilesDir)
 
 // Find all agent YAML files
 const agentFiles = fs.existsSync(agentsDir)
-    ? fs.readdirSync(agentsDir).filter(f => f.endsWith('.yaml')).sort()
+    ? fs.readdirSync(agentsDir).filter(f => f.endsWith('.md')).sort()
     : [];
 
 // ─────────────────────────────────────────────────────────────
@@ -451,55 +452,55 @@ suite('Profile YAML cross-validation against base schema', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
-suite('Agent YAML cross-validation against agent schema', () => {
-    const agentSchema = JSON.parse(
-        fs.readFileSync(path.join(schemasDir, 'agent.schema.json'), 'utf8')
-    );
-    const baseSchema = JSON.parse(
-        fs.readFileSync(path.join(schemasDir, 'base.schema.json'), 'utf8')
-    );
-    const versionPattern = new RegExp(baseSchema.properties.version.pattern);
-    const validRoles = agentSchema.properties.role.enum;
+suite('Agent markdown cross-validation', () => {
+    const validModels = ['sonnet', 'opus', 'haiku'];
 
     for (const file of agentFiles) {
         const filePath = path.join(agentsDir, file);
         const content = fs.readFileSync(filePath, 'utf8');
-        const parsed = parseYamlTopLevel(content);
-        const agentName = file.replace('.yaml', '');
+        const agentName = file.replace('.md', '');
+
+        // Extract frontmatter text between --- delimiters
+        const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        const frontmatter = fmMatch ? fmMatch[1] : '';
 
         test(`${agentName}: has name field`, () => {
-            assert.ok(parsed.name, `${file} should have name field`);
+            assert.ok(frontmatter.match(/^name\s*:/m),
+                `${file} should have name field in frontmatter`);
         });
 
-        test(`${agentName}: has valid version`, () => {
-            assert.ok(parsed.version, `${file} should have version field`);
-            if (parsed.version) {
-                assert.ok(versionPattern.test(parsed.version),
-                    `version "${parsed.version}" should match pattern`);
+        test(`${agentName}: name matches filename`, () => {
+            const nameMatch = frontmatter.match(/^name\s*:\s*(.+)$/m);
+            if (nameMatch) {
+                const name = nameMatch[1].trim().replace(/^["']|["']$/g, '');
+                assert.strictEqual(name, agentName,
+                    `name "${name}" should match filename "${agentName}"`);
             }
         });
 
-        test(`${agentName}: has valid role`, () => {
-            assert.ok(parsed.role, `${file} should have role field`);
-            if (parsed.role) {
-                assert.ok(validRoles.includes(parsed.role),
-                    `role "${parsed.role}" should be one of: ${validRoles.join(', ')}`);
+        test(`${agentName}: has description field`, () => {
+            assert.ok(frontmatter.match(/^description\s*:/m),
+                `${file} should have description field in frontmatter`);
+        });
+
+        test(`${agentName}: has model field with valid value`, () => {
+            const modelMatch = frontmatter.match(/^model\s*:\s*(.+)$/m);
+            assert.ok(modelMatch, `${file} should have model field in frontmatter`);
+            if (modelMatch) {
+                const model = modelMatch[1].trim().replace(/^["']|["']$/g, '');
+                assert.ok(validModels.includes(model),
+                    `model "${model}" should be one of: ${validModels.join(', ')}`);
             }
         });
 
-        test(`${agentName}: has expertise section`, () => {
-            assert.ok(content.includes('expertise:'),
-                `${file} should have expertise: section`);
+        test(`${agentName}: has tools list`, () => {
+            assert.ok(frontmatter.match(/^tools\s*:/m),
+                `${file} should have tools section in frontmatter`);
         });
 
-        test(`${agentName}: has spawn_prompt`, () => {
-            assert.ok(content.includes('spawn_prompt:'),
-                `${file} should have spawn_prompt: field`);
-        });
-
-        test(`${agentName}: has quality_gates`, () => {
-            assert.ok(content.includes('quality_gates:'),
-                `${file} should have quality_gates: field`);
+        test(`${agentName}: has skills list`, () => {
+            assert.ok(frontmatter.match(/^skills\s*:/m),
+                `${file} should have skills section in frontmatter`);
         });
     }
 });
@@ -590,25 +591,19 @@ suite('Command chaining integrity', () => {
 
 // ─────────────────────────────────────────────────────────────
 suite('Cross-module version consistency', () => {
-    test('all agent versions match project version', () => {
-        // Read project version from root CLAUDE.md
-        const claudeMd = fs.readFileSync(
-            path.join(projectRoot, 'CLAUDE.md'), 'utf8'
-        );
-        const versionMatch = claudeMd.match(/Version:\*\*\s*(\d+\.\d+(\.\d+)?)/);
-        if (!versionMatch) return; // Can't determine project version
-
-        const projectVersion = versionMatch[1];
-
+    test('all agent names match their filenames', () => {
         for (const file of agentFiles) {
             const content = fs.readFileSync(
                 path.join(agentsDir, file), 'utf8'
             );
-            const parsed = parseYamlTopLevel(content);
-            if (parsed.version) {
-                assert.strictEqual(parsed.version, projectVersion,
-                    `${file} version "${parsed.version}" should match project version "${projectVersion}"`);
-            }
+            const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!fmMatch) continue;
+            const nameMatch = fmMatch[1].match(/^name\s*:\s*(.+)$/m);
+            if (!nameMatch) continue;
+            const name = nameMatch[1].trim().replace(/^["']|["']$/g, '');
+            const expectedName = file.replace('.md', '');
+            assert.strictEqual(name, expectedName,
+                `${file} name "${name}" should match filename "${expectedName}"`);
         }
     });
 
