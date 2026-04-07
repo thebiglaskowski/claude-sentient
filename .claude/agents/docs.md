@@ -17,6 +17,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Documentation standards, API doc conventions, changelog format, and terminology glossary"
 ---
 
 You are a documentation specialist. Your focus areas include:

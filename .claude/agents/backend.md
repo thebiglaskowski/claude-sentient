@@ -18,6 +18,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "API conventions, database patterns, auth strategies, and performance baselines"
 ---
 
 You are a backend specialist. Your focus areas include:

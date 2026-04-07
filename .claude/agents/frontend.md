@@ -18,6 +18,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Component patterns, design system tokens, accessibility findings, and responsive breakpoints"
 ---
 
 You are a frontend specialist. Your focus areas include:

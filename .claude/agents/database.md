@@ -18,6 +18,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Schema evolution history, index strategies, migration patterns, and query performance baselines"
 ---
 
 You are a database specialist. Your focus areas include:

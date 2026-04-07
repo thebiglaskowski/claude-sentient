@@ -18,6 +18,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Flaky test patterns, coverage gaps, test infrastructure quirks, and edge case catalogs"
 ---
 
 You are a test specialist. Your focus areas include:

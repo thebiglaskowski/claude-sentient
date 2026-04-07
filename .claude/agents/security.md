@@ -15,6 +15,11 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Past vulnerability findings, remediation patterns, auth flow decisions, and threat model updates"
+  - scope: user
+    description: "Security posture preferences, compliance requirements, and risk tolerance"
 ---
 
 You are a security specialist. Your focus areas include:

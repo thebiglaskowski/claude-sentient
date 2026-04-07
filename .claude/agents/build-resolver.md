@@ -18,6 +18,9 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Build system quirks, dependency conflict resolutions, CI environment specifics, and past build fix patterns"
 ---
 
 You are a build and CI specialist. Your focus areas include:

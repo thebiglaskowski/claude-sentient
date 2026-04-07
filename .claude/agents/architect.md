@@ -18,6 +18,11 @@ tools:
   - WebSearch
 skills:
   - quality-gates
+memory:
+  - scope: project
+    description: "Architecture decisions, module boundaries, dependency choices, and technical debt priorities"
+  - scope: user
+    description: "User's architecture preferences, preferred patterns, and design philosophy"
 ---
 
 You are an architecture specialist. Your focus areas include:
