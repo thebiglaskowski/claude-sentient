@@ -116,6 +116,9 @@ For ambiguous tasks: `AskUserQuestion` with structured options (auth approach, d
 4. Save `{taskId, subject, startedAt}` to `.claude/state/current_task.json`
 5. If task metadata includes `worktreePath`, use `EnterWorktree` to switch to the task's isolated branch before starting work
 6. Do the work
+
+**Quick lookup subagents**: When spawning a subagent for a focused question (not a full task), use `model: "haiku"` for speed. The `--bare` flag applies to CLI invocations, not to the Task tool.
+
 7. `TaskUpdate(status: completed)`
 8. Repeat until all complete
 
@@ -149,7 +152,30 @@ Run quality gates from profile. Follow the quality-gates skill procedure.
 
 **Context management:** If context usage exceeds 50%, compact before next iteration.
 
+**Browser verification** (web projects only, advisory):
+1. Detect if Playwright or puppeteer MCP is connected
+2. If connected AND profile is web (TypeScript Web or Python Web):
+   - Navigate to `localhost:{port}` (detect from dev server or default 3000/5173/8000)
+   - Take screenshot
+   - Compare against task intent: "Does this screenshot match what was requested?"
+   - If visual regression detected, report and offer to fix
+3. If no browser MCP: `[VERIFY] No browser MCP - skipping visual verification. Tip: /cs-mcp --fix`
+
 ### 6. COMMIT
+
+**Determine commit strategy** (check in order):
+1. If `--commit-strategy <strategy>` was passed as argument, use it
+2. If `.claude/state/session_start.json` has `commitStrategy`, use it
+3. If `CLAUDE.local.md` specifies a preference, use it
+4. Default: `atomic`
+
+| Strategy | Behavior |
+|----------|----------|
+| `atomic` | Stage all changes, single commit |
+| `per-file` | Separate commit per modified file (each must pass lint) |
+| `per-task` | One commit per completed task |
+
+See `quality-gates/references/commit-strategies.md` for detailed rules.
 
 1. Stage changes: `git add <files>`
 2. Create commit with conventional message (`feat:`, `fix:`, etc.)

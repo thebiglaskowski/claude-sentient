@@ -43,6 +43,8 @@ All three must be true AND `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be enable
 
 See `references/worktree-strategy.md` for full details, conflict resolution, and merge order.
 
+**Performance note**: Do NOT use `--bare` for teammate agents - they need full MCP and settings context for quality gates. `--bare` is only appropriate for quick lookup subagents spawned during EXECUTE.
+
 Require plan approval before teammates make changes (see [Plan Approval Protocol](#plan-approval-protocol) below).
 
 ## Plan Approval Protocol

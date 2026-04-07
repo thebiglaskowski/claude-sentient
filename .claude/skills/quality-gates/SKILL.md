@@ -74,6 +74,18 @@ After committing on a branch with a PR:
    - Failing -> Auto-fix if lint/test/type error (max 2 attempts)
    - Infrastructure failure -> Report for manual review
 
+## Commit Strategies
+
+See `references/commit-strategies.md` for per-file and per-task commit strategies.
+Default is `atomic` (single checkpoint commit). Override via `--commit-strategy` argument or `CLAUDE.local.md`.
+
+## Advisory: Browser Verification (web projects)
+
+**Trigger**: Web project profile AND Playwright/puppeteer MCP connected
+**Action**: Navigate to dev server, take screenshot, validate against task intent
+**Blocking**: No (advisory only)
+**Gotcha**: Dev server must be running. If not, attempt `npm run dev` or equivalent in background, wait 5s, then screenshot.
+
 ## Gotchas
 
 - **Never dismiss errors as "pre-existing"**: Fix ALL lint issues during VERIFY — even if they existed before your changes. If ruff reports it, fix it. This is an Integrity Rule.
