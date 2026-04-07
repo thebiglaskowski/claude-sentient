@@ -84,6 +84,9 @@ Commands can invoke each other via the `Skill` tool:
 | `/cs-multi` | — | Standalone, configures per-phase model routing |
 | `/cs-debug` | `/cs-loop` | When root cause requires implementation changes, user chooses to fix |
 | `/cs-log` | `/cs-loop` | When logging gaps/issues found, user chooses to fix |
+| `/cs-batch` | `/cs-loop` | Each worktree agent runs /cs-loop for its work stream |
+| `/cs-batch` | `/cs-plan` | When argument is a task description, creates plan first |
+| `/cs-schedule` | — | Standalone, wraps native /schedule with CS command integration |
 
 ---
 

@@ -40,6 +40,8 @@ Claude Sentient is an **orchestration layer** that leverages Claude Code's nativ
 /cs-multi --show                           # Configure multi-model routing
 /cs-debug "TypeError in auth.js"           # Structured debugging loop
 /cs-log --fix                              # Logging audit and fix
+/cs-batch "migrate all API endpoints to v2"  # Parallel worktree fan-out
+/cs-schedule "0 2 * * *" /cs-assess           # Nightly codebase audit
 ```
 
 ---
@@ -81,6 +83,8 @@ When you invoke `/cs-loop`, Claude Sentient orchestrates:
 | `/cs-multi [--show] [--set] [--reset]` | Configure multi-model orchestration |
 | `/cs-debug [issue]` | Structured debug loop: reproduce → trace → isolate → fix → test |
 | `/cs-log [dir] [--fix] [--scaffold]` | Logging audit: gaps, unstructured, secrets, correlation IDs |
+| `/cs-batch [plan]` | Fan out tasks to parallel worktree agents |
+| `/cs-schedule <cron> <cmd>` | Create recurring autonomous agents |
 
 > Detailed command structure and skill chaining: `.claude/commands/CLAUDE.md`
 
