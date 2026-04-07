@@ -177,15 +177,32 @@ Run quality gates from profile. Follow the quality-gates skill procedure.
 
 See `quality-gates/references/commit-strategies.md` for detailed rules.
 
-1. Stage changes: `git add <files>`
+**Strategy: atomic** (default)
+1. Stage all changes: `git add <files>`
 2. Create commit with conventional message (`feat:`, `fix:`, etc.)
+
+**Strategy: per-file**
+1. For each modified file (ordered by dependency - foundational types first):
+   a. Stage single file: `git add <file>`
+   b. Run linter on that file (must pass independently)
+   c. Commit: `git commit -m "feat(<scope>): <what changed>"`
+   d. If lint fails, stage the fix too and commit together
+2. Tightly coupled files (changing one breaks the other) get committed together
+
+**Strategy: per-task**
+1. After each `TaskUpdate(status: completed)` in EXECUTE (not here):
+   a. Stage files for that task: `git add <task-files>`
+   b. Commit: `git commit -m "feat: <task subject>"`
+2. In COMMIT phase, only handle remaining unstaged changes
+
+**Post-commit (all strategies):**
 3. **Doc sync check**: If changed files correspond to a feature in `documentation/`, check whether the doc needs updating — business rules, API shapes, or edge cases may have changed. If out of date, run `/cs-docs "feature name"` to update.
 4. Auto-update STATUS.md and CHANGELOG.md (for `feat:`/`fix:` commits)
 5. MCP: github (link commits to issues, create PRs), memory (persist session state)
 6. Auto-capture non-obvious learnings via `/cs-learn`
 7. CI monitoring: check PR status, auto-fix if lint/test failure (max 2 attempts)
 
-Report: `[COMMIT] Created checkpoint: {hash}`
+Report: `[COMMIT] Created checkpoint: {hash} (strategy: {strategy})`
 
 ### 7. EVALUATE
 
