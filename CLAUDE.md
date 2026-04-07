@@ -140,6 +140,7 @@ Advisory (report only): TYPE, DOCS, SECURITY.
 | Memory system | `/cs-learn` command, `.claude/rules/learnings.md` |
 | Governance files | `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md` |
 | Native tools used | `TaskCreate`, `EnterPlanMode`, `Task`, `.claude/hooks/*.cjs`, MCP servers |
+| Native tips | `documentation/16-native-tips.md` |
 
 See @rules/_index.md for keyword-to-rule mappings and the full rules catalog.
 
