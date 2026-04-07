@@ -14,7 +14,7 @@
 | Quality Gates | `documentation/05-quality-gates.md` | gate-monitor, dod-verifier, gate_history.json, integrity checks |
 | Agent Teams | `documentation/06-agent-teams.md` | cs-team, teammate-idle/task-completed hooks, team-state.json |
 | Profile System | `documentation/07-profile-system.md` | 9 language profiles, detection, model routing, environment detection |
-| Agent Roles | `documentation/08-agent-roles.md` | agents/*.yaml + .claude/agents/*.md dual system, 9 roles |
+| Agent Roles | `documentation/08-agent-roles.md` | .claude/agents/*.md native agents, 9 roles |
 | Rules System | `documentation/09-rules-system.md` | 15 rule files, keyword loading, path-scoped rules |
 | Command System | `documentation/10-command-system.md` | 15 cs-*.md commands, frontmatter schema, skill chaining |
 | Installation | `documentation/11-installation.md` | install.sh/ps1, CHECKSUMS.sha256, global permissions |

@@ -127,17 +127,16 @@ Testing             [███████████████████�
 | Component | Files | Status |
 |-----------|-------|--------|
 | Commands | `commands/cs-*.md` | ✓ 15 created |
-| Profiles | `profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
-| Agent Roles | `agents/*.yaml` | ✓ 9 created |
+| Profiles | `.claude-sentient/profiles/*.yaml` | ✓ 9 created (+ infrastructure) |
+| Agent Roles | `.claude/agents/*.md` | ✓ 9 created |
 | Native Agents | `.claude/agents/*.md` | ✓ 9 native agent definitions |
 | Skills | `.claude/skills/` | ✓ 3 skills (quality-gates, profile-detection, team-orchestration) |
 | Hooks | `.claude/hooks/*.cjs` | ✓ 16 hooks + utils.cjs |
 | Hook Tests | `.claude/hooks/__tests__/` | ✓ 269 tests |
-| Profile Tests | `profiles/__tests__/` | ✓ 242 tests |
+| Profile Tests | `.claude-sentient/profiles/__tests__/` | ✓ 242 tests |
 | Command Tests | `.claude/commands/__tests__/` | ✓ 81 tests |
-| Agent Tests | `agents/__tests__/` | ✓ 108 tests |
-| Schema Tests | `schemas/__tests__/` | ✓ 214 tests |
-| Integration Tests | `integration/__tests__/` | ✓ 69 tests |
+| Schema Tests | `.claude-sentient/schemas/__tests__/` | ✓ 214 tests |
+| Integration Tests | `.claude-sentient/integration/__tests__/` | ✓ 69 tests |
 | Quality Gates | (embedded in profiles) | ✓ Defined + auto-fix |
 
 ---

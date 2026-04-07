@@ -105,7 +105,7 @@ Async hook. Fires when a subagent spawns.
 
 1. Parse agent type from spawn input
 2. Fast-path: if type matches `KNOWN_ROLES` (implementer, reviewer, researcher, tester, architect, general-purpose) → skip YAML scan
-3. Otherwise: scan `agents/*.yaml` to resolve role
+3. Otherwise: scan `.claude/agents/*.md` to resolve role
 4. Update `file_ownership` in `team-state.json`
 5. Exit 0
 
@@ -136,7 +136,7 @@ cs-team "refactor auth" (or cs-loop offers team mode)
 
 ## Quality Gate Enforcement
 
-Agent quality gates are enforced via hooks. Each agent's `quality_gates` from `agents/*.yaml` define which gates must pass. Gates checked at TeammateIdle and TaskCompleted events.
+Agent quality gates are enforced via hooks. Each agent's `quality_gates` from `.claude/agents/*.md` define which gates must pass. Gates checked at TeammateIdle and TaskCompleted events.
 
 ## Plan Approval Protocol
 

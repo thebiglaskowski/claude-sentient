@@ -16,7 +16,7 @@ status: draft
 
 | Format | Location | Purpose |
 |--------|----------|---------|
-| **YAML configs** | `agents/*.yaml` | Schema-validated metadata — tested by `test-agents.js`, used by `/cs-team` for expertise matching and team design |
+| **YAML configs** | `.claude/agents/*.md` | Schema-validated metadata — tested by `test-agents.js`, used by `/cs-team` for expertise matching and team design |
 | **Native agents** | `.claude/agents/*.md` | Claude Code-native format with frontmatter — directly invocable via `Task(subagent_type="agent-name")` |
 
 The YAML files are the **source of truth** for agent metadata. The `.md` files are the **runtime format** Claude Code uses directly.
@@ -35,7 +35,7 @@ The YAML files are the **source of truth** for agent metadata. The `.md` files a
 | `tester` | tester | Test coverage, edge cases, quality assurance |
 | `build-resolver` | implementer | Build failures, dependency issues, CI problems |
 
-## YAML Config Format (`agents/*.yaml`)
+## YAML Config Format (`.claude/agents/*.md`)
 
 ### Required Fields
 
@@ -153,7 +153,7 @@ Focus on files matching: controllers, routes, services, models
 
 ### By `/cs-team`
 
-1. Reads `agents/*.yaml` to build expertise inventory
+1. Reads `.claude/agents/*.md` to build expertise inventory
 2. Matches agent expertise arrays against task requirements
 3. Selects 2-5 agents with complementary, non-overlapping scopes
 4. Spawns agents via `Task(subagent_type="agent-name")`
@@ -173,7 +173,7 @@ Focus on files matching: controllers, routes, services, models
 implementer, reviewer, researcher, tester, architect, general-purpose
 ```
 
-For these, the hook skips YAML scanning and assigns the role directly. Unknown agent types trigger a full `agents/*.yaml` scan.
+For these, the hook skips YAML scanning and assigns the role directly. Unknown agent types trigger a full `.claude/agents/*.md` scan.
 
 ## Business Rules
 
@@ -187,7 +187,7 @@ For these, the hook skips YAML scanning and assigns the role directly. Unknown a
 ## Edge Cases
 
 - **No matching agent**: `/cs-team` falls back to generic role prompts if no agent YAML matches a required expertise.
-- **Agent without YAML**: A `.claude/agents/*.md` file without a corresponding `agents/*.yaml` is invocable but not included in `/cs-team` expertise matching.
+- **Agent without YAML frontmatter**: A `.claude/agents/*.md` file without expertise frontmatter is invocable but not included in `/cs-team` expertise matching.
 - **YAML without .md**: Agent is used for expertise matching by `/cs-team` but cannot be directly invoked via `Task()`. `/cs-team` will generate a prompt from the YAML `spawn_prompt`.
 - **file_scope_hints overlap**: If two agents have overlapping globs, the team lead must explicitly partition work in task descriptions to avoid conflicts.
 - **maxTurns exceeded**: Agent stops and reports partial completion. Team lead detects via task remaining in_progress state.

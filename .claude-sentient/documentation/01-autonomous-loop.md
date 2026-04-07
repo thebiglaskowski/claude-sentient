@@ -25,7 +25,7 @@ status: draft
 
 ## Model Routing
 
-Default model per phase is derived from the active profile (`profiles/*.yaml`, `models.by_phase`). The cs-multi command can override this per phase and stores configuration in `.claude/state/multi-model.json`.
+Default model per phase is derived from the active profile (`.claude-sentient/profiles/*.yaml`, `models.by_phase`). The cs-multi command can override this per phase and stores configuration in `.claude/state/multi-model.json`.
 
 Security/auth/vulnerability keywords during PLAN and VERIFY force opus model.
 
@@ -34,9 +34,9 @@ Security/auth/vulnerability keywords during PLAN and VERIFY force opus model.
 1. Compact recovery: if `.claude/state/compact-context.json` exists, reload prior session intent
 2. Load profile from `.claude/state/session_start.json` (written by session-start hook); fall back to file scanning
 3. Python environment detection: conda (`environment.yml`) → prefix; venv (`.venv/`) → activate; poetry/pdm (`*.lock`) → prefix
-4. Rule auto-loading: keyword matching on task text → rules from `rules/_index.md`; then semantic pass for additional relevance
+4. Rule auto-loading: keyword matching on task text → rules from `.claude/rules/_index.md`; then semantic pass for additional relevance
 5. Web project detection → auto-load `ui-ux-design` rule
-6. Governance file check: `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md` — create from `templates/` if missing
+6. Governance file check: `STATUS.md`, `CHANGELOG.md`, `DECISIONS.md` — create from `.claude-sentient/templates/` if missing
 7. CLAUDE.md check: suggest `/cs-init` if missing
 8. MCP: context7 (library docs for detected imports), github (issue/PR details), memory (prior decisions)
 9. WebFetch dependency changelogs for update/upgrade/migrate tasks

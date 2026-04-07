@@ -108,7 +108,7 @@ This surfaces hook configuration changes that might explain unexpected hook beha
 
 ## Settings Configuration
 
-Both hooks are registered in `templates/settings.json` as async:
+Both hooks are registered in `.claude-sentient/templates/settings.json` as async:
 
 ```json
 "WorktreeCreate": [{ "hooks": [{ "type": "command", "command": "node .claude/hooks/worktree-lifecycle.cjs", "timeout": 3000, "async": true }] }],

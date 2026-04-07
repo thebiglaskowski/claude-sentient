@@ -147,4 +147,4 @@ Append-only array stored at `.claude/state/gate_history.json`:
 - **null exit_code**: Treated as `passed: null` (inconclusive), not failure — prevents spurious "Gate failed (exit null)" log entries
 - **dod-verifier always exits 0**: It reports warnings but never blocks Claude from responding
 - **Async delivery semantics**: With `async: true`, HookResult delivers on the next turn. gate-monitor errors are silent — kept minimal (pure state writer) to avoid silent failures
-- **Quality gate sources**: Gate definitions come from `profiles/*.yaml`, not hard-coded in hooks
+- **Quality gate sources**: Gate definitions come from `.claude-sentient/profiles/*.yaml`, not hard-coded in hooks

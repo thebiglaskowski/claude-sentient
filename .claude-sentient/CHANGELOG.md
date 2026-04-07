@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## v1.7.0 - Directory Restructuring
+
+### Changed
+- All project files moved to `.claude-sentient/` directory (profiles, schemas, templates, examples, documentation, integration tests)
+- `rules/` reference copies eliminated — `.claude/rules/` is the single source of truth
+- `agents/*.yaml` eliminated — `.claude/agents/*.md` is the single source of truth
+- Uninstall simplified: single `rm -rf .claude-sentient/` replaces 7 directory removals
+- `getCSDir()` in utils.cjs provides centralized path resolution
+
+### Migration
+If upgrading from v1.6.0, run `install.sh` — it will create `.claude-sentient/` and populate it. Manually remove old root directories: `rm -rf profiles/ agents/ rules/ schemas/ templates/ examples/ documentation/ integration/ test-utils.js`
+
+---
+
 ## v1.6.0 - Best Practice Enhancements
 
 ### Added

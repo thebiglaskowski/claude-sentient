@@ -17,10 +17,9 @@ Rules exist in two locations with different loading mechanisms:
 
 | Location | Purpose | Loading Mechanism |
 |----------|---------|------------------|
-| `rules/*.md` | Canonical reference copies | Keyword-based loading during cs-loop INIT |
-| `.claude/rules/*.md` | Active runtime copies with `paths:` frontmatter | Auto-loaded by Claude Code when working on matching files |
+| `.claude/rules/*.md` | Active runtime rules with `paths:` frontmatter | Auto-loaded by Claude Code when working on matching files |
 
-Both directories stay in sync. The `rules/` directory is the source of truth.
+`.claude/rules/` is the single source of truth for all rules.
 
 ## Available Rules (15 files)
 
@@ -78,7 +77,7 @@ During `/cs-loop` INIT, rules load based on task keywords (two-step process):
 | `prompt`, `command`, `xml`, `template` | `prompt-structure` |
 
 **Step 2 — Semantic pass:**
-After keyword matching, cs-loop briefly reviews `rules/_index.md` to identify additional rules not captured by string matching but semantically relevant (e.g., error-handling rules for a debugging task where no keyword triggered).
+After keyword matching, cs-loop briefly reviews `.claude/rules/_index.md` to identify additional rules not captured by string matching but semantically relevant (e.g., error-handling rules for a debugging task where no keyword triggered).
 
 ## Path-Scoped Rules
 
@@ -124,10 +123,10 @@ Or in a command's allowed-tools context using the `@` reference syntax.
 
 ## Business Rules
 
-- **learnings.md special case**: Lives only in `.claude/rules/` (project-specific). NOT in `rules/` (reference copies). Integration tests know about this exception.
+- **learnings.md special case**: Lives only in `.claude/rules/` (project-specific). Not duplicated elsewhere.
 - **Stale reference removal**: Rule files must not contain links to non-existent paths. All `reference/v1/template/` footers were removed in v1.3.x.
 - **Two-step loading**: Both keyword AND semantic pass run during INIT. The semantic pass catches domain-relevant rules missed by string matching.
-- **No duplication**: Rules in `.claude/rules/` mirror `rules/` content. Don't maintain separate versions; keep in sync.
+- **Single source of truth**: `.claude/rules/` is the only rules directory (the `rules/` reference copies directory was eliminated in v1.7.0).
 
 ## Edge Cases
 

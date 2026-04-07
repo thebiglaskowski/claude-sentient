@@ -20,7 +20,7 @@
 - **Context**: Reviewed arxiv.org/abs/2603.02473 — a 3×3 factorial study of LLM memory systems across write strategies (raw chunks, extracted facts, summarized episodes) and retrieval methods (cosine, BM25, hybrid+rerank)
 - **Findings**: Retrieval method accounts for 14–23 accuracy point variations; write strategy only 3–8 points. Raw/verbose storage matches or exceeds sophisticated extraction. Retrieval failure dominates error modes at 11–46%; utilization failure is stable at 4–8%.
 - **Decision**: Invest in retrieval quality over write pipeline sophistication. Concretely:
-  1. Enrich `rules/_index.md` with semantic "When to load" descriptions to improve the INIT semantic pass (this is the "LLM reranking" step applied to rule selection)
+  1. Enrich `.claude/rules/_index.md` with semantic "When to load" descriptions to improve the INIT semantic pass (this is the "LLM reranking" step applied to rule selection)
   2. Track topic retrieval frequency in `dod-verifier.cjs` via `memoryEffectiveness` field so `/cs-assess` can surface retrieval gaps
   3. Preserve detail in `learnings.md` entries — resist lossy compression (current format of context/decision/rule is correct)
 - **Rule**: When improving Claude Sentient's memory, prioritize retrieval mechanism improvements before write strategy improvements. Verbose, detailed notes outperform summarized entries.
@@ -104,7 +104,7 @@
   - `<constraints>` — Rules and limitations
   - `<examples>` — Sample inputs/outputs
 - **Rationale**: XML tags separate WHAT from HOW, improve parsing, and enable structured reasoning
-- **Reference**: Full guidelines in `rules/prompt-structure.md`
+- **Reference**: Full guidelines in `.claude/rules/prompt-structure.md`
 
 ---
 

@@ -29,7 +29,7 @@ Detection is a cascade: profiles are checked in order; first match wins. `genera
 
 ## Profile YAML Structure
 
-Each profile lives at `profiles/{name}.yaml` and is validated against `schemas/profile.schema.json`.
+Each profile lives at `.claude-sentient/profiles/{name}.yaml` and is validated against `.claude-sentient/schemas/profile.schema.json`.
 
 ### Required Fields
 
@@ -176,7 +176,7 @@ The `security-guidance@claude-plugins-official` plugin is always installed user-
 - **Alt commands**: If primary lint/test tool isn't installed, try `alternative` command.
 - **VERIFY auto-fix**: Only attempts fix if `fix_command` is defined. Max 3 attempts. Reverts if error count increases.
 - **Plugin installs**: Non-fatal — `|| true` wrapping means missing `claude` CLI doesn't block setup.
-- **Profile schema validation**: Run `node profiles/__tests__/test-profiles.js` to validate YAML. Enforces required fields, version consistency, gate structure.
+- **Profile schema validation**: Run `node .claude-sentient/profiles/__tests__/test-profiles.js` to validate YAML. Enforces required fields, version consistency, gate structure.
 
 ## Edge Cases
 
