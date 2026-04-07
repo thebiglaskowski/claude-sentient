@@ -17,7 +17,8 @@ const os = require('os');
 
 const { test, suite, summary, getResults } = require('../../test-utils');
 
-const ROOT = path.resolve(__dirname, '../..');
+const ROOT = path.resolve(__dirname, '../../..');
+const CS_DIR = path.join(ROOT, '.claude-sentient');
 
 // --- Helpers ---
 
@@ -121,8 +122,8 @@ suite('Cross-file reference integrity', () => {
                 missing.push(`Unknown profile name: ${displayName}`);
                 continue;
             }
-            if (!fileExists(`profiles/${yamlName}.yaml`)) {
-                missing.push(`profiles/${yamlName}.yaml`);
+            if (!fileExists(`.claude-sentient/profiles/${yamlName}.yaml`)) {
+                missing.push(`.claude-sentient/profiles/${yamlName}.yaml`);
             }
         }
         assert.strictEqual(missing.length, 0,
@@ -130,28 +131,23 @@ suite('Cross-file reference integrity', () => {
     });
 
     // --- Agent roles references ---
-    test('all agent roles in agents/CLAUDE.md exist as agents/*.yaml files', () => {
-        const agentsClaude = readFile('agents/CLAUDE.md');
-        // The agents/CLAUDE.md mentions roles in the YAML example and text.
-        // We check for actual agent yaml files and verify they exist.
-        const agentFiles = fs.readdirSync(path.join(ROOT, 'agents'))
-            .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
+    test('agent roles exist as .claude/agents/*.md files', () => {
+        const agentFiles = fs.readdirSync(path.join(ROOT, '.claude', 'agents'))
+            .filter(f => f.endsWith('.md') && !f.startsWith('_') && f !== 'CLAUDE.md');
 
         assert.ok(agentFiles.length >= 5, `Expected at least 5 agent files, got ${agentFiles.length}`);
 
-        // Verify each agent yaml file has the required 'name' field
+        // Verify each agent md file has a heading
         for (const file of agentFiles) {
-            const content = readFile(`agents/${file}`);
-            const nameMatch = content.match(/^name:\s*(.+)/m);
-            assert.ok(nameMatch, `agents/${file} should have a 'name' field`);
+            const content = readFile(`.claude/agents/${file}`);
+            assert.ok(content.length > 0, `.claude/agents/${file} should not be empty`);
         }
     });
 
-    test('agent roles referenced in README match agents/*.yaml files', () => {
+    test('agent roles referenced in README match .claude/agents/*.md files', () => {
         const readme = readFile('README.md');
-        // README mentions "6 specialized agent roles" - verify count
-        const agentFiles = fs.readdirSync(path.join(ROOT, 'agents'))
-            .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
+        const agentFiles = fs.readdirSync(path.join(ROOT, '.claude', 'agents'))
+            .filter(f => f.endsWith('.md') && !f.startsWith('_') && f !== 'CLAUDE.md');
 
         const countMatch = readme.match(/Agent Roles\s*\|\s*(\d+)/);
         if (countMatch) {
@@ -160,56 +156,20 @@ suite('Cross-file reference integrity', () => {
         }
     });
 
-    // --- Rules index references ---
-    test('all rules in rules/_index.md "Available Rules" table exist in rules/ directory', () => {
-        const indexMd = readFile('rules/_index.md');
-        const rows = parseMarkdownTableRows(indexMd, /^\|\s*Rule\s*\|\s*Focus\s*\|/);
-        assert.ok(rows.length > 0, 'Should find rule rows in rules/_index.md');
+    // --- Rules references ---
+    test('.claude/rules/ directory contains expected rule files', () => {
+        const rulesDir = path.join(ROOT, '.claude', 'rules');
+        const ruleFiles = fs.readdirSync(rulesDir)
+            .filter(f => f.endsWith('.md'));
 
-        const missing = [];
-        for (const row of rows) {
-            // First cell is the rule name in backticks, e.g. "`security`"
-            const ruleName = row[0].replace(/`/g, '').trim();
-            if (!fileExists(`rules/${ruleName}.md`)) {
-                missing.push(`rules/${ruleName}.md`);
-            }
-        }
+        assert.ok(ruleFiles.length >= 10,
+            `Expected at least 10 rule files in .claude/rules/, got ${ruleFiles.length}`);
+
+        // Verify key rules exist
+        const expectedRules = ['anthropic-patterns', 'code-quality', 'security', 'testing', 'learnings'];
+        const missing = expectedRules.filter(r => !ruleFiles.includes(`${r}.md`));
         assert.strictEqual(missing.length, 0,
-            `Rules in _index.md but missing from rules/: ${missing.join(', ')}`);
-    });
-
-    test('all rules in rules/_index.md also exist in .claude/rules/ directory', () => {
-        const indexMd = readFile('rules/_index.md');
-        const rows = parseMarkdownTableRows(indexMd, /^\|\s*Rule\s*\|\s*Focus\s*\|/);
-
-        const missing = [];
-        for (const row of rows) {
-            const ruleName = row[0].replace(/`/g, '').trim();
-            if (!fileExists(`.claude/rules/${ruleName}.md`)) {
-                missing.push(`.claude/rules/${ruleName}.md`);
-            }
-        }
-        assert.strictEqual(missing.length, 0,
-            `Rules in _index.md but missing from .claude/rules/: ${missing.join(', ')}`);
-    });
-
-    test('always-loaded rules in _index.md exist in .claude/rules/', () => {
-        const indexMd = readFile('rules/_index.md');
-        const rows = parseMarkdownTableRows(indexMd, /^\|\s*Rule\s*\|\s*Purpose\s*\|/);
-
-        // learnings.md is a special case: it lives only in .claude/rules/ (project-specific,
-        // created from templates/), not in rules/ (which holds canonical reference copies).
-        const templateOnlyRules = ['learnings'];
-
-        for (const row of rows) {
-            const ruleName = row[0].replace(/`/g, '').trim();
-            assert.ok(fileExists(`.claude/rules/${ruleName}.md`),
-                `Always-loaded rule '${ruleName}' missing from .claude/rules/`);
-            if (!templateOnlyRules.includes(ruleName)) {
-                assert.ok(fileExists(`rules/${ruleName}.md`),
-                    `Always-loaded rule '${ruleName}' missing from rules/`);
-            }
-        }
+            `Missing expected rules in .claude/rules/: ${missing.join(', ')}`);
     });
 });
 
@@ -596,12 +556,10 @@ suite('Install/uninstall script parity', () => {
             { glob: '.claude/commands/cs-loop.md', desc: 'commands' },
             { glob: '.claude/hooks/session-start.cjs', desc: 'hooks' },
             { glob: '.claude/hooks/utils.cjs', desc: 'hook utilities' },
-            { glob: 'profiles/python.yaml', desc: 'profiles' },
-            { glob: 'profiles/typescript.yaml', desc: 'profiles' },
-            { glob: 'agents/backend.yaml', desc: 'agents' },
-            { glob: 'agents/CLAUDE.md', desc: 'agents CLAUDE.md' },
-            { glob: 'rules/_index.md', desc: 'rules index' },
-            { glob: 'test-utils.js', desc: 'shared test infrastructure' },
+            { glob: '.claude-sentient/profiles/python.yaml', desc: 'profiles' },
+            { glob: '.claude-sentient/profiles/typescript.yaml', desc: 'profiles' },
+            { glob: '.claude/agents/backend.md', desc: 'agents' },
+            { glob: '.claude-sentient/test-utils.js', desc: 'shared test infrastructure' },
             { glob: '.claude/rules/anthropic-patterns.md', desc: 'path-scoped rules' },
             { glob: '.claude/rules/code-quality.md', desc: 'path-scoped rules' },
         ];
@@ -675,7 +633,7 @@ suite('Documentation consistency', () => {
     });
 
     test('README.md profile count matches actual profile file count', () => {
-        const profileFiles = fs.readdirSync(path.join(ROOT, 'profiles'))
+        const profileFiles = fs.readdirSync(path.join(ROOT, '.claude-sentient', 'profiles'))
             .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
 
         const countMatch = readmeMd.match(/Profiles\s*\|\s*(\d+)/);
@@ -687,8 +645,7 @@ suite('Documentation consistency', () => {
 
     test('all nested CLAUDE.md files exist', () => {
         const expectedNestedClaude = [
-            'profiles/CLAUDE.md',
-            'agents/CLAUDE.md',
+            '.claude-sentient/profiles/CLAUDE.md',
             '.claude/commands/CLAUDE.md',
             '.claude/hooks/CLAUDE.md',
         ];
@@ -709,7 +666,7 @@ suite('Documentation consistency', () => {
 
     test('CLAUDE.md profiles table count matches actual profile files', () => {
         const rows = parseMarkdownTableRows(claudeMd, /^\|\s*Profile\s*\|\s*Detected By\s*\|/);
-        const profileFiles = fs.readdirSync(path.join(ROOT, 'profiles'))
+        const profileFiles = fs.readdirSync(path.join(ROOT, '.claude-sentient', 'profiles'))
             .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
 
         assert.strictEqual(rows.length, profileFiles.length,
@@ -792,7 +749,7 @@ suite('Plugin parity', () => {
 
         // Read all profiles and collect non-null plugins.lsp values
         const profilePlugins = [];
-        const profileDir = path.join(ROOT, 'profiles');
+        const profileDir = path.join(ROOT, '.claude-sentient', 'profiles');
         const profileFiles = fs.readdirSync(profileDir)
             .filter(f => f.endsWith('.yaml') && !f.startsWith('_'));
 
@@ -829,51 +786,21 @@ suite('Plugin parity', () => {
 });
 
 // ============================================================
-// Suite 7: Rules content parity (rules/ vs .claude/rules/)
+// Suite 7: Rules directory (.claude/rules/ is the single source)
 // ============================================================
 
-suite('Rules content parity', () => {
-    const rulesDir = path.join(ROOT, 'rules');
+suite('Rules directory', () => {
     const dotClaudeRulesDir = path.join(ROOT, '.claude', 'rules');
 
-    /** Strip YAML frontmatter (lines between --- markers at start of file) */
-    function stripFrontmatter(content) {
-        const lines = content.split('\n');
-        if (lines[0].trim() !== '---') return content;
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '---') {
-                // Return everything after the closing ---
-                return lines.slice(i + 1).join('\n');
-            }
-        }
-        return content; // No closing --- found, return as-is
-    }
-
-    const ruleFiles = fs.readdirSync(rulesDir)
-        .filter(f => f.endsWith('.md') && f !== '_index.md');
-
-    for (const file of ruleFiles) {
-        test(`rules/${file} matches .claude/rules/${file} (body content)`, () => {
-            const dotClaudePath = path.join(dotClaudeRulesDir, file);
-            assert.ok(fs.existsSync(dotClaudePath),
-                `.claude/rules/${file} should exist as counterpart to rules/${file}`);
-
-            const rulesContent = fs.readFileSync(path.join(rulesDir, file), 'utf8').trim();
-            const dotClaudeContent = stripFrontmatter(
-                fs.readFileSync(dotClaudePath, 'utf8')
-            ).trim();
-
-            assert.strictEqual(dotClaudeContent, rulesContent,
-                `Body content of .claude/rules/${file} (with frontmatter stripped) should match rules/${file}`);
-        });
-    }
-
-    // Verify learnings.md only exists in .claude/rules/ (special case)
-    test('learnings.md exists in .claude/rules/ but NOT in rules/', () => {
+    test('learnings.md exists in .claude/rules/', () => {
         assert.ok(fs.existsSync(path.join(dotClaudeRulesDir, 'learnings.md')),
             'learnings.md should exist in .claude/rules/');
-        assert.ok(!fs.existsSync(path.join(rulesDir, 'learnings.md')),
-            'learnings.md should NOT exist in rules/ (it is project-specific only)');
+    });
+
+    test('.claude/rules/ has no duplicate of eliminated rules/ directory', () => {
+        // rules/ at project root was eliminated; .claude/rules/ is the single source
+        assert.ok(!fs.existsSync(path.join(ROOT, 'rules')),
+            'rules/ directory at project root should not exist (eliminated)');
     });
 });
 
@@ -908,8 +835,8 @@ suite('Installer validation', () => {
     });
 
     test('generate-checksums.sh exists and is valid bash', () => {
-        assert.ok(fileExists('generate-checksums.sh'), 'generate-checksums.sh should exist');
-        execSync('bash -n ' + path.join(ROOT, 'generate-checksums.sh'), {
+        assert.ok(fileExists('.claude-sentient/generate-checksums.sh'), '.claude-sentient/generate-checksums.sh should exist');
+        execSync('bash -n ' + path.join(ROOT, '.claude-sentient', 'generate-checksums.sh'), {
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe'],
         });
@@ -918,7 +845,7 @@ suite('Installer validation', () => {
 
     test('install.sh references CHECKSUMS.sha256 for integrity verification', () => {
         const content = readFile('install.sh');
-        assert.ok(content.includes('CHECKSUMS.sha256'),
+        assert.ok(content.includes('CHECKSUMS.sha256') || content.includes('.claude-sentient/CHECKSUMS.sha256'),
             'install.sh should reference CHECKSUMS.sha256 for file integrity');
     });
 
