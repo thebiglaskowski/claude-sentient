@@ -197,6 +197,14 @@ if (-not (Test-Path ".claude/rules/learnings.md")) {
     Write-Host "  Preserved existing .claude/rules/learnings.md"
 }
 
+Write-Host "Creating CLAUDE.local.md template..."
+if (-not (Test-Path "CLAUDE.local.md")) {
+    Copy-Item "$TempDir/templates/CLAUDE.local.md" -Destination "CLAUDE.local.md"
+    Write-Host "  Created CLAUDE.local.md (gitignored - personal preferences)"
+} else {
+    Write-Host "  Preserved existing CLAUDE.local.md"
+}
+
 Write-Host "Installing path-scoped rules..."
 Get-ChildItem "$TempDir/.claude/rules/*.md" | Where-Object { $_.Name -ne "learnings.md" -and $_.Name -ne "README.md" } | ForEach-Object {
     Copy-Item $_.FullName -Destination ".claude/rules/$($_.Name)" -Force

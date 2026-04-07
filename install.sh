@@ -161,6 +161,14 @@ else
     echo "  Preserved existing .claude/rules/learnings.md"
 fi
 
+echo "Creating CLAUDE.local.md template..."
+if [ ! -f "CLAUDE.local.md" ]; then
+    cp "$TEMP_DIR"/templates/CLAUDE.local.md ./CLAUDE.local.md
+    echo "  Created CLAUDE.local.md (gitignored - personal preferences)"
+else
+    echo "  Preserved existing CLAUDE.local.md"
+fi
+
 echo "Installing path-scoped rules..."
 for rule in "$TEMP_DIR"/.claude/rules/*.md; do
     rulename=$(basename "$rule")
