@@ -187,6 +187,18 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notification.cjs",
+            "timeout": 3000,
+            "async": true
+          }
+        ]
+      }
     ]
   },
   "env": {

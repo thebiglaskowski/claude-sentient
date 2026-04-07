@@ -383,6 +383,25 @@ function appendCapped(filename, entry, maxLength, defaultVal = []) {
     return arr.length;
 }
 
+/**
+ * Load notification configuration from .claude/state/notification-config.json.
+ * Returns null if config doesn't exist or is disabled.
+ * @param {string} [projectRoot] - Optional project root override
+ * @returns {Object|null} Notification config or null
+ */
+function getNotificationConfig(projectRoot) {
+    try {
+        const root = projectRoot || getProjectRoot();
+        const configPath = path.join(root, '.claude', 'state', 'notification-config.json');
+        if (!fs.existsSync(configPath)) return null;
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        if (!config || !config.enabled) return null;
+        return config;
+    } catch (_) {
+        return null;
+    }
+}
+
 module.exports = {
     ensureStateDir,
     parseHookInput,
@@ -430,4 +449,5 @@ module.exports = {
     MAX_GATE_OUTPUTS,
     SECRET_PATTERNS,
     MAX_SKILL_USAGE,
+    getNotificationConfig,
 };

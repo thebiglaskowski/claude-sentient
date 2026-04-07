@@ -118,6 +118,7 @@ Copy-Item "$TempDir/.claude/hooks/*.cjs" -Destination ".claude/hooks/" -Force
 Copy-Item "$TempDir/.claude/hooks/README.md" -Destination ".claude/hooks/" -Force
 Copy-Item "$TempDir/.claude/hooks/__tests__/*.js" -Destination ".claude/hooks/__tests__/" -Force
 Write-Host "  Installed hook scripts + tests"
+Write-Host "  Includes notification hook (configure via notification-config.json)"
 
 Write-Host "Installing agents..."
 New-Item -ItemType Directory -Force -Path "agents/__tests__" | Out-Null

@@ -83,6 +83,7 @@ cp "$TEMP_DIR"/.claude/hooks/*.cjs .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/README.md .claude/hooks/
 cp "$TEMP_DIR"/.claude/hooks/__tests__/*.js .claude/hooks/__tests__/
 echo "  Installed hook scripts + tests"
+echo "  Includes notification hook (configure via notification-config.json)"
 
 echo "Installing agents..."
 mkdir -p agents/__tests__
