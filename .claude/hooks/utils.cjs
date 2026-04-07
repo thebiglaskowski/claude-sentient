@@ -62,6 +62,15 @@ function getProjectRoot() {
     return _cachedProjectRoot;
 }
 
+/**
+ * Resolve the .claude-sentient directory path.
+ * All Claude Sentient project files (profiles, schemas, templates, docs)
+ * live here to avoid polluting the project root.
+ * @returns {string} Absolute path to .claude-sentient/
+ */
+function getCSDir() {
+    return path.join(getProjectRoot(), '.claude-sentient');
+}
 
 // Named constants for state management limits
 const MAX_PROMPT_HISTORY = 50;
@@ -450,4 +459,5 @@ module.exports = {
     SECRET_PATTERNS,
     MAX_SKILL_USAGE,
     getNotificationConfig,
+    getCSDir,
 };
