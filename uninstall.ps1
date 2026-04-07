@@ -89,8 +89,9 @@ if (-not $DryRun) {
     Write-Host ""
 }
 
-# --- Shared test infrastructure ---
-Remove-FileItem "test-utils.js"
+# --- Claude Sentient directory (profiles, schemas, templates, examples, test-utils) ---
+Write-Host "Removing .claude-sentient/..."
+Remove-DirItem ".claude-sentient"
 
 # --- Commands ---
 Write-Host "Removing commands..."
@@ -108,29 +109,6 @@ Remove-FileItem ".claude/hooks/README.md"
 Remove-DirItem ".claude/hooks/__tests__"
 Remove-DirIfEmpty ".claude/hooks"
 
-# --- Profiles ---
-Write-Host "Removing profiles..."
-Remove-DirItem "profiles"
-
-# --- Agents ---
-Write-Host "Removing agents..."
-Remove-DirItem "agents"
-
-# --- Rules (project root) ---
-Write-Host "Removing rules..."
-Remove-DirItem "rules"
-
-# --- Templates ---
-Write-Host "Removing templates..."
-Remove-DirItem "templates"
-
-# --- Schemas ---
-Write-Host "Removing schemas..."
-Remove-DirItem "schemas"
-
-# --- Examples ---
-Write-Host "Removing examples..."
-Remove-DirItem "examples"
 
 # --- Plugin manifest ---
 Write-Host "Removing plugin manifest..."

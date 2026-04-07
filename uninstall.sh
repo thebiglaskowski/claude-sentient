@@ -103,8 +103,9 @@ remove_dir_if_empty() {
     fi
 }
 
-# --- Shared test infrastructure ---
-remove_file "test-utils.js"
+# --- Claude Sentient directory (profiles, schemas, templates, examples, test-utils) ---
+echo "Removing .claude-sentient/..."
+remove_dir ".claude-sentient"
 
 # --- Commands ---
 echo "Removing commands..."
@@ -122,29 +123,6 @@ remove_file ".claude/hooks/README.md"
 remove_dir ".claude/hooks/__tests__"
 remove_dir_if_empty ".claude/hooks"
 
-# --- Profiles ---
-echo "Removing profiles..."
-remove_dir "profiles"
-
-# --- Agents ---
-echo "Removing agents..."
-remove_dir "agents"
-
-# --- Rules (project root) ---
-echo "Removing rules..."
-remove_dir "rules"
-
-# --- Templates ---
-echo "Removing templates..."
-remove_dir "templates"
-
-# --- Schemas ---
-echo "Removing schemas..."
-remove_dir "schemas"
-
-# --- Examples ---
-echo "Removing examples..."
-remove_dir "examples"
 
 # --- Plugin manifest ---
 echo "Removing plugin manifest..."

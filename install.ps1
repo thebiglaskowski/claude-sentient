@@ -47,14 +47,14 @@ if (Test-Path $TempDir) {
 }
 
 git clone --depth 1 --quiet $RepoUrl $TempDir 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path "$TempDir/CHECKSUMS.sha256")) {
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path "$TempDir/.claude-sentient/CHECKSUMS.sha256")) {
     Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
     Write-Error "Failed to download claude-sentient. Ensure git is installed and you have internet access."
     exit 1
 }
 
 # Verify file integrity
-$checksumFile = "$TempDir/CHECKSUMS.sha256"
+$checksumFile = "$TempDir/.claude-sentient/CHECKSUMS.sha256"
 if (Test-Path $checksumFile) {
     Write-Host "Verifying file integrity..."
     $allValid = $true
@@ -90,7 +90,8 @@ if (Test-Path $checksumFile) {
 }
 
 Write-Host "Installing shared test infrastructure..."
-Copy-Item "$TempDir/test-utils.js" -Destination "./test-utils.js" -Force
+New-Item -ItemType Directory -Force -Path ".claude-sentient" | Out-Null
+Copy-Item "$TempDir/.claude-sentient/test-utils.js" -Destination ".claude-sentient/test-utils.js" -Force
 
 Write-Host "Installing commands..."
 New-Item -ItemType Directory -Force -Path ".claude/commands" | Out-Null
@@ -98,19 +99,15 @@ Copy-Item "$TempDir/.claude/commands/cs-*.md" -Destination ".claude/commands/" -
 Copy-Item "$TempDir/.claude/commands/CLAUDE.md" -Destination ".claude/commands/" -Force
 
 Write-Host "Installing profiles..."
-New-Item -ItemType Directory -Force -Path "profiles/__tests__" | Out-Null
-Copy-Item "$TempDir/profiles/*.yaml" -Destination "profiles/" -Force
-Copy-Item "$TempDir/profiles/CLAUDE.md" -Destination "profiles/" -Force
-Copy-Item "$TempDir/profiles/__tests__/*.js" -Destination "profiles/__tests__/" -Force
-
-Write-Host "Installing rules..."
-New-Item -ItemType Directory -Force -Path "rules" | Out-Null
-Copy-Item "$TempDir/rules/*.md" -Destination "rules/" -Force
+New-Item -ItemType Directory -Force -Path ".claude-sentient/profiles/__tests__" | Out-Null
+Copy-Item "$TempDir/.claude-sentient/profiles/*.yaml" -Destination ".claude-sentient/profiles/" -Force
+Copy-Item "$TempDir/.claude-sentient/profiles/CLAUDE.md" -Destination ".claude-sentient/profiles/" -Force
+Copy-Item "$TempDir/.claude-sentient/profiles/__tests__/*.js" -Destination ".claude-sentient/profiles/__tests__/" -Force
 
 Write-Host "Installing templates..."
-New-Item -ItemType Directory -Force -Path "templates" | Out-Null
-Copy-Item "$TempDir/templates/*.md" -Destination "templates/" -Force
-Copy-Item "$TempDir/templates/settings.json" -Destination "templates/" -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path ".claude-sentient/templates" | Out-Null
+Copy-Item "$TempDir/.claude-sentient/templates/*.md" -Destination ".claude-sentient/templates/" -Force
+Copy-Item "$TempDir/.claude-sentient/templates/settings.json" -Destination ".claude-sentient/templates/" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Installing hooks..."
 New-Item -ItemType Directory -Force -Path ".claude/hooks/__tests__" | Out-Null
@@ -120,21 +117,14 @@ Copy-Item "$TempDir/.claude/hooks/__tests__/*.js" -Destination ".claude/hooks/__
 Write-Host "  Installed hook scripts + tests"
 Write-Host "  Includes notification hook (configure via notification-config.json)"
 
-Write-Host "Installing agents..."
-New-Item -ItemType Directory -Force -Path "agents/__tests__" | Out-Null
-Copy-Item "$TempDir/agents/*.yaml" -Destination "agents/" -Force
-Copy-Item "$TempDir/agents/CLAUDE.md" -Destination "agents/" -Force
-Copy-Item "$TempDir/agents/__tests__/*.js" -Destination "agents/__tests__/" -Force
-Write-Host "  Installed agent definitions + tests"
-
 Write-Host "Installing native agents..."
 New-Item -ItemType Directory -Force -Path ".claude/agents" | Out-Null
 Copy-Item "$TempDir/.claude/agents/*.md" -Destination ".claude/agents/" -Force
 Write-Host "  Installed native agent definitions (.claude/agents/*.md)"
 
 Write-Host "Installing examples..."
-New-Item -ItemType Directory -Force -Path "examples" | Out-Null
-Copy-Item "$TempDir/examples/*.md" -Destination "examples/" -Force
+New-Item -ItemType Directory -Force -Path ".claude-sentient/examples" | Out-Null
+Copy-Item "$TempDir/.claude-sentient/examples/*.md" -Destination ".claude-sentient/examples/" -Force
 Write-Host "  Installed example CLAUDE.md templates (examples/)"
 
 Write-Host "Installing plugin manifest..."
@@ -163,14 +153,14 @@ Get-ChildItem "$TempDir/.claude/skills" -Directory | ForEach-Object {
 Write-Host "  Installed skills (.claude/skills/)"
 
 Write-Host "Installing schemas..."
-New-Item -ItemType Directory -Force -Path "schemas/__tests__" | Out-Null
-Copy-Item "$TempDir/schemas/*.json" -Destination "schemas/" -Force
-Copy-Item "$TempDir/schemas/__tests__/*.js" -Destination "schemas/__tests__/" -Force
+New-Item -ItemType Directory -Force -Path ".claude-sentient/schemas/__tests__" | Out-Null
+Copy-Item "$TempDir/.claude-sentient/schemas/*.json" -Destination ".claude-sentient/schemas/" -Force
+Copy-Item "$TempDir/.claude-sentient/schemas/__tests__/*.js" -Destination ".claude-sentient/schemas/__tests__/" -Force
 Write-Host "  Installed JSON schemas + tests"
 
 Write-Host "Installing settings..."
 # Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
-Copy-Item "$TempDir/templates/settings.json" -Destination ".claude/settings.json" -Force
+Copy-Item "$TempDir/.claude-sentient/templates/settings.json" -Destination ".claude/settings.json" -Force
 Write-Host "  Installed .claude/settings.json from template"
 # Make hook commands use absolute node binary path and absolute file paths.
 # - Absolute node binary (process.execPath) bypasses nvm's shell function to prevent
@@ -191,7 +181,7 @@ if ($nodeExec -and ($settingsContent -match '"node\s+.*?\.claude/hooks/')) {
 Write-Host "Initializing memory..."
 New-Item -ItemType Directory -Force -Path ".claude/rules" | Out-Null
 if (-not (Test-Path ".claude/rules/learnings.md")) {
-    Copy-Item "$TempDir/templates/learnings.md" -Destination ".claude/rules/learnings.md"
+    Copy-Item "$TempDir/.claude-sentient/templates/learnings.md" -Destination ".claude/rules/learnings.md"
     Write-Host "  Created .claude/rules/learnings.md"
 } else {
     Write-Host "  Preserved existing .claude/rules/learnings.md"
@@ -199,7 +189,7 @@ if (-not (Test-Path ".claude/rules/learnings.md")) {
 
 Write-Host "Creating CLAUDE.local.md template..."
 if (-not (Test-Path "CLAUDE.local.md")) {
-    Copy-Item "$TempDir/templates/CLAUDE.local.md" -Destination "CLAUDE.local.md"
+    Copy-Item "$TempDir/.claude-sentient/templates/CLAUDE.local.md" -Destination "CLAUDE.local.md"
     Write-Host "  Created CLAUDE.local.md (gitignored - personal preferences)"
 } else {
     Write-Host "  Preserved existing CLAUDE.local.md"
@@ -315,26 +305,23 @@ Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host 'Installed:'
-Write-Host '  .claude/commands/cs-*.md       (15 commands)'
-Write-Host '  .claude/hooks/*.cjs             (16 hook scripts)'
-Write-Host '  .claude/hooks/__tests__/       (266 hook tests)'
-Write-Host '  .claude/settings.json          (hook configuration)'
-Write-Host '  profiles/*.yaml                (9 profiles + schema)'
-Write-Host '  profiles/__tests__/            (242 profile tests)'
-Write-Host '  agents/*.yaml                  (9 agent roles)'
-Write-Host '  .claude/agents/*.md            (9 native agent definitions)'
-Write-Host '  agents/__tests__/              (108 agent tests)'
-Write-Host '  .claude/skills/                (3 skills)'
-Write-Host '  schemas/*.json                 (12 JSON schemas)'
-Write-Host '  schemas/__tests__/             (188 schema tests)'
-Write-Host '  rules/*.md                     (15 topic rules)'
-Write-Host '  templates/                     (4 templates + settings.json)'
-Write-Host '  test-utils.js                  (shared test infrastructure)'
-Write-Host '  .claude/rules/*.md              (15 path-scoped rules)'
-Write-Host '  examples/                      (4 example CLAUDE.md templates)'
-Write-Host '  .claude-plugin/                (plugin marketplace manifest)'
-Write-Host '  .cursor/rules/                 (Cursor IDE integration)'
-Write-Host '  .codex/                        (Codex IDE integration)'
+Write-Host '  .claude/commands/cs-*.md              (15 commands)'
+Write-Host '  .claude/hooks/*.cjs                    (16 hook scripts)'
+Write-Host '  .claude/hooks/__tests__/              (266 hook tests)'
+Write-Host '  .claude/settings.json                 (hook configuration)'
+Write-Host '  .claude/agents/*.md                   (9 native agent definitions)'
+Write-Host '  .claude/skills/                       (3 skills)'
+Write-Host '  .claude/rules/*.md                     (15 path-scoped rules)'
+Write-Host '  .claude-sentient/profiles/*.yaml      (9 profiles + schema)'
+Write-Host '  .claude-sentient/profiles/__tests__/  (242 profile tests)'
+Write-Host '  .claude-sentient/schemas/*.json       (12+ JSON schemas)'
+Write-Host '  .claude-sentient/schemas/__tests__/   (schema tests)'
+Write-Host '  .claude-sentient/templates/           (templates + settings.json)'
+Write-Host '  .claude-sentient/test-utils.js        (shared test infrastructure)'
+Write-Host '  .claude-sentient/examples/            (example CLAUDE.md templates)'
+Write-Host '  .claude-plugin/                       (plugin marketplace manifest)'
+Write-Host '  .cursor/rules/                        (Cursor IDE integration)'
+Write-Host '  .codex/                               (Codex IDE integration)'
 if ($PluginsInstalled.Count -gt 0) {
     $pluginList = $PluginsInstalled -join ", "
     Write-Host "  plugins                        ($pluginList)"

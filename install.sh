@@ -40,9 +40,9 @@ rm -rf "$TEMP_DIR"
 git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR"
 
 # Verify file integrity
-if [ -f "$TEMP_DIR/CHECKSUMS.sha256" ]; then
+if [ -f "$TEMP_DIR/.claude-sentient/CHECKSUMS.sha256" ]; then
     echo "Verifying file integrity..."
-    if (cd "$TEMP_DIR" && sha256sum -c CHECKSUMS.sha256 --quiet 2>/dev/null); then
+    if (cd "$TEMP_DIR" && sha256sum -c .claude-sentient/CHECKSUMS.sha256 --quiet 2>/dev/null); then
         echo "✓ All file checksums verified"
     else
         if [ "$FORCE_INSTALL" = false ]; then
@@ -55,7 +55,8 @@ if [ -f "$TEMP_DIR/CHECKSUMS.sha256" ]; then
 fi
 
 echo "Installing shared test infrastructure..."
-cp "$TEMP_DIR"/test-utils.js ./test-utils.js
+mkdir -p .claude-sentient
+cp "$TEMP_DIR"/.claude-sentient/test-utils.js .claude-sentient/test-utils.js
 
 echo "Installing commands..."
 mkdir -p .claude/commands
@@ -63,19 +64,15 @@ cp "$TEMP_DIR"/.claude/commands/cs-*.md .claude/commands/
 cp "$TEMP_DIR"/.claude/commands/CLAUDE.md .claude/commands/
 
 echo "Installing profiles..."
-mkdir -p profiles/__tests__
-cp "$TEMP_DIR"/profiles/*.yaml profiles/
-cp "$TEMP_DIR"/profiles/CLAUDE.md profiles/
-cp "$TEMP_DIR"/profiles/__tests__/*.js profiles/__tests__/
-
-echo "Installing rules..."
-mkdir -p rules
-cp "$TEMP_DIR"/rules/*.md rules/
+mkdir -p .claude-sentient/profiles/__tests__
+cp "$TEMP_DIR"/.claude-sentient/profiles/*.yaml .claude-sentient/profiles/
+cp "$TEMP_DIR"/.claude-sentient/profiles/CLAUDE.md .claude-sentient/profiles/
+cp "$TEMP_DIR"/.claude-sentient/profiles/__tests__/*.js .claude-sentient/profiles/__tests__/
 
 echo "Installing templates..."
-mkdir -p templates
-cp "$TEMP_DIR"/templates/*.md templates/
-cp "$TEMP_DIR"/templates/settings.json templates/ 2>/dev/null || true
+mkdir -p .claude-sentient/templates
+cp "$TEMP_DIR"/.claude-sentient/templates/*.md .claude-sentient/templates/
+cp "$TEMP_DIR"/.claude-sentient/templates/settings.json .claude-sentient/templates/ 2>/dev/null || true
 
 echo "Installing hooks..."
 mkdir -p .claude/hooks/__tests__
@@ -85,21 +82,14 @@ cp "$TEMP_DIR"/.claude/hooks/__tests__/*.js .claude/hooks/__tests__/
 echo "  Installed hook scripts + tests"
 echo "  Includes notification hook (configure via notification-config.json)"
 
-echo "Installing agents..."
-mkdir -p agents/__tests__
-cp "$TEMP_DIR"/agents/*.yaml agents/
-cp "$TEMP_DIR"/agents/CLAUDE.md agents/
-cp "$TEMP_DIR"/agents/__tests__/*.js agents/__tests__/
-echo "  Installed agent definitions + tests"
-
 echo "Installing native agents..."
 mkdir -p .claude/agents
 cp "$TEMP_DIR"/.claude/agents/*.md .claude/agents/
 echo "  Installed native agent definitions (.claude/agents/*.md)"
 
 echo "Installing examples..."
-mkdir -p examples
-cp "$TEMP_DIR"/examples/*.md examples/
+mkdir -p .claude-sentient/examples
+cp "$TEMP_DIR"/.claude-sentient/examples/*.md .claude-sentient/examples/
 echo "  Installed example CLAUDE.md templates (examples/)"
 
 echo "Installing plugin manifest..."
@@ -127,14 +117,14 @@ done
 echo "  Installed skills (.claude/skills/)"
 
 echo "Installing schemas..."
-mkdir -p schemas/__tests__
-cp "$TEMP_DIR"/schemas/*.json schemas/
-cp "$TEMP_DIR"/schemas/__tests__/*.js schemas/__tests__/
+mkdir -p .claude-sentient/schemas/__tests__
+cp "$TEMP_DIR"/.claude-sentient/schemas/*.json .claude-sentient/schemas/
+cp "$TEMP_DIR"/.claude-sentient/schemas/__tests__/*.js .claude-sentient/schemas/__tests__/
 echo "  Installed JSON schemas + tests"
 
 echo "Installing settings..."
 # Always refresh from template to ensure hooks are current (fixes broken paths on reinstall)
-cp "$TEMP_DIR"/templates/settings.json .claude/settings.json
+cp "$TEMP_DIR"/.claude-sentient/templates/settings.json .claude/settings.json
 echo "  Installed .claude/settings.json from template"
 # Make hook commands use absolute node binary path and absolute file paths.
 # - Absolute node binary (process.execPath) bypasses nvm's shell function to prevent
@@ -155,7 +145,7 @@ fi
 echo "Initializing memory..."
 mkdir -p .claude/rules
 if [ ! -f ".claude/rules/learnings.md" ]; then
-    cp "$TEMP_DIR"/templates/learnings.md .claude/rules/learnings.md
+    cp "$TEMP_DIR"/.claude-sentient/templates/learnings.md .claude/rules/learnings.md
     echo "  Created .claude/rules/learnings.md"
 else
     echo "  Preserved existing .claude/rules/learnings.md"
@@ -163,7 +153,7 @@ fi
 
 echo "Creating CLAUDE.local.md template..."
 if [ ! -f "CLAUDE.local.md" ]; then
-    cp "$TEMP_DIR"/templates/CLAUDE.local.md ./CLAUDE.local.md
+    cp "$TEMP_DIR"/.claude-sentient/templates/CLAUDE.local.md ./CLAUDE.local.md
     echo "  Created CLAUDE.local.md (gitignored - personal preferences)"
 else
     echo "  Preserved existing CLAUDE.local.md"
@@ -261,26 +251,23 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "Installed:"
-echo "  .claude/commands/cs-*.md       (15 commands)"
-echo "  .claude/hooks/*.cjs             (16 hook scripts)"
-echo "  .claude/hooks/__tests__/       (266 hook tests)"
-echo "  .claude/settings.json          (hook configuration)"
-echo "  profiles/*.yaml                (9 profiles + schema)"
-echo "  profiles/__tests__/            (242 profile tests)"
-echo "  agents/*.yaml                  (9 agent roles)"
-echo "  .claude/agents/*.md            (9 native agent definitions)"
-echo "  agents/__tests__/              (108 agent tests)"
-echo "  .claude/skills/                (3 skills)"
-echo "  schemas/*.json                 (12 JSON schemas)"
-echo "  schemas/__tests__/             (188 schema tests)"
-echo "  rules/*.md                     (15 topic rules)"
-echo "  templates/                     (4 templates + settings.json)"
-echo "  test-utils.js                  (shared test infrastructure)"
-echo "  .claude/rules/*.md              (15 path-scoped rules)"
-echo "  examples/                      (4 example CLAUDE.md templates)"
-echo "  .claude-plugin/                (plugin marketplace manifest)"
-echo "  .cursor/rules/                 (Cursor IDE integration)"
-echo "  .codex/                        (Codex IDE integration)"
+echo "  .claude/commands/cs-*.md              (15 commands)"
+echo "  .claude/hooks/*.cjs                    (16 hook scripts)"
+echo "  .claude/hooks/__tests__/              (266 hook tests)"
+echo "  .claude/settings.json                 (hook configuration)"
+echo "  .claude/agents/*.md                   (9 native agent definitions)"
+echo "  .claude/skills/                       (3 skills)"
+echo "  .claude/rules/*.md                     (15 path-scoped rules)"
+echo "  .claude-sentient/profiles/*.yaml      (9 profiles + schema)"
+echo "  .claude-sentient/profiles/__tests__/  (242 profile tests)"
+echo "  .claude-sentient/schemas/*.json       (12+ JSON schemas)"
+echo "  .claude-sentient/schemas/__tests__/   (schema tests)"
+echo "  .claude-sentient/templates/           (templates + settings.json)"
+echo "  .claude-sentient/test-utils.js        (shared test infrastructure)"
+echo "  .claude-sentient/examples/            (example CLAUDE.md templates)"
+echo "  .claude-plugin/                       (plugin marketplace manifest)"
+echo "  .cursor/rules/                        (Cursor IDE integration)"
+echo "  .codex/                               (Codex IDE integration)"
 if [ -n "$PLUGINS_INSTALLED" ]; then
     echo "  plugins                        ($PLUGINS_INSTALLED)"
 fi
