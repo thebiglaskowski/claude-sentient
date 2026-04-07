@@ -55,6 +55,10 @@ Check these exist, create from `templates/` if missing: `STATUS.md`, `CHANGELOG.
 
 Check for `CLAUDE.md` — if missing, report: `[INIT] No CLAUDE.md found. Run /cs-init to create context architecture.`
 
+Check for `CLAUDE.local.md` in project root. If missing and first session, note: `[INIT] Tip: Create CLAUDE.local.md for personal preferences (gitignored). Template: templates/CLAUDE.local.md`
+
+- **Cross-model workflow**: For high-stakes changes, consider Claude + Codex QA review. See `references/cross-model.md`
+
 ## Gotchas
 
 - **Conda env not activated**: If `environment.yml` exists but commands run in system Python, the `conda run -n <env>` prefix was not applied. Always check for this indicator before running any Python commands.
