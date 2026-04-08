@@ -8,7 +8,7 @@
 # Local settings (not shared)
 .claude/settings.local.json
 .claude/state/
-CLAUDE.local.md
+/CLAUDE.local.md
 
 # Keep these in version control:
 # - .claude/settings.json (project settings)

@@ -1,5 +1,5 @@
 # Claude Sentient v1.7.1 — File Checksums
-# Generated: 2026-04-08T02:42:27Z
+# Generated: 2026-04-08T02:45:30Z
 
 1525820cedf34c99382ce61636270c2d96d8a279c2da096cdf02837053f14c77  .claude-plugin/marketplace.json
 7eb77f66d78c460a8ccaf32ca506744db02428511e2b73aaaf356aa4fe8a1b5a  .claude-plugin/plugin.json
@@ -35,6 +35,7 @@ a6e60d1499b141a11cb5b1c9fffc45c85a83f271992cca00db165f196652f839  .claude-sentie
 43fcaff7d2b737baa64d0148e5c507400e8c6598a3f73fca3891e5ec5ba9f9ca  .claude-sentient/schemas/team-state.schema.json
 48a6341ae705b080d1d37d53147be1c525331f32264f49227c3fb9905d83ac72  .claude-sentient/schemas/worktree-context.schema.json
 f125aab32f3dc379e7aa29296fb37796393addf49623007149a57aebc2440d17  .claude-sentient/templates/CHANGELOG.md
+2b54e47e667a6a8a61406de4f643bfc980d7011fbb29718c86c9d49d62273fab  .claude-sentient/templates/CLAUDE.local.md
 3039e79ee76a26bd287bae0c3dc8b41658d055cb0b80a679bdda2146e0d4f1e2  .claude-sentient/templates/DECISIONS.md
 e39a25744a644f01bef1ba80ad79c52062a7d8db409734cc2924410e410a462e  .claude-sentient/templates/STATUS.md
 10afff63bc0d2f62c6478c93332fe518e9c0046d37919b379acea46a0486c03c  .claude-sentient/templates/learnings.md
