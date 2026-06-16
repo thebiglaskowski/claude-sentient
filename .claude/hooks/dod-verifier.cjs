@@ -6,9 +6,25 @@
  * Verifies that quality gates passed and DoD is met.
  */
 
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { execSync } = require('child_process');
 const { loadState, saveState, logMessage, GIT_EXEC_OPTIONS } = require('./utils.cjs');
+
+// Loop guard: prevents infinite loops when Stop hook output feeds back to Claude.
+// If this hook ran within the last 30s, exit silently.
+const LOCKFILE = path.join(os.tmpdir(), 'dod-verifier-' + path.basename(process.cwd()) + '.lock');
+const COOLDOWN_MS = 30000;
+(function checkCooldown() {
+    try {
+        const stat = fs.statSync(LOCKFILE);
+        if (Date.now() - stat.mtimeMs < COOLDOWN_MS) {
+            process.exit(0); // silent exit, no stdout feedback to Claude
+        }
+    } catch (_) { /* lock file doesn't exist yet, proceed */ }
+    fs.writeFileSync(LOCKFILE, new Date().toISOString());
+}());
 
 // Extension-to-language mapping for change categorization
 const EXT_TO_LANG = {

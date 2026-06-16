@@ -148,6 +148,16 @@ for rule in "${SCOPED_RULES[@]}"; do
     remove_file ".claude/rules/$rule"
 done
 
+# --- Documentation handbook ---
+if [ "$KEEP_LEARNINGS" = true ]; then
+    if [ -d "documentation" ]; then
+        echo "Preserving documentation/ handbook (use --purge to remove)"
+    fi
+else
+    echo "Removing documentation handbook..."
+    remove_dir "documentation"
+fi
+
 # --- Learnings ---
 if [ "$KEEP_LEARNINGS" = true ]; then
     if [ -f ".claude/rules/learnings.md" ]; then
@@ -211,8 +221,9 @@ echo "Removed $removed items."
 if [ "$backed_up" -gt 0 ]; then
     echo "Backed up: .claude/settings.json → .claude/settings.json.bak"
 fi
-if [ "$KEEP_LEARNINGS" = true ] && [ -f ".claude/rules/learnings.md" ]; then
-    echo "Preserved: .claude/rules/learnings.md"
+if [ "$KEEP_LEARNINGS" = true ]; then
+    [ -d "documentation" ] && echo "Preserved: documentation/"
+    [ -f ".claude/rules/learnings.md" ] && echo "Preserved: .claude/rules/learnings.md"
 fi
 echo ""
 echo "Note: CLAUDE.md was not modified. Remove it manually if desired."

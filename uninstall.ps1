@@ -134,6 +134,16 @@ foreach ($rule in $scopedRules) {
     Remove-FileItem ".claude/rules/$rule"
 }
 
+# --- Documentation handbook ---
+if (-not $Purge) {
+    if (Test-Path "documentation" -PathType Container) {
+        Write-Host "Preserving documentation/ handbook (use -Purge to remove)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Removing documentation handbook..."
+    Remove-DirItem "documentation"
+}
+
 # --- Learnings ---
 if (-not $Purge) {
     if (Test-Path ".claude/rules/learnings.md") {
@@ -198,8 +208,13 @@ Write-Host "Removed $($script:removed) items."
 if ($script:backedUp -gt 0) {
     Write-Host "Backed up: .claude/settings.json -> .claude/settings.json.bak" -ForegroundColor Yellow
 }
-if ((-not $Purge) -and (Test-Path ".claude/rules/learnings.md" -ErrorAction SilentlyContinue)) {
-    Write-Host "Preserved: .claude/rules/learnings.md" -ForegroundColor Yellow
+if (-not $Purge) {
+    if (Test-Path "documentation" -PathType Container -ErrorAction SilentlyContinue) {
+        Write-Host "Preserved: documentation/" -ForegroundColor Yellow
+    }
+    if (Test-Path ".claude/rules/learnings.md" -ErrorAction SilentlyContinue) {
+        Write-Host "Preserved: .claude/rules/learnings.md" -ForegroundColor Yellow
+    }
 }
 Write-Host ""
 Write-Host "Note: CLAUDE.md was not modified. Remove it manually if desired."

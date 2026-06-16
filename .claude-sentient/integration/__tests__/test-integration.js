@@ -674,6 +674,62 @@ suite('Documentation consistency', () => {
         assert.strictEqual(rows.length, profileFiles.length,
             `CLAUDE.md profile rows (${rows.length}) should match profile files (${profileFiles.length})`);
     });
+
+    test('CHECKSUMS.sha256 version matches CLAUDE.md version', () => {
+        const checksumFile = readFile('.claude-sentient/CHECKSUMS.sha256');
+        const checksumVersion = checksumFile.match(/^# Claude Sentient v(\d+\.\d+\.\d+)/);
+        const claudeVersion = claudeMd.match(/\*\*Version:\*\*\s*(\d+\.\d+\.\d+)/);
+
+        assert.ok(checksumVersion, 'CHECKSUMS.sha256 should contain a version header');
+        assert.ok(claudeVersion, 'CLAUDE.md should contain a version number');
+
+        assert.strictEqual(checksumVersion[1], claudeVersion[1],
+            `CHECKSUMS.sha256 version (${checksumVersion[1]}) must match CLAUDE.md (${claudeVersion[1]}) — run generate-checksums.sh`);
+    });
+
+    test('CHECKSUMS.sha256 version matches generate-checksums.sh version', () => {
+        const checksumFile = readFile('.claude-sentient/CHECKSUMS.sha256');
+        const generatorScript = readFile('.claude-sentient/generate-checksums.sh');
+        const checksumVersion = checksumFile.match(/^# Claude Sentient v(\d+\.\d+\.\d+)/);
+        const scriptVersion = generatorScript.match(/Claude Sentient v(\d+\.\d+\.\d+)/);
+
+        assert.ok(checksumVersion, 'CHECKSUMS.sha256 should contain a version header');
+        assert.ok(scriptVersion, 'generate-checksums.sh should contain a version string');
+
+        assert.strictEqual(checksumVersion[1], scriptVersion[1],
+            `CHECKSUMS.sha256 version (${checksumVersion[1]}) must match generate-checksums.sh (${scriptVersion[1]})`);
+    });
+
+    test('CHECKSUMS.sha256 hashes match current files', () => {
+        const crypto = require('crypto');
+        const checksumFile = readFile('.claude-sentient/CHECKSUMS.sha256');
+        const lines = checksumFile.split('\n').filter(l => /^\w{64}\s+/.test(l));
+
+        assert.ok(lines.length > 0, 'CHECKSUMS.sha256 should contain checksum entries');
+
+        const mismatches = [];
+        const missing = [];
+        for (const line of lines) {
+            const match = line.match(/^(\w{64})\s+(.+)$/);
+            if (!match) continue;
+            const [, expectedHash, relPath] = match;
+            const fullPath = path.join(ROOT, relPath);
+            if (!fs.existsSync(fullPath)) {
+                missing.push(relPath);
+                continue;
+            }
+            const content = fs.readFileSync(fullPath);
+            const actualHash = crypto.createHash('sha256').update(content).digest('hex');
+            if (actualHash !== expectedHash) {
+                mismatches.push(relPath);
+            }
+        }
+
+        assert.strictEqual(missing.length, 0,
+            `Files listed in CHECKSUMS.sha256 but missing on disk: ${missing.join(', ')}`);
+        assert.strictEqual(mismatches.length, 0,
+            `Stale checksums (run generate-checksums.sh): ${mismatches.join(', ')}`);
+    });
 });
 
 // ============================================================
