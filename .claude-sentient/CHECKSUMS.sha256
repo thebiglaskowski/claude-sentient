@@ -1,5 +1,5 @@
 # Claude Sentient v1.7.1 — File Checksums
-# Generated: 2026-04-08T02:45:30Z
+# Generated: 2026-08-02T17:26:53Z
 
 1525820cedf34c99382ce61636270c2d96d8a279c2da096cdf02837053f14c77  .claude-plugin/marketplace.json
 7eb77f66d78c460a8ccaf32ca506744db02428511e2b73aaaf356aa4fe8a1b5a  .claude-plugin/plugin.json
@@ -64,14 +64,14 @@ a36e338f45218fe2b98e7a7de9458c7cb8b9c4bbf868e24d530c8b22780a81a9  .claude/comman
 98604d217d8fb630e3d4d6e16a1410bbb86c574a90fdf207ec7946c119e41772  .claude/commands/cs-validate.md
 4564422b3076d1579e16d1eaac42abff9f78ceeecbaadd82573d8a63fa28de47  .claude/hooks/CLAUDE.md
 84d91588c1a0bf7a0d4bb2182f72ab7504f36332d755d82c1b5a8c8d8c2649af  .claude/hooks/README.md
-f8930f808706f8eb123b9d31aabb6a18fb76b7498ec05ea7ff6f45d9c7af11c2  .claude/hooks/__tests__/test-hooks.js
+ce094c5748729092f0db0862168a5a2f12da2e7b56104398b138bc8db9211498  .claude/hooks/__tests__/test-hooks.js
 3d56bcfb97aacbee1285ccf132217dc1be884f188b2d476999d2b7c4214b162b  .claude/hooks/__tests__/test-notification.js
 9b734b2ebbda6bd030132b0dbe06fa9991c162e4d52f30280414ec1e45a31c5e  .claude/hooks/agent-synthesizer.cjs
 c72877bf222319995d8b77d855205b863e432c53bb12404af6b5bc3243717850  .claude/hooks/agent-tracker.cjs
 55d374350e093cbad370ccabe63689da3839d01a72fd0401fe0e5f0ab572946e  .claude/hooks/bash-validator.cjs
 570ad385d5ccd96f027bdb4d6cdfb88945137397a902223bbbeea18af7720786  .claude/hooks/config-watcher.cjs
 845f28391cd5294afc426effd93bad6c50dd523578e39f0aed3fa2068070a318  .claude/hooks/context-injector.cjs
-cdb58ca2269f5387060a7d86a71aa26bc1bf42d8486ab915a70674bca1b2ffaa  .claude/hooks/dod-verifier.cjs
+18fbb2cdd61b158372fded86c82b2450c111fb21dd6d185c9863ac08d68b931f  .claude/hooks/dod-verifier.cjs
 11e69180bc9eb6f50655bf25d865279475707200f7419f437ab4343a231719b3  .claude/hooks/file-validator.cjs
 aa81a1b7a86aaf154f3feaa4ce42142bc297968c4dcbbf1a9ce9bb5fc1289c50  .claude/hooks/notification.cjs
 104551c30dbbef1c034776fff073302dd5af0550333895cbe65536b03b26fc76  .claude/hooks/post-tool-observer.cjs

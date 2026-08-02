@@ -29,6 +29,13 @@ function runHook(hookName, input = {}, options = {}) {
         HOOK_INPUT: JSON.stringify(input),
     };
 
+    // dod-verifier has a 30s cooldown lockfile (stop-hook loop guard) that
+    // makes repeated runs exit silently. Clear it so each test gets fresh output.
+    if (hookName === 'dod-verifier.cjs') {
+        const lockfile = path.join(os.tmpdir(), 'dod-verifier-' + path.basename(cwd) + '.lock');
+        try { fs.unlinkSync(lockfile); } catch { /* not present */ }
+    }
+
     const result = execSync(`node "${hookPath}"`, {
         cwd,
         env,
